@@ -1,0 +1,102 @@
+ТОКЕН          МЕРЕЖА
+--------------------------
+BTC            Bitcoin ✅
+LTC            Litecoin ✅ 
+BCH            Bitcoin Cash ✅
+ETH            Ethereum ✅
+BNB            BSC ✅
+ETC            Ethereum Classic ✅
+TRX            Tron ✅
+SOL            Solana ✅
+USDT           Tron (TRC-20) ✅
+USDT           Ethereum (ERC-20) ✅
+USDC           Ethereum (ERC-20) ✅
+USDT           BSC (BEP-20) ✅
+USDC           BSC (BEP-20) ✅
+USDC           Tron (TRC-20) ✅
+DAI            Ethereum (ERC-20) ✅
+
+===========================================================
+ФАЙЛИ, ЯКІ ВІДПОВІДАЮТЬ ЗА ВІДПРАВКУ ТОКЕНІВ
+===========================================================
+
+── EXECUTOR-и (головна логіка SEND) ──────────────────────
+utxo_executor.dart          → BTC, LTC, BCH
+evm_executor.dart           → ETH, BNB, ETC
+                              + всі ERC-20/BEP-20 токени (USDT, USDC, DAI, ENS...)
+tron_executor.dart          → TRX, USDT/TRC-20, USDC/TRC-20
+solana_executor.dart        → SOL, USDC/SOL (SPL)
+
+Всі знаходяться у:
+lib/features/send/executors/
+
+── СЕРВІСИ низького рівня (підпис, broadcast) ────────────
+lib/core/blockchain/ethereum/ethereum_service.dart   → ETH + ERC-20
+lib/core/blockchain/tron/tron_service.dart           → TRX + TRC-20
+lib/core/blockchain/solana/solana_service.dart       → SOL + SPL
+lib/core/blockchain/solana/spl_token.dart            → SPL утиліти
+
+── BITCOIN — код є, але НЕ підключений до executor ───────
+lib/core/blockchain/bitcoin/bitcoin_signer.dart      → P2PKH + P2WPKH підпис (написано, не викликається)
+lib/core/blockchain/bitcoin/bitcoin_transaction.dart → UTXO builder (написано, не викликається)
+lib/core/blockchain/bitcoin/bitcoin_service.dart     → BTC сервіс (написано, не викликається)
+
+── ДОПОМІЖНІ файли ────────────────────────────────────────
+lib/features/send/services/transaction_executor.dart → базовий інтерфейс для всіх executor-ів
+lib/core/constants/token_catalog.dart                → правильні contract addresses всіх токенів
+lib/core/services/wallet_initialization_service.dart → де задаються asset.contractAddress (тут помилки)
+lib/core/config/api_config.dart                      → RPC URLs, API ключі для всіх мереж
+
+
+── FEE СЕРВІСИ (розрахунок комісій) — НЕ підключені до executor-ів ──
+lib/features/fee/services/fee_api_service.dart        → базовий інтерфейс для всіх fee сервісів
+lib/features/fee/services/fee_cache_service.dart      → кешування комісій
+lib/features/fee/models/                              → моделі FeeEstimate, FeeSpeed
+
+lib/features/fee/bitcoin_fee/bitcoin_fee_service.dart       → BTC комісія (mempool.space API)
+lib/features/fee/litecoin_fee/litecoin_fee_service.dart     → LTC комісія
+lib/features/fee/bitcoin_cash_fee/bitcoin_cash_fee_service.dart → BCH комісія
+lib/features/fee/ethereum_fee/ethereum_fee_service.dart     → ETH комісія
+lib/features/fee/bsc_fee/bsc_fee_service.dart               → BNB/BSC комісія
+lib/features/fee/avalanche_fee/avalanche_fee_service.dart   → AVAX комісія
+lib/features/fee/optimism_fee/optimism_fee_service.dart     → OP комісія
+lib/features/fee/ethereum_classic_fee/ethereum_classic_fee_service.dart → ETC комісія
+lib/features/fee/tron_fee/tron_fee_service.dart             → TRX комісія
+lib/features/fee/solana_fee/solana_fee_service.dart         → SOL комісія
+
+ВАЖЛИВО: жоден executor не імпортує ці fee сервіси.
+Комісії рахуються окремо від самого SEND — executor-и або хардкодять fee,
+або кидають помилку (utxo_executor).
+
+!!! ВСІ ПАПКИ fee/ ПРАЦЮЮТЬ ДОБРЕ !!!
+!!! ЇХ ЗАМІНЮВАТИ НІ В ЯКОМУ ВИПАДКУ НЕ МОЖНА !!!
+Ці сервіси написані правильно і є готовими до використання.
+Завдання — лише підключити їх до executor-ів, а не переписувати.
+
+── ДОДАТКОВО знайдені ──────────────────────────────────────
+lib/core/blockchain/base/blockchain_service.dart      → абстрактний інтерфейс (не впливає на SEND)
+lib/core/blockchain/bitcoin/bitcoin_service.dart      → BTC сервіс (UTXOs, broadcast) — є, але не викликається з utxo_executor
+
+── ГОЛОВНИЙ КООРДИНАТОР SEND (UI → executor) ──────────────
+lib/features/send/send_screen.dart
+  Роль: UI екран, який:
+    1. Читає суму та адресу від користувача
+    2. Показує FeeEstimate
+    3. Запитує PIN підтвердження
+    4. Викликає правильний executor за blockchain типом
+    5. Передає mnemonic, asset, toAddress, amount у executor.execute()
+  Це точка входу у весь SEND-процес.
+
+── НЕ СТОСУЄТЬСЯ SEND ──────────────────────────────────────
+lib/core/services/crypto_price_service.dart → тільки ціни (CoinGecko), не відправка
+
+===========================================================
+ПІДСУМОК: ПОВНИЙ СПИСОК ФАЙЛІВ SEND
+===========================================================
+send_screen.dart               ← координатор (UI)
+  ↓ викликає
+[blockchain]_executor.dart     ← логіка транзакції
+  ↓ викликає
+[blockchain]_service.dart      ← підпис + broadcast
+  ↓ паралельно
+[blockchain]_fee_service.dart  ← комісія (окремо, не підключено до executor)

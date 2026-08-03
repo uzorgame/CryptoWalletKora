@@ -1,0 +1,235 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        KORA WALLET — API КОНФІГ                             ║
+║         Всі API з api_config.dart + результати тестування                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Оновлено: Березень 2026
+Файл конфігу: lib/core/config/api_config.dart
+Легенда: ✅ тест пройшов  ❌ тест провалився  ⚠ умовно  — не перевірявся
+
+ВАЖЛИВО: всі нові API — лише ЗАПАСНІ (fallback).
+         Оригінальні API залишаються PRIMARY і запускаються першими.
+         Fallback спрацьовує тільки якщо PRIMARY не відповідає (через 1с).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 1. EVM RPC ENDPOINTS (відправка транзакцій + баланс ETH/BNB/ETC)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ Ланцюг    #   URL                                              Тест    Тип
+ ─────────────────────────────────────────────────────────────────────────────
+ Ethereum   1  rpc.ankr.com/eth/[key]                           —      PRIMARY
+            2  ethereum.publicnode.com                          ✅     FALLBACK
+            3  eth.llamarpc.com                                 ✅     FALLBACK
+
+ BSC        1  bsc-dataseed1.binance.org                        —      PRIMARY
+            2  bsc-dataseed2.binance.org                        ✅     FALLBACK
+            3  bsc-dataseed3.binance.org                        ✅     FALLBACK
+
+ ETC        1  etc.rivet.link                                   —      PRIMARY
+            2  etc.etcdesktop.com                               ✅     FALLBACK
+
+ ПРИМІТКИ:
+   • rpc.ankr.com/etc — ❌ повертає 403 Forbidden, видалено зі списку
+   • bsc-dataseed1..3 — офіційні Binance публічні ноди, однаковий формат
+   • Затримка між спробами: 1 секунда
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 2. BALANCE APIs (баланс для UTXO-ланцюгів)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ Ланцюг    #   URL                                              Тест    Тип
+ ─────────────────────────────────────────────────────────────────────────────
+ BTC        1  mempool.space/api/address/{addr}                 —      PRIMARY
+            2  blockstream.info/api/address/{addr}              ✅     FALLBACK
+              (той самий формат відповіді — прозора заміна)
+
+ LTC        1  litecoinspace.org/api/address/{addr}             —      PRIMARY
+            2  api.blockchair.com/litecoin/dashboards/…         ⚠ 430  FALLBACK
+              (різний формат — inline-парсинг, 430 = rate limit без ключа)
+
+ BCH        1  api.haskoin.com/bch/address/{addr}/balance       —      PRIMARY
+            2  api.blockchair.com/bitcoin-cash/dashboards/…     ⚠ 430  FALLBACK
+              (різний формат — inline-парсинг, 430 = rate limit без ключа)
+
+ ETH/BSC/ETC → EVM RPC (дивись секцію 1 вище)
+ SOL         → Helius RPC (дивись секцію 6)
+ TRX         → api.trongrid.io (дивись секцію 7)
+
+ ПРИМІТКИ:
+   • Blockchair 430 — відбувається при тестуванні без API ключа.
+     В додатку запити рідші, тому на практиці 200 OK.
+   • Затримка між спробами: 1 секунда
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 3. TRANSACTION HISTORY APIs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ Ланцюг    #   URL                                              Тест    Тип
+ ─────────────────────────────────────────────────────────────────────────────
+ ETH        1  api.etherscan.io/v2/api (chainId=1)              —      PRIMARY
+              (ключ: Etherscan ETH key)
+
+ BSC        1  bsc.blockscout.com/api                           —      PRIMARY (FREE)
+            2  api.bscscan.com/api                              —      FALLBACK (BSC key)
+
+ ETC        1  etc.blockscout.com/api                           —      PRIMARY (FREE)
+            2  blockscout.com/etc/mainnet/api                   ✅     FALLBACK (FREE)
+
+ BTC        1  mempool.space/api/address                        ✅     PRIMARY (CORS ✓)
+            2  blockchain.info/rawaddr                          ✅     FALLBACK (CORS ✓)
+            3  api.blockchair.com (dashboards)                  ⚠ 430  FALLBACK (rate limit)
+
+ LTC        1  api.blockchair.com (dashboards)                  ⚠ 430  PRIMARY
+ BCH        1  api.blockchair.com (dashboards)                  ⚠ 430  PRIMARY
+
+ SOL        1  api-mainnet.helius-rpc.com/v0/addresses/…        —      PRIMARY
+              (Helius Enhanced Transactions API, ключ: Helius)
+
+ TRX        1  apilist.tronscan.org/api/transaction             ✅     PRIMARY
+            2  apilist.tronscan.io/api/transaction              ✅     FALLBACK (mirror)
+
+ TRC-20     1  apilist.tronscan.org/api/token_trc20/transfers   ✅     PRIMARY
+            2  apilist.tronscan.io/api/token_trc20/transfers    ✅     FALLBACK (mirror)
+
+ ПРИМІТКИ:
+   • apilist.tronscanproject.org — ❌ домен не існує, видалено
+   • Затримка між спробами TRX/TRC-20: 1 секунда
+   • BTC: затримка між спробами API: 2 секунди
+   • BTC: mempool.space і blockchain.info — CORS-сумісні для веб-версії ✓
+   • BTC: якщо немає інтернету або timeout, автоматично пробує наступний API
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 4. UTXO FETCH + BROADCAST (для відправки BTC/LTC/BCH)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ Ланцюг   PRIMARY                         Тип          Ключ
+ ─────────────────────────────────────────────────────────────────────────────
+ BTC       mempool.space                  PRIMARY      ❌ (free)
+ LTC       litecoinspace.org              PRIMARY      ❌ (free)
+ BCH       api.haskoin.com/bch            PRIMARY      ❌ (free)
+
+ ПРИМІТКИ:
+   • UTXO та broadcast (відправка транзакцій) поки мають лише PRIMARY.
+   • Якщо litecoinspace.org або haskoin впадуть — відправка LTC/BCH
+     буде недоступна (fallback для UTXO/broadcast не реалізовано).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 5. FEE ESTIMATION APIs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ Ланцюг   PRIMARY                                       Ключ
+ ─────────────────────────────────────────────────────────────────────────────
+ BTC       mempool.space/api/v1/fees/recommended         ❌ (free)
+ LTC       litecoinspace.org/api/v1/fees/recommended     ❌ (free)
+ BCH       api.blockcypher.com/v1/bch/main               ❌ / опц.
+ ETH       api.etherscan.io (gas oracle)                 ✅ Є
+ BSC       api.bscscan.com (gas oracle)                  ✅ Є
+ ETC       Фіксована ціна (немає API)                    —
+ SOL       Helius RPC                                    ✅ Є
+ TRX       apilist.tronscan.org/api                      ❌ (free)
+
+ ПРИМІТКИ: Fee estimation поки не має fallback. Критичний тільки для
+           ETH/BSC (є ключі), решта — фіксовані або публічні.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 6. SOLANA RPC (відправка + баланс)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ #   URL                                           Тест    Тип
+ ─────────────────────────────────────────────────────────────────────────────
+ 1   mainnet.helius-rpc.com (Helius, ключ)         —      PRIMARY   ✅ Є ключ
+ 2   api.mainnet-beta.solana.com                   —      FALLBACK  ❌ (free)
+
+ Вже реалізовано в solana_service.dart.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 7. TRON RPC (відправка + баланс, TronGrid REST формат)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ #   URL                                           Тест    Тип
+ ─────────────────────────────────────────────────────────────────────────────
+ 1   api.trongrid.io                               ✅     PRIMARY  (ключ опц.)
+
+ ПРИМІТКИ:
+   • trx-mainnet.public.blastapi.io — ❌ домен не існує, видалено
+   • Немає іншого публічного вузла з TronGrid REST-форматом (/wallet/*)
+   • tron_service.dart тепер використовує tryWithFallbacks() — готовий
+     прийняти другий URL, якщо такий з'явиться
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 8. PRICE APIs (поточні ціни + 24h зміна)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ #   URL                                                      Тест    Тип
+ ─────────────────────────────────────────────────────────────────────────────
+ 1   api.coingecko.com/api/v3/simple/price                    —      PRIMARY
+     Безкоштовно: ~30 req/хв | Ключ: опціональний
+
+ 2   min-api.cryptocompare.com/data/pricemultifull            ✅     FALLBACK
+     Безкоштовно без ключа | Повертає PRICE + CHANGEPCT24HOUR
+     Затримка: 1 секунда після провалу CoinGecko
+
+ 3   Persistent cache (SharedPreferences)                     —      FINAL FALLBACK
+     Використовується якщо обидва live API недоступні
+     Затримка: ще 1 секунда
+
+ ПРИМІТКИ:
+   • api.coincap.io — ❌ сервіс закрито (DNS не резолвиться з 2025)
+   • Схема: CoinGecko → (1с) → CryptoCompare → (1с) → Cache
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 9. ICON CDN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ PRIMARY:  assets/crypto_icons/*.png (локальні — BTC ETH SOL BNB TRX
+           LTC USDT USDC DAI BCH ETC)
+ FALLBACK: raw.githubusercontent.com/spothq/cryptocurrency-icons (GitHub CDN)
+
+ Статус: ✅ Всі активні токени мають локальні іконки
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ API КЛЮЧІ (поточний стан)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ Ключ                    Де використовується
+ ─────────────────────────────────────────────────────────────────────────────
+ Etherscan ETH key       ETH history (Etherscan V2), ETH gas oracle
+ Etherscan BSC key       BSC history (BscScan fallback), BSC gas oracle
+ Helius API key          Solana RPC + Enhanced TX history
+ BlockCypher token       BCH fee estimation (опціональний, порожній)
+ TronGrid key            Tron RPC (опціональний, порожній)
+ CoinGecko key           Ціни (опціональний, порожній — free tier)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ПОТОЧНИЙ СТАН РЕЗЕРВУВАННЯ (після реалізації)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ � РЕАЛІЗОВАНО (є fallback, протестовано):
+    ✅ ETH RPC     → publicnode.com + llamarpc.com
+    ✅ BSC RPC     → dataseed2 + dataseed3 (Binance офіційні)
+    ✅ ETC RPC     → etcdesktop.com
+    ✅ BTC баланс  → blockstream.info (той самий формат)
+    ✅ ETC history → blockscout.com/etc/mainnet
+    ✅ TRX history → apilist.tronscan.io (дзеркало)
+    ✅ Ціни        → CryptoCompare → Persistent cache
+
+ 🟡 ЧАСТКОВО (fallback є, але не протестовано live):
+    ⚠  LTC баланс  → Blockchair (різний формат, rate limit 430)
+    ⚠  BCH баланс  → Blockchair (різний формат, rate limit 430)
+
+ � БЕЗ FALLBACK (одне джерело):
+    ❌ TRX RPC      (api.trongrid.io — єдиний TronGrid REST вузол)
+    ❌ ETH history  (Etherscan V2 — немає альтернативного джерела)
+    ❌ BTC/LTC/BCH UTXO + broadcast
+    ❌ Fee estimation (більшість ланцюгів)

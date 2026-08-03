@@ -1,0 +1,21 @@
+// Desktop stub for biometric service (not supported on desktop)
+import 'package:flutter/foundation.dart';
+
+class BiometricService {
+  static Future<bool> canCheckBiometrics() async {
+    if (kDebugMode) debugPrint('[Biometric] Desktop: biometrics not supported');
+    return false;
+  }
+
+  static Future<bool> hasFaceID() async => false;
+  static Future<bool> hasFingerprint() async => false;
+  static Future<bool> hasIris() async => false;
+
+  static Future<bool> authenticate({
+    required String localizedReason,
+    bool biometricOnly = false,
+  }) async {
+    if (kDebugMode) debugPrint('[Biometric] Desktop: authentication skipped');
+    return false;
+  }
+}

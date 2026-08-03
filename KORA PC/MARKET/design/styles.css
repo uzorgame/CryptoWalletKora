@@ -1,0 +1,525 @@
+/* KORA Market — the uz-or design system applied to a desktop trading window.
+   Monochrome throughout, with exactly one exception: the direction of a price. That is
+   the only thing on screen where colour carries information rather than decoration. */
+
+:root,
+[data-theme='dark'] {
+  --bg: #0a0a0a;
+  --bg-alt: #111111;
+  --surface: #0f0f0f;
+  --surface-hi: #161616;
+  --text: #f0f0f0;
+  --text-2: #8a8a8a;
+  --text-3: #4a4a4a;
+  --border: rgba(255, 255, 255, 0.10);
+  --border-hi: rgba(255, 255, 255, 0.22);
+  --up: #3fb950;
+  --down: #f85149;
+  --flash-up: rgba(63, 185, 80, 0.16);
+  --flash-down: rgba(248, 81, 73, 0.16);
+}
+
+[data-theme='light'] {
+  --bg: #ffffff;
+  --bg-alt: #f6f6f6;
+  --surface: #ffffff;
+  --surface-hi: #fafafa;
+  --text: #111111;
+  --text-2: #6b6b6b;
+  --text-3: #a0a0a0;
+  --border: rgba(0, 0, 0, 0.12);
+  --border-hi: rgba(0, 0, 0, 0.28);
+  --up: #1a7f37;
+  --down: #cf222e;
+  --flash-up: rgba(26, 127, 55, 0.10);
+  --flash-down: rgba(207, 34, 46, 0.10);
+}
+
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --display: 'Space Grotesk', 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --titlebar: 46px;
+  --statusbar: 26px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: #191b1f;
+  font-family: var(--font);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+/* ── Lab chrome ──────────────────────────────────────────────────────────── */
+.lab { display: grid; gap: 14px; }
+
+.lab-bar {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+  color: #7c8493;
+}
+.lab-controls { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.lab-controls button {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+  color: #9aa3b2; background: #23262c; border: 1px solid #31353d;
+  padding: 5px 9px; border-radius: 0; cursor: pointer;
+  transition: color .2s var(--ease), border-color .2s var(--ease);
+}
+.lab-controls button:hover { color: #e6e9ee; border-color: #4a505a; }
+.lab-controls button.on { color: #0a0a0a; background: #d6dae1; border-color: #d6dae1; }
+.lab-sep { width: 1px; height: 16px; background: #31353d; margin: 0 4px; }
+
+/* ── The window ──────────────────────────────────────────────────────────── */
+.window {
+  position: relative;
+  width: 1120px;
+  height: 680px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: grid;
+  grid-template-rows: var(--titlebar) 1fr var(--statusbar);
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .55);
+  /* Square, like everything else in this system. */
+  border-radius: 0;
+  transition: background .28s var(--ease), border-color .28s var(--ease);
+}
+
+/* ── Title bar ───────────────────────────────────────────────────────────── */
+.titlebar {
+  display: flex; align-items: stretch;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+  -webkit-app-region: drag;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+.mark {
+  width: 18px; height: 18px; display: block;
+  background: var(--text);
+  /* The K monogram as a mask, so it inherits the theme's ink instead of being an image. */
+  -webkit-mask: var(--mark-url) no-repeat center / contain;
+  mask: var(--mark-url) no-repeat center / contain;
+}
+.brandname {
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.18em; color: var(--text);
+}
+
+.tabs { position: relative; display: flex; align-items: stretch; margin-left: 18px; }
+.tab {
+  position: relative;
+  display: flex; align-items: center; gap: 7px;
+  background: none; border: 0; cursor: pointer;
+  padding: 0 16px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+  color: var(--text-3);
+  transition: color .22s var(--ease);
+  -webkit-app-region: no-drag;
+}
+.tab i { font-style: normal; color: var(--text-3); transition: color .22s var(--ease); }
+.tab:hover { color: var(--text-2); }
+.tab.on { color: var(--text); }
+.tab.on i { color: var(--text-2); }
+
+/* One element that travels, rather than a border toggling on each tab. */
+.tab-underline {
+  position: absolute; left: 0; bottom: -1px; height: 1px;
+  background: var(--text);
+  transition: transform .38s var(--ease), width .38s var(--ease);
+  will-change: transform, width;
+}
+
+.win-actions { display: flex; align-items: center; margin-left: auto; -webkit-app-region: no-drag; }
+.wbtn {
+  width: 44px; height: 100%; background: none; border: 0; cursor: pointer;
+  display: grid; place-items: center;
+  transition: background .18s var(--ease);
+}
+.wbtn:hover { background: var(--surface-hi); }
+.wbtn.close:hover { background: var(--down); }
+.wbtn span { display: block; background: var(--text-2); }
+.wbtn:hover span { background: var(--text); }
+.wbtn.close:hover span { background: #fff; }
+.min { width: 10px; height: 1px; }
+.max { width: 9px; height: 9px; background: none !important; border: 1px solid var(--text-2); }
+.wbtn:hover .max { border-color: var(--text); }
+.wbtn.close:hover .max { border-color: #fff; }
+.x { width: 10px; height: 10px; background: none !important; position: relative; }
+.x::before, .x::after {
+  content: ''; position: absolute; inset: 0 auto auto 0;
+  width: 12px; height: 1px; background: var(--text-2); top: 5px; left: -1px;
+  transition: background .18s var(--ease);
+}
+.x::before { transform: rotate(45deg); }
+.x::after { transform: rotate(-45deg); }
+.wbtn:hover .x::before, .wbtn:hover .x::after { background: var(--text); }
+.wbtn.close:hover .x::before, .wbtn.close:hover .x::after { background: #fff; }
+
+/* ── Views ───────────────────────────────────────────────────────────────── */
+.stage { position: relative; overflow: hidden; }
+
+.view {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  opacity: 0;
+  pointer-events: none;
+  /* Views enter from the side the tab sits on, so movement matches the navigation. */
+  transform: translateX(var(--enter, 18px));
+  transition: opacity .3s var(--ease), transform .42s var(--ease);
+}
+.view.on { opacity: 1; transform: none; pointer-events: auto; }
+
+.view::-webkit-scrollbar { width: 9px; }
+.view::-webkit-scrollbar-track { background: transparent; }
+.view::-webkit-scrollbar-thumb { background: var(--border); }
+.view::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
+
+/* ── Market grid ─────────────────────────────────────────────────────────── */
+/* Five equal rows filling the stage exactly. Sized by content the grid overran the window
+   by fourteen pixels — enough to put a scrollbar on a view that has nothing below the fold,
+   which reads as a page that failed to fit rather than one designed to. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  height: 100%;
+  gap: 1px;
+  background: var(--border);
+}
+.view[data-view="market"] { overflow: hidden; }
+
+.cell {
+  position: relative;
+  background: var(--surface);
+  padding: 15px 16px 13px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background .2s var(--ease);
+  /* Cards appear in sequence so the grid assembles rather than snapping into place. */
+  animation: rise .5s var(--ease) both;
+  animation-delay: var(--d, 0ms);
+}
+.cell:hover { background: var(--surface-hi); }
+
+/* An arrow that only exists on hover: the whole card is the target, and a permanent icon on
+   twenty cards would be twenty pieces of furniture saying the same thing. */
+.open {
+  position: absolute; top: 18px; right: 17px; width: 7px; height: 7px;
+  border-top: 1px solid var(--text-3); border-right: 1px solid var(--text-3);
+  transform: rotate(45deg) translate(-2px, 2px);
+  opacity: 0; transition: opacity .18s var(--ease), transform .18s var(--ease);
+}
+.cell:hover .open { opacity: 1; transform: rotate(45deg) translate(0, 0); }
+.cell:hover .rank { opacity: 0; }
+.rank { transition: opacity .18s var(--ease); }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.cell-head { display: flex; align-items: baseline; gap: 8px; }
+.sym { font-family: var(--mono); font-size: 13px; font-weight: 500; letter-spacing: 0.06em; }
+.rank { font-family: var(--mono); font-size: 10px; color: var(--text-3); margin-left: auto; }
+.name { font-size: 11px; color: var(--text-3); }
+
+.price {
+  font-family: var(--display); font-weight: 500; font-size: 25px;
+  letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+  transition: color .3s var(--ease);
+}
+
+.cell-foot { display: flex; align-items: center; gap: 10px; }
+.delta {
+  font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums;
+}
+.delta.up { color: var(--up); }
+.delta.down { color: var(--down); }
+.span {
+  font-family: var(--mono); font-size: 8.5px; letter-spacing: .1em;
+  color: var(--text-3); margin-left: auto;
+}
+.spark { opacity: .85; }
+
+/* A tick flashes the cell rather than the number, so the eye catches it peripherally. */
+.cell.flash-up { animation: flashUp .7s ease-out; }
+.cell.flash-down { animation: flashDown .7s ease-out; }
+@keyframes flashUp { 0% { background: var(--flash-up); } 100% { background: var(--surface); } }
+@keyframes flashDown { 0% { background: var(--flash-down); } 100% { background: var(--surface); } }
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--bg-alt);
+  font-family: var(--mono); font-size: 10px; font-weight: 400;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3);
+  text-align: left; padding: 11px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.tbl thead th.num { text-align: right; }
+.tbl tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .16s var(--ease);
+  animation: rise .42s var(--ease) both;
+  animation-delay: var(--d, 0ms);
+}
+.tbl tbody tr:hover { background: var(--surface-hi); }
+.tbl td { padding: 12px 18px; font-size: 13px; }
+.tbl td.num {
+  text-align: right;
+  font-family: var(--mono); font-variant-numeric: tabular-nums;
+}
+.tbl .idx { font-family: var(--mono); font-size: 11px; color: var(--text-3); width: 56px; }
+.tbl .coin { display: flex; align-items: baseline; gap: 9px; }
+.tbl .coin .sym { font-size: 12px; }
+.tbl .coin .name { font-size: 11px; }
+.tbl tr.flash-up td { background: var(--flash-up); transition: background .6s ease-out; }
+.tbl tr.flash-down td { background: var(--flash-down); transition: background .6s ease-out; }
+
+/* ── Chart ───────────────────────────────────────────────────────────────── */
+/* The stats band takes the last row at 1fr, so the space under the picker is occupied by
+   something worth reading instead of ending in an unexplained void. */
+.chart-wrap {
+  padding: 22px 24px 26px; display: grid; gap: 18px;
+  height: 100%; grid-template-rows: auto auto auto 1fr;
+}
+.chart-head { display: flex; align-items: flex-end; gap: 18px; }
+.chart-price {
+  font-family: var(--display); font-size: 40px; font-weight: 600;
+  letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1;
+}
+.chart-meta { display: grid; gap: 3px; }
+.chart-sym { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; }
+.chart-name { font-size: 11px; color: var(--text-3); }
+.ranges { display: flex; gap: 1px; margin-left: auto; background: var(--border); }
+.ranges button {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+  background: var(--surface); color: var(--text-3); border: 0;
+  padding: 7px 12px; cursor: pointer;
+  transition: color .18s var(--ease), background .18s var(--ease);
+}
+.ranges button:hover { color: var(--text-2); }
+.ranges button.on { background: var(--text); color: var(--bg); }
+
+.plot { border: 1px solid var(--border); background: var(--surface); padding: 0; }
+.picker { display: flex; gap: 1px; background: var(--border); flex-wrap: wrap; }
+.picker button {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+  background: var(--surface); color: var(--text-3); border: 0;
+  padding: 7px 11px; cursor: pointer;
+  transition: color .18s var(--ease), background .18s var(--ease);
+}
+.picker button:hover { color: var(--text); background: var(--surface-hi); }
+.picker button.on { background: var(--text); color: var(--bg); }
+
+/* ── Stats band ──────────────────────────────────────────────────────────── */
+.stats {
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  min-height: 92px;
+}
+.stat {
+  background: var(--surface); padding: 14px 16px;
+  display: grid; align-content: center; gap: 8px;
+}
+.stat-k {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .14em; color: var(--text-3);
+}
+.stat-v {
+  font-family: var(--display); font-size: 21px; font-weight: 500;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1;
+  transition: color .3s var(--ease);
+}
+.stat-v.up { color: var(--up); }
+.stat-v.down { color: var(--down); }
+
+/* ── Status bar ──────────────────────────────────────────────────────────── */
+.statusbar {
+  display: flex; align-items: center; gap: 9px;
+  padding: 0 14px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-alt);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+.grow { flex: 1; }
+.dot { width: 5px; height: 5px; background: var(--up); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+/* The beat bar makes the ten-second refresh legible. Without it a still grid is ambiguous:
+   the user cannot tell a slow cadence from a dead feed. */
+.beat { width: 46px; height: 1px; background: var(--border); overflow: hidden; }
+.beat i { display: block; height: 100%; width: 0; background: var(--text-3); animation: beat 10s linear infinite; }
+@keyframes beat { from { width: 0; } to { width: 100%; } }
+
+/* ── Splash ──────────────────────────────────────────────────────────────── */
+.splash {
+  position: absolute; inset: 0; z-index: 10;
+  background: var(--bg);
+  display: grid; place-content: center; justify-items: center; gap: 0;
+  transition: opacity .5s var(--ease), visibility .5s;
+}
+.splash.gone { opacity: 0; visibility: hidden; }
+
+.splash-mark {
+  width: 62px; height: 62px; background: var(--text);
+  -webkit-mask: var(--mark-url) no-repeat center / contain;
+  mask: var(--mark-url) no-repeat center / contain;
+  animation: markIn .7s var(--ease) both;
+}
+@keyframes markIn { from { opacity: 0; transform: scale(.86); } to { opacity: 1; transform: none; } }
+
+.splash-name {
+  font-family: var(--display); font-size: 44px; font-weight: 600;
+  letter-spacing: 0.14em; margin-top: 22px;
+  animation: rise .6s var(--ease) .12s both;
+}
+.splash-sub {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.42em;
+  color: var(--text-2); margin-top: 6px; padding-left: .42em;
+  animation: rise .6s var(--ease) .2s both;
+}
+.splash-line {
+  width: 190px; height: 1px; background: var(--border); margin-top: 30px; overflow: hidden;
+  animation: rise .6s var(--ease) .3s both;
+}
+.splash-line span {
+  display: block; height: 100%; width: 0; background: var(--text);
+  transition: width 1.5s var(--ease);
+}
+.splash.load .splash-line span { width: 100%; }
+.splash-meta {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em;
+  color: var(--text-3); margin-top: 16px;
+  animation: rise .6s var(--ease) .4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* ── Additions for the live build ────────────────────────────────────────── */
+
+/* Theme switch sits with the window buttons, left of minimise. */
+.contrast {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: none !important;
+  border: 1px solid var(--text-2);
+  /* Half filled: the clearest two-state icon that needs no second asset. */
+  background-image: linear-gradient(to right, var(--text-2) 50%, transparent 50%) !important;
+  transition: border-color .18s var(--ease), background-image .18s var(--ease);
+}
+.wbtn.theme:hover .contrast {
+  border-color: var(--text);
+  background-image: linear-gradient(to right, var(--text) 50%, transparent 50%) !important;
+}
+
+/* The dot reports the socket, so it must not look alive when nothing is connected. */
+.dot[data-state='LIVE'] { background: var(--up); animation: pulse 2s ease-in-out infinite; }
+.dot[data-state='CONNECTING'],
+.dot[data-state='LOADING'],
+.dot[data-state='RECONNECTING'] { background: #b58900; animation: pulse .8s ease-in-out infinite; }
+.dot[data-state='OFFLINE'] { background: var(--down); animation: none; }
+
+#rate { color: var(--text-3); margin-right: 14px; font-variant-numeric: tabular-nums; }
+
+/* Table rows lead into the chart, so they have to look like they do something. */
+.tbl tbody tr { cursor: pointer; }
+.tbl td.vol { color: var(--text-2); }
+
+.chart-delta {
+  font-family: var(--mono); font-size: 12px; align-self: flex-end;
+  padding-bottom: 3px; font-variant-numeric: tabular-nums;
+}
+.chart-delta.up { color: var(--up); }
+.chart-delta.down { color: var(--down); }
+
+.plot { position: relative; }
+.plot-empty {
+  height: 300px; display: grid; place-items: center;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .18em; color: var(--text-3);
+}
+.plot-scale {
+  position: absolute; inset: 0 8px 0 auto;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 6px 0; pointer-events: none;
+  font-family: var(--mono); font-size: 10px; color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Chart scrub ─────────────────────────────────────────────────────────── */
+/* touch-action is what makes a drag a reading rather than a page scroll on a trackpad or
+   touchscreen; user-select stops the gesture from highlighting the labels underneath. */
+.plot { cursor: crosshair; user-select: none; touch-action: none; }
+
+.cross { position: absolute; inset: 0; pointer-events: none; }
+.cross[hidden] { display: none; }
+.cross-v {
+  position: absolute; top: 0; bottom: 0; left: var(--x); width: 1px;
+  background: var(--text-3); opacity: .5;
+}
+.cross-h {
+  position: absolute; left: 0; right: 0; top: var(--y); height: 1px;
+  background: var(--text-3); opacity: .22;
+}
+.cross-dot {
+  position: absolute; left: var(--x); top: var(--y);
+  width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px;
+  background: var(--up); box-shadow: 0 0 0 3px var(--surface);
+}
+.cross-dot[data-dir="down"] { background: var(--down); }
+
+.readout {
+  position: absolute; left: var(--x); top: 10px;
+  margin-left: 13px; min-width: 132px;
+  background: var(--bg); border: 1px solid var(--border);
+  padding: 9px 11px 8px; display: grid; gap: 3px;
+}
+/* Flip rather than clamp: a panel pinned to the edge would sit on top of the very part of
+   the line the user has dragged to. */
+.cross.flip-x .readout { margin-left: 0; transform: translateX(calc(-100% - 13px)); }
+.cross.flip-y .readout { top: auto; bottom: 10px; }
+
+.ro-time {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+  color: var(--text-3); text-transform: uppercase;
+}
+.ro-price {
+  font-family: var(--display); font-size: 19px; font-weight: 500;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.ro-delta {
+  font-family: var(--mono); font-size: 10.5px; font-variant-numeric: tabular-nums;
+}
+.ro-delta.up { color: var(--up); }
+.ro-delta.down { color: var(--down); }
+.ro-note {
+  font-family: var(--mono); font-size: 8.5px; letter-spacing: .14em;
+  color: var(--text-3); margin-top: 1px;
+}
+
+/* The hint retires once the user has found the gesture — it is scaffolding, not chrome. */
+.plot-hint {
+  position: absolute; left: 10px; bottom: 8px; pointer-events: none;
+  font-family: var(--mono); font-size: 8.5px; letter-spacing: .16em; color: var(--text-3);
+  opacity: 0; transition: opacity .25s var(--ease);
+}
+.plot:hover .plot-hint { opacity: .6; }
+.plot:has(.cross:not([hidden])) .plot-hint { opacity: 0; }

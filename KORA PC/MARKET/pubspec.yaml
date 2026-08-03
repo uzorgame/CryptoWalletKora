@@ -1,0 +1,60 @@
+name: kora_widget
+description: "KORA Market — real-time crypto prices for Windows"
+publish_to: 'none'
+
+# The redesign replaces the interface, the data layer and the tracked market, so it is not a
+# point release of what came before.
+version: 5.1.1+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  window_manager: ^0.3.8
+  http: ^1.2.1
+  web_socket_channel: ^2.4.5
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  # No image assets. The mark is drawn as geometry so it takes the theme's ink and stays
+  # sharp at any size, and the redesign is typographic — it uses no per-coin artwork, which
+  # is what let flutter_svg, fl_chart and the icon set go.
+
+  # The prototype's three faces, as static instances. SF Pro Display is gone with them: it is
+  # Apple's licensed face, it was only ever a stand-in, and dropping it saves 6.5 MB.
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+    - family: Space Grotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/SpaceGrotesk-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/SpaceGrotesk-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/SpaceGrotesk-Bold.ttf
+          weight: 700
+    - family: JetBrains Mono
+      fonts:
+        - asset: assets/fonts/JetBrainsMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/JetBrainsMono-Medium.ttf
+          weight: 500

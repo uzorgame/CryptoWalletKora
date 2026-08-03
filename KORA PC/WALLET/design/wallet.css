@@ -1,0 +1,563 @@
+/* KORA Wallet — the same design system as Market, with the pieces a wallet needs.
+   Loaded after styles.css, so it only adds and overrides. */
+
+/* Exactly Market's size. The two products sit on the same desktop and open to the same
+   footprint; in the Flutter build this is also the minimum, with resizing allowed upward
+   only, so the wallet can never be dragged smaller than its sibling. */
+.window.wallet {
+  width: 1020px;
+  height: 620px;
+  min-width: 1020px;
+  min-height: 620px;
+  /* No status bar: the connection state, the network label and the clock were three pieces
+     of furniture reporting things a wallet owner never has to act on. */
+  grid-template-rows: var(--titlebar) 1fr;
+}
+
+.body { display: grid; grid-template-columns: 176px 1fr; min-height: 0; }
+
+/* ── Navigation rail ─────────────────────────────────────────────────────── */
+.rail {
+  position: relative;
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--bg-alt);
+  padding: 10px 0;
+}
+
+.rail-item {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: 0; cursor: pointer;
+  padding: 11px 18px; text-align: left;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em;
+  color: var(--text-3);
+  transition: color .22s var(--ease), background .22s var(--ease);
+}
+.rail-item i { font-style: normal; font-size: 9.5px; color: var(--text-3); transition: color .22s var(--ease); }
+.rail-item:hover { color: var(--text-2); background: var(--surface-hi); }
+.rail-item.on { color: var(--text); }
+.rail-item.on i { color: var(--text-2); }
+
+/* One marker that travels, the rail's answer to the tab underline.
+   top:0 is load-bearing. Without it the marker starts after the rail's padding, while the
+   offsetTop it is moved by already counts that padding — so it sat ten pixels below every
+   item it was supposed to mark. */
+.rail-marker {
+  position: absolute; top: 0; left: 0; width: 2px; height: 0;
+  background: var(--text);
+  transition: transform .38s var(--ease), height .38s var(--ease);
+}
+
+.rail-foot {
+  margin-top: auto; border-top: 1px solid var(--border); padding-top: 8px;
+  display: grid;
+}
+.rail-item.lock:hover { color: var(--down); }
+
+/* ── Wallet switcher ─────────────────────────────────────────────────────── */
+.wallet-pick {
+  display: flex; align-items: center; gap: 8px;
+  background: none; border: 0; cursor: pointer; text-align: left;
+  padding: 10px 18px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em;
+  color: var(--text-2);
+  transition: color .2s var(--ease), background .2s var(--ease);
+}
+.wallet-pick:hover { color: var(--text); background: var(--surface-hi); }
+.wallet-pick .chev {
+  margin-left: auto; width: 6px; height: 6px;
+  border-right: 1px solid currentColor; border-bottom: 1px solid currentColor;
+  transform: rotate(-135deg) translate(-1px, -1px);
+  transition: transform .24s var(--ease);
+}
+.wallet-pick.open .chev { transform: rotate(45deg) translate(-1px, -1px); }
+.wallet-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.wallet-menu {
+  position: absolute; left: 8px; right: 8px; bottom: 92px; z-index: 8;
+  background: var(--bg); border: 1px solid var(--border);
+  display: grid;
+  animation: sheetIn .22s var(--ease) both;
+}
+.wallet-menu[hidden] { display: none; }
+.wallet-opt {
+  display: grid; gap: 3px; text-align: left;
+  background: none; border: 0; cursor: pointer;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  transition: background .16s var(--ease);
+}
+.wallet-opt:hover { background: var(--surface-hi); }
+.wallet-opt.on { background: var(--surface); }
+.wallet-opt b {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; font-weight: 400;
+  color: var(--text-3);
+}
+.wallet-opt.on b { color: var(--text); }
+.wallet-opt span {
+  font-family: var(--display); font-size: 13px; font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+.wallet-opt.add {
+  border-bottom: 0;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--text-3);
+}
+.wallet-opt.add:hover { color: var(--text); }
+
+.pin-note {
+  padding: 9px 12px; border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 8.5px; letter-spacing: .08em;
+  color: var(--text-3); line-height: 1.5;
+}
+
+/* ── Add token ───────────────────────────────────────────────────────────── */
+.add-btn {
+  background: none; border: 0; cursor: pointer; padding: 0;
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; color: var(--text-3);
+  transition: color .18s var(--ease);
+}
+.add-btn:hover { color: var(--text); }
+
+.sheet.wide { width: 460px; justify-items: stretch; }
+.catalogue { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); }
+.cat-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; background: var(--surface);
+  border-bottom: 1px solid var(--border); cursor: pointer;
+  transition: background .16s var(--ease);
+}
+.cat-row:last-child { border-bottom: 0; }
+.cat-row:hover { background: var(--surface-hi); }
+.cat-row .sym { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; }
+.cat-row .name { font-size: 11px; color: var(--text-3); }
+.cat-row .add { margin-left: auto; font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; color: var(--text-3); }
+.cat-row:hover .add { color: var(--text); }
+.cat-row.locked { cursor: default; }
+.cat-row.locked:hover { background: var(--surface); }
+.cat-row.locked .add { color: var(--text-3); }
+.cat-row:hover .add.remove { color: var(--down); }
+.cat-note {
+  padding: 9px 14px; background: var(--bg-alt); border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 8.5px; letter-spacing: .12em; color: var(--text-3);
+}
+
+/* ── Transaction detail ──────────────────────────────────────────────────── */
+.detail { width: 100%; border: 1px solid var(--border); }
+.detail-row {
+  display: flex; align-items: baseline; gap: 16px;
+  padding: 11px 14px; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.detail-row:last-child { border-bottom: 0; }
+.detail-k {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .14em; color: var(--text-3);
+  flex: 0 0 132px;
+}
+.detail-v {
+  font-family: var(--mono); font-size: 11px; color: var(--text);
+  word-break: break-all; text-align: right; margin-left: auto;
+}
+.detail-v.up { color: var(--up); } .detail-v.down { color: var(--down); }
+.detail-amount {
+  font-family: var(--display); font-size: 30px; font-weight: 600;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+}
+.detail-amount.in { color: var(--up); } .detail-amount.out { color: var(--down); }
+.tx-row { cursor: pointer; }
+.cat-empty { padding: 26px; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--text-3); background: var(--surface); }
+.zero .asset-value, .zero .asset-qty { color: var(--text-3); }
+
+/* ── Page scaffold ───────────────────────────────────────────────────────── */
+.page { padding: 26px 28px; display: grid; gap: 20px; align-content: start; }
+
+.sec { display: flex; align-items: baseline; gap: 12px; }
+.sec h2 {
+  margin: 0; font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+  color: var(--text-3); font-weight: 400;
+}
+.sec .rule { flex: 1; height: 1px; background: var(--border); }
+.sec .aside { font-family: var(--mono); font-size: 9.5px; color: var(--text-3); }
+
+.back {
+  display: inline-flex; align-items: center; gap: 9px;
+  background: none; border: 0; cursor: pointer; padding: 0;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--text-3);
+  transition: color .18s var(--ease);
+  width: max-content;
+}
+.back:hover { color: var(--text); }
+.back span.arrow { display: block; width: 7px; height: 7px;
+  border-left: 1px solid currentColor; border-bottom: 1px solid currentColor;
+  transform: rotate(45deg); }
+
+/* ── Headline block ──────────────────────────────────────────────────────── */
+.head { display: flex; align-items: flex-end; gap: 20px; }
+.head-total {
+  font-family: var(--display); font-size: 46px; font-weight: 600;
+  letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1;
+}
+.head-label { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; color: var(--text-3); margin-bottom: 8px; }
+.head-delta { font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; padding-bottom: 3px; }
+.head-delta.up { color: var(--up); } .head-delta.down { color: var(--down); }
+.head-sub { font-family: var(--mono); font-size: 11px; color: var(--text-2); padding-bottom: 4px; }
+
+.actions { display: flex; gap: 1px; margin-left: auto; background: var(--border); }
+.actions button {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  background: var(--surface); color: var(--text-2); border: 0;
+  padding: 11px 18px; cursor: pointer;
+  transition: color .18s var(--ease), background .18s var(--ease);
+}
+.actions button:hover { color: var(--text); background: var(--surface-hi); }
+.actions button.primary { background: var(--text); color: var(--bg); }
+.actions button.primary:hover { background: var(--text); color: var(--bg); opacity: .88; }
+
+/* ── Charts ──────────────────────────────────────────────────────────────── */
+.chart { border: 1px solid var(--border); background: var(--surface); position: relative; }
+.chart svg { display: block; }
+.chart-empty {
+  height: 168px; display: grid; place-items: center;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .18em; color: var(--text-3);
+}
+.chart-empty.blank {
+  height: auto; padding: 40px 28px; gap: 12px; justify-items: center; align-content: center;
+  min-height: 200px;
+}
+.chart-empty.blank b {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .18em; font-weight: 400;
+  color: var(--text-2);
+}
+.chart-empty.blank span {
+  font-family: var(--font); font-size: 12px; letter-spacing: 0; color: var(--text-3);
+  max-width: 420px; text-align: center; line-height: 1.6;
+}
+.chart-empty.blank .submit { margin-top: 6px; }
+.chart-scale {
+  position: absolute; inset: 0 10px 0 auto; pointer-events: none;
+  display: flex; flex-direction: column; justify-content: space-between; padding: 7px 0;
+  font-family: var(--mono); font-size: 9.5px; color: var(--text-3); font-variant-numeric: tabular-nums;
+}
+.chart-since {
+  position: absolute; left: 10px; bottom: 7px; pointer-events: none;
+  font-family: var(--mono); font-size: 9px; letter-spacing: .12em; color: var(--text-3);
+}
+
+/* margin-left is reset deliberately: Market's own .ranges pushes itself to the right with
+   `margin-left: auto`, which is right for a control that sits at the end of a chart header
+   and wrong for one that starts a form field. With few coins the asset row drifted to the
+   right edge; with twenty it overflowed and looked correct by accident. */
+.ranges {
+  display: flex; gap: 1px; background: var(--border);
+  width: max-content; max-width: 100%; margin-left: 0; flex-wrap: wrap; row-gap: 1px;
+}
+.ranges button {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  background: var(--surface); color: var(--text-3); border: 0;
+  padding: 7px 12px; cursor: pointer;
+  transition: color .18s var(--ease), background .18s var(--ease);
+}
+.ranges button:hover { color: var(--text-2); }
+.ranges button.on { background: var(--text); color: var(--bg); }
+
+/* ── Asset list ──────────────────────────────────────────────────────────── */
+.assets { border: 1px solid var(--border); }
+.assets-head, .asset-row {
+  display: grid;
+  grid-template-columns: 66px 1.5fr 1fr 1fr 1.1fr 74px;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+}
+.assets-head {
+  height: 32px; background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; color: var(--text-3);
+}
+.assets-head .num, .asset-row .num { text-align: right; }
+
+.asset-row {
+  height: 54px; cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  transition: background .16s var(--ease);
+  animation: rise .42s var(--ease) both;
+  animation-delay: var(--d, 0ms);
+}
+.asset-row:last-child { border-bottom: 0; }
+.asset-row:hover { background: var(--surface-hi); }
+
+.asset-id { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+.asset-id .sym { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; }
+.asset-id .name { font-size: 11px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asset-qty { font-family: var(--mono); font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--text-2); }
+.asset-price, .asset-value {
+  font-family: var(--display); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums;
+}
+.asset-value { font-size: 15px; }
+.asset-delta { font-family: var(--mono); font-size: 11px; font-variant-numeric: tabular-nums; }
+.asset-delta.up { color: var(--up); } .asset-delta.down { color: var(--down); }
+.chain-tag {
+  font-family: var(--mono); font-size: 8.5px; letter-spacing: .1em;
+  color: var(--text-3); border: 1px solid var(--border); padding: 3px 6px;
+  width: max-content;
+}
+
+/* ── Transactions ────────────────────────────────────────────────────────── */
+.tx { border: 1px solid var(--border); }
+.tx-head, .tx-row {
+  display: grid; grid-template-columns: 88px 1.3fr 1fr 1fr 92px;
+  align-items: center; padding: 0 16px; gap: 12px;
+}
+.tx-head {
+  height: 32px; background: var(--bg-alt); border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; color: var(--text-3);
+}
+.tx-row {
+  height: 52px; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  transition: background .16s var(--ease);
+  animation: rise .42s var(--ease) both;
+  animation-delay: var(--d, 0ms);
+}
+.tx-row:last-child { border-bottom: 0; }
+.tx-row:hover { background: var(--surface-hi); }
+.tx-kind { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; }
+.tx-kind.in { color: var(--up); } .tx-kind.out { color: var(--down); }
+.tx-addr { font-family: var(--mono); font-size: 11px; color: var(--text-2); }
+.tx-amt { font-family: var(--display); font-size: 14px; font-variant-numeric: tabular-nums; text-align: right; }
+.tx-when { font-family: var(--mono); font-size: 10px; color: var(--text-3); text-align: right; }
+.tx-state {
+  font-family: var(--mono); font-size: 8.5px; letter-spacing: .1em;
+  border: 1px solid var(--border); padding: 3px 6px; justify-self: end; color: var(--text-3);
+}
+.tx-state.pending { color: #d29922; border-color: rgba(210, 153, 34, .35); }
+
+.empty {
+  padding: 34px; text-align: center;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--text-3);
+  background: var(--surface);
+}
+
+/* ── Coin detail ─────────────────────────────────────────────────────────── */
+.facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.fact { background: var(--surface); padding: 14px 16px; display: grid; gap: 8px; align-content: center; }
+.fact-k { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; color: var(--text-3); }
+.fact-v { font-family: var(--display); font-size: 20px; font-weight: 500; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.fact-v.up { color: var(--up); } .fact-v.down { color: var(--down); }
+
+/* ── Forms ───────────────────────────────────────────────────────────────── */
+/* Full width, so the fields end where the section rule above them ends. A capped column left
+   the form as a narrow strip with the header stretching past it, which read as misalignment
+   rather than as restraint. */
+.form { display: grid; gap: 18px; }
+.field { display: grid; gap: 7px; }
+.field label { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; color: var(--text-3); }
+.field input {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 0;
+  color: var(--text); font-family: var(--mono); font-size: 12.5px;
+  padding: 11px 12px; outline: none;
+  transition: border-color .18s var(--ease);
+}
+.field input:focus { border-color: var(--border-hi); }
+.field input::placeholder { color: var(--text-3); }
+.field .hint { font-family: var(--mono); font-size: 9.5px; color: var(--text-3); }
+
+.fee { display: flex; gap: 1px; background: var(--border); }
+.fee button {
+  flex: 1; background: var(--surface); border: 0; cursor: pointer;
+  padding: 11px 12px; display: grid; gap: 5px; text-align: left;
+  transition: background .18s var(--ease);
+}
+.fee button:hover { background: var(--surface-hi); }
+.fee button.on { background: var(--text); }
+.fee button.on .fee-k, .fee button.on .fee-v { color: var(--bg); }
+.fee-k { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; color: var(--text-3); }
+.fee-v { font-family: var(--mono); font-size: 11px; color: var(--text-2); }
+
+.submit {
+  background: var(--text); color: var(--bg); border: 0; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .16em;
+  padding: 13px 18px;
+  transition: opacity .18s var(--ease);
+}
+.submit:hover { opacity: .88; }
+.submit:disabled { background: var(--surface); color: var(--text-3); cursor: default; }
+.submit.ghost {
+  background: var(--surface); color: var(--text-2);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.submit.ghost:hover { color: var(--text); opacity: 1; }
+.submit.danger { background: var(--surface); color: var(--down); box-shadow: inset 0 0 0 1px var(--border); }
+
+/* ── Settings ────────────────────────────────────────────────────────────── */
+.group { border: 1px solid var(--border); }
+.row {
+  display: flex; align-items: center; gap: 24px;
+  background: var(--surface); padding: 15px 18px;
+  border-bottom: 1px solid var(--border);
+  transition: background .16s var(--ease);
+}
+.row:last-child { border-bottom: 0; }
+.row:hover { background: var(--surface-hi); }
+.row-k { display: grid; gap: 4px; min-width: 0; }
+.row-k b { font-size: 12.5px; font-weight: 500; letter-spacing: -.01em; }
+.row-k span { font-size: 11px; color: var(--text-3); line-height: 1.35; }
+.row-v { margin-left: auto; flex: 0 0 auto; display: flex; align-items: center; gap: 10px; }
+.row-value { font-family: var(--mono); font-size: 11px; color: var(--text-2); }
+
+/* A track with a knob, sized so both states are legible at a glance. */
+.toggle {
+  position: relative; display: block;
+  width: 38px; height: 20px; flex: 0 0 38px;
+  border: 1px solid var(--border); background: var(--bg);
+  cursor: pointer; padding: 0;
+  transition: background .24s var(--ease), border-color .24s var(--ease);
+}
+.toggle i {
+  position: absolute; top: 3px; left: 3px; width: 12px; height: 12px;
+  background: var(--text-3);
+  transition: transform .24s var(--ease), background .24s var(--ease);
+}
+.toggle:hover { border-color: var(--border-hi); }
+.toggle.on { background: var(--text); border-color: var(--text); }
+.toggle.on i { transform: translateX(18px); background: var(--bg); }
+
+.choice { display: flex; gap: 1px; background: var(--border); }
+.choice button {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+  background: var(--surface); color: var(--text-3); border: 0;
+  padding: 7px 11px; cursor: pointer;
+  transition: color .18s var(--ease), background .18s var(--ease);
+}
+.choice button:hover { color: var(--text-2); }
+.choice button.on { background: var(--text); color: var(--bg); }
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.modal {
+  position: absolute; inset: 0; z-index: 9;
+  background: rgba(0, 0, 0, .62);
+  display: grid; place-items: center;
+  animation: fade .22s var(--ease);
+}
+.modal[hidden] { display: none; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+.sheet {
+  background: var(--bg); border: 1px solid var(--border);
+  width: 420px; padding: 26px;
+  display: grid; gap: 18px; justify-items: center;
+  animation: sheetIn .3s var(--ease) both;
+}
+@keyframes sheetIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.sheet-head { display: grid; gap: 6px; justify-items: center; }
+.sheet-title { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; }
+.sheet-sub { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; color: var(--text-3); }
+
+/* White quiet zone regardless of theme — a scanner needs the contrast, not the palette. */
+.qr { background: #fff; padding: 14px; line-height: 0; }
+.qr svg { display: block; width: 208px; height: 208px; }
+.qr rect { shape-rendering: crispEdges; }
+
+.addr {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  padding: 12px; font-family: var(--mono); font-size: 11px; color: var(--text);
+  word-break: break-all; text-align: center; line-height: 1.5;
+}
+.sheet-actions { display: flex; gap: 1px; background: var(--border); width: 100%; }
+.sheet-actions button { flex: 1; }
+.warn {
+  font-family: var(--mono); font-size: 9.5px; color: var(--text-3);
+  text-align: center; line-height: 1.5;
+}
+.warn.loud { color: var(--down); }
+
+/* ── Onboarding ──────────────────────────────────────────────────────────── */
+.onboard {
+  position: absolute; inset: 0; z-index: 12;
+  background: var(--bg);
+  display: grid; grid-template-rows: 1fr auto;
+  animation: fade .28s var(--ease);
+}
+.onboard[hidden] { display: none; }
+
+.ob-body {
+  display: grid; place-content: center; justify-items: center;
+  padding: 34px; gap: 22px; width: 100%; align-content: center;
+  overflow-y: auto;
+}
+.ob-mark { animation: markIn .7s var(--ease) both; }
+@keyframes markIn { from { opacity: 0; transform: scale(.86); } to { opacity: 1; transform: none; } }
+
+.ob-title {
+  font-family: var(--display); font-size: 26px; font-weight: 600; letter-spacing: -.02em;
+  text-align: center;
+  animation: rise .5s var(--ease) .1s both;
+}
+.ob-note {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em; color: var(--text-3);
+  text-align: center; line-height: 1.7; max-width: 460px;
+  animation: rise .5s var(--ease) .18s both;
+}
+
+/* The outer border is not decoration. In the light theme surface and page background are both
+   white, so without it the block of choices dissolves into the page and only the hairline
+   between the two options survives. */
+.ob-choices {
+  display: grid; gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  width: 460px;
+  animation: rise .5s var(--ease) .26s both;
+}
+/* colour is set on the button itself: a <button> does not inherit the page's ink, it starts
+   at the platform's own button text — which on a #0A0A0A panel is very nearly invisible. */
+.ob-choice {
+  background: var(--surface); border: 0; cursor: pointer; text-align: left;
+  padding: 18px 20px; display: grid; gap: 6px;
+  color: var(--text-2);
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+.ob-choice:hover { background: var(--surface-hi); color: var(--text); }
+.ob-choice b {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .16em; font-weight: 400;
+  color: var(--text);
+}
+/* A step above the usual caption grey. This is the first decision anyone makes in the app,
+   and the difference between the two options is carried entirely by these two lines. */
+.ob-choice span { font-size: 11px; color: var(--text-2); line-height: 1.5; }
+
+.ob-form { width: 460px; display: grid; gap: 16px; animation: rise .5s var(--ease) .2s both; }
+
+/* Twelve words on a grid, numbered — the shape people already expect to copy down. */
+.phrase {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--border); border: 1px solid var(--border);
+  width: 520px;
+}
+.word {
+  background: var(--surface); padding: 11px 12px;
+  display: flex; align-items: baseline; gap: 9px;
+}
+.word i {
+  font-style: normal; font-family: var(--mono); font-size: 9px; color: var(--text-3);
+  min-width: 14px;
+}
+.word b { font-family: var(--mono); font-size: 12px; font-weight: 400; letter-spacing: .04em; }
+.word input {
+  background: none; border: 0; outline: none; width: 100%;
+  color: var(--text); font-family: var(--mono); font-size: 12px; letter-spacing: .04em;
+  padding: 0;
+}
+.word.bad { background: rgba(248, 81, 73, .1); }
+
+.ob-steps { display: flex; gap: 6px; justify-content: center; }
+.ob-step { width: 22px; height: 2px; background: var(--border); }
+.ob-step.on { background: var(--text); }
+
+.ob-foot {
+  display: flex; align-items: center; gap: 1px;
+  border-top: 1px solid var(--border); background: var(--border);
+}
+.ob-foot button { flex: 1; }
+.ob-foot .spacer { flex: 2; background: var(--bg); }

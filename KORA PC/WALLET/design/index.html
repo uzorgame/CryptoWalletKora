@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google" content="notranslate">
+<title>KORA Wallet — redesign lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- A real encoder, not a drawing that looks like one: a receive code nobody can scan is
+     worse than no code at all. The Flutter port will use qr_flutter for the same reason. -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<link rel="stylesheet" href="./styles.css">
+<link rel="stylesheet" href="./wallet.css">
+</head>
+<body translate="no" class="notranslate">
+
+<div class="lab">
+  <div class="lab-bar">
+    <span class="lab-title">KORA WALLET — REDESIGN LAB</span>
+    <div class="lab-controls">
+      <button id="replay">Replay splash</button>
+      <button id="first-run">First run</button>
+      <button id="theme-lab">Toggle theme</button>
+    </div>
+  </div>
+
+  <div class="window wallet" id="window">
+    <header class="titlebar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <span class="brandname">KORA WALLET</span>
+      </div>
+      <div class="win-actions">
+        <button class="wbtn theme" id="theme" title="Switch theme"><span class="contrast"></span></button>
+        <button class="wbtn" title="Minimise"><span class="min"></span></button>
+        <button class="wbtn" title="Maximise"><span class="max"></span></button>
+        <button class="wbtn close" title="Close"><span class="x"></span></button>
+      </div>
+    </header>
+
+    <div class="body">
+      <nav class="rail" id="rail">
+        <button class="rail-item on" data-view="portfolio"><i>01</i><span>PORTFOLIO</span></button>
+        <button class="rail-item" data-view="send"><i>02</i><span>SEND</span></button>
+        <button class="rail-item" data-view="history"><i>03</i><span>HISTORY</span></button>
+        <button class="rail-item" data-view="settings"><i>04</i><span>SETTINGS</span></button>
+        <span class="rail-marker" id="rail-marker"></span>
+
+        <!-- The wallet in use sits with LOCK because both are about the session rather than
+             about a place in the app. -->
+        <div class="wallet-menu" id="wallet-menu" hidden></div>
+        <div class="rail-foot">
+          <!-- Labelled for what it does, not for what is currently open: which wallet is
+               active is stated on the portfolio itself, where the balance it explains is. -->
+          <button class="wallet-pick" id="wallet-pick">
+            <span class="wallet-name">WALLET</span>
+            <span class="chev"></span>
+          </button>
+          <button class="rail-item lock" data-action="lock"><i>—</i><span>LOCK</span></button>
+        </div>
+      </nav>
+
+      <main class="stage" id="stage">
+        <section class="view" data-view="portfolio" id="view-portfolio"></section>
+        <!-- Reached by opening a coin, not from the rail: it is a place inside the
+             portfolio, and giving it a rail entry would imply it stands on its own. -->
+        <section class="view" data-view="coin" id="view-coin"></section>
+        <section class="view" data-view="send" id="view-send"></section>
+        <section class="view" data-view="history" id="view-history"></section>
+        <section class="view" data-view="settings" id="view-settings"></section>
+      </main>
+    </div>
+
+    <div class="modal" id="modal" hidden></div>
+
+    <!-- Covers the whole window rather than floating over it: with no wallet there is
+         nothing behind to go back to. -->
+    <div class="onboard" id="onboard" hidden></div>
+
+    <div class="splash" id="splash">
+      <div class="splash-mark"></div>
+      <div class="splash-name">KORA</div>
+      <div class="splash-sub">WALLET</div>
+      <div class="splash-line"><span></span></div>
+      <div class="splash-meta">SELF-CUSTODY · BTC · ETH · SOL · TRX</div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./wallet.js"></script>
+</body>
+</html>

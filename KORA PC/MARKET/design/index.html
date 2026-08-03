@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google" content="notranslate">
+<title>KORA Market — redesign lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body translate="no" class="notranslate">
+
+<!-- The lab chrome sits outside the mock so it can never be mistaken for the design. -->
+<div class="lab">
+  <div class="lab-bar">
+    <span class="lab-title">KORA MARKET — REDESIGN LAB</span>
+    <div class="lab-controls">
+      <button id="replay">Replay splash</button>
+      <button id="ticking" class="on">Pause stream</button>
+    </div>
+  </div>
+
+  <!-- A desktop window frame, because this app is judged sitting on a desktop. -->
+  <div class="window" id="window">
+    <header class="titlebar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <span class="brandname">KORA MARKET</span>
+      </div>
+      <nav class="tabs" id="tabs">
+        <button class="tab on" data-view="market"><i>01</i>MARKET</button>
+        <button class="tab" data-view="chart"><i>02</i>CHART</button>
+        <button class="tab" data-view="table"><i>03</i>TABLE</button>
+        <span class="tab-underline" id="underline"></span>
+      </nav>
+      <div class="win-actions">
+        <button class="wbtn theme" id="theme" title="Switch theme"><span class="contrast"></span></button>
+        <button class="wbtn" title="Minimise"><span class="min"></span></button>
+        <button class="wbtn" title="Maximise"><span class="max"></span></button>
+        <button class="wbtn close" title="Close"><span class="x"></span></button>
+      </div>
+    </header>
+
+    <main class="stage" id="stage">
+      <section class="view" data-view="market" id="view-market"></section>
+      <section class="view" data-view="chart" id="view-chart"></section>
+      <section class="view" data-view="table" id="view-table"></section>
+    </main>
+
+    <footer class="statusbar">
+      <span class="dot" id="livedot"></span>
+      <span id="status">CONNECTING</span>
+      <span class="grow"></span>
+      <span class="beat" id="beat" title="Next refresh"><i></i></span>
+      <span id="rate"></span>
+      <span id="clock">--:--:--</span>
+    </footer>
+
+    <!-- Splash lives inside the window: it is the first thing the app shows. -->
+    <div class="splash" id="splash">
+      <div class="splash-mark"></div>
+      <div class="splash-name">KORA</div>
+      <div class="splash-sub">MARKET</div>
+      <div class="splash-line"><span></span></div>
+      <div class="splash-meta">REAL-TIME PRICES · TOP 20 ASSETS · BINANCE</div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
