@@ -31,22 +31,20 @@ class BottomNav extends StatelessWidget {
               return Row(children: [
                 _NavItem(icon: Icons.account_balance_wallet_outlined,
                     activeIcon: Icons.account_balance_wallet_rounded,
-                    label: 'Wallet', active: current == 0, onTap: () { debugPrint('[TAP] BottomNav: Wallet (home_screen.dart)'); onTap(0); }),
+                    label: 'Wallet', active: current == 0, onTap: () { onTap(0); }),
                 _NavItem(icon: Icons.arrow_upward_rounded,
                     activeIcon: Icons.arrow_upward_rounded,
                     label: 'Send', active: false, onTap: () { 
-                      debugPrint('[TAP] BottomNav: Send (home_screen.dart)'); 
                       context.pushFade(SendScreen(assets: assets));
                     }),
                 _NavItem(icon: Icons.arrow_downward_rounded,
                     activeIcon: Icons.arrow_downward_rounded,
                     label: 'Receive', active: false, onTap: () { 
-                      debugPrint('[TAP] BottomNav: Receive (home_screen.dart)'); 
                       openReceivePicker(context, assets);
                     }),
                 _NavItem(icon: Icons.settings_outlined,
                     activeIcon: Icons.settings_rounded,
-                    label: 'Settings', active: current == 1, onTap: () { debugPrint('[TAP] BottomNav: Settings (home_screen.dart)'); onTap(1); }),
+                    label: 'Settings', active: current == 1, onTap: () { onTap(1); }),
               ]);
             },
           ),

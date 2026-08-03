@@ -17,7 +17,7 @@ class AppearanceTile extends StatelessWidget {
           icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
           label: 'Appearance',
           value: isDark ? 'Dark' : 'Light',
-          onTap: () { debugPrint('[TAP] Appearance toggle → ${isDark ? 'Light' : 'Dark'} (settings_screen.dart)'); ThemeNotifier.instance.setTheme(isDark ? 'Light' : 'Dark'); },
+          onTap: () { ThemeNotifier.instance.setTheme(isDark ? 'Light' : 'Dark'); },
         );
       },
     );

@@ -17,7 +17,7 @@ class AutoLockTile extends ConsumerWidget {
       icon: Icons.timer_outlined,
       label: 'Auto-Lock',
       value: current.displayName,
-      onTap: () { debugPrint('[TAP] Auto-Lock picker (settings_screen.dart)'); _showPicker(context, ref, current); },
+      onTap: () { _showPicker(context, ref, current); },
     );
   }
 

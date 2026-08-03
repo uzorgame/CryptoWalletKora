@@ -22,7 +22,6 @@ class CurrencyTile extends ConsumerWidget {
   }
 
   void _showPicker(BuildContext context, WidgetRef ref, AppCurrency selected) {
-    debugPrint('[TAP] Currency picker (settings_screen.dart)');
     context.pushSlide(const CurrencySelectorScreen());
   }
 }

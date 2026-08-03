@@ -202,12 +202,12 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
         title: Text(asset.symbol),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () { debugPrint('[TAP] Back (asset_detail_screen.dart)'); Navigator.of(context).pop(); },
+          onPressed: () { Navigator.of(context).pop(); },
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh_rounded, size: 20),
-            onPressed: () { debugPrint('[TAP] Refresh history: ${widget.asset.symbol} (asset_detail_screen.dart)'); _loadHistory(force: true); },
+            onPressed: () { _loadHistory(force: true); },
           ),
         ],
       ),
@@ -278,10 +278,10 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(children: [
               _ActionBtn(label: 'Send', icon: Icons.arrow_upward_rounded,
-                  onTap: () { debugPrint('[TAP] Send: ${asset.symbol} / ${asset.blockchain} (asset_detail_screen.dart)'); context.pushModal(SendScreen(assets: [asset])); }),
+                  onTap: () { context.pushModal(SendScreen(assets: [asset])); }),
               const SizedBox(width: 12),
               _ActionBtn(label: 'Receive', icon: Icons.arrow_downward_rounded,
-                  onTap: () { debugPrint('[TAP] Receive: ${asset.symbol} (asset_detail_screen.dart)'); context.pushModal(ReceiveScreen(preselectedAsset: asset)); }),
+                  onTap: () { context.pushModal(ReceiveScreen(preselectedAsset: asset)); }),
             ]),
           ),
 
@@ -291,9 +291,8 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
           CollapsibleDetails(
             asset: asset,
             expanded: _detailsExpanded,
-            onToggle: () { debugPrint('[TAP] Toggle details: ${asset.symbol} expanded=${!_detailsExpanded} (asset_detail_screen.dart)'); setState(() => _detailsExpanded = !_detailsExpanded); },
+            onToggle: () { setState(() => _detailsExpanded = !_detailsExpanded); },
             onCopyAddress: () {
-              debugPrint('[TAP] Copy address: ${asset.blockchain} (asset_detail_screen.dart)');
               Clipboard.setData(ClipboardData(text: asset.contractAddress));
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Address copied')));
             },

@@ -11,6 +11,9 @@ import 'package:kora/core/services/binance_price_stream.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // A release build does not silence debugPrint on its own, and the app logs generously —
+  // startup, refreshes, sends. None of that belongs on the console of a shipped wallet.
+  if (kReleaseMode) debugPrint = (String? message, {int? wrapWidth}) {};
   if (kDebugMode) debugPrint('[App] ===== Kora Wallet starting (DEBUG) =====');
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(AppTheme.overlayStyle);

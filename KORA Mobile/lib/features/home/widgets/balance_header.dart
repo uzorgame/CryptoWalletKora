@@ -37,7 +37,7 @@ class BalanceHeader extends ConsumerWidget {
           SizedBox(width: 10),
           AnimatedTap(
             onTap: multiWallet
-                ? () { debugPrint('[TAP] Wallet name (open switcher) (home_screen.dart)'); _showWalletSwitcher(context, ref); }
+                ? () { _showWalletSwitcher(context, ref); }
                 : null,
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               Text(walletName,
@@ -55,7 +55,6 @@ class BalanceHeader extends ConsumerWidget {
             listenable: ThemeNotifier.instance,
             builder: (context, _) => AnimatedTap(
               onTap: () {
-                debugPrint('[TAP] Toggle theme (home_screen.dart)');
                 ThemeNotifier.instance.toggleTheme();
               },
               child: Icon(
@@ -67,7 +66,7 @@ class BalanceHeader extends ConsumerWidget {
           ),
           const SizedBox(width: 16),
           AnimatedTap(
-            onTap: () { debugPrint('[TAP] Toggle balance visibility (home_screen.dart)'); onToggleVisibility(); },
+            onTap: () { onToggleVisibility(); },
             child: Icon(
               visible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
               color: AppColors.textSecondary, size: 20),

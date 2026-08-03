@@ -94,7 +94,6 @@ class _ReviewSheetState extends State<ReviewSheet> {
 
   Future<void> _executeWithPin(String pin) async {
     setState(() { _loading = true; _error = null; });
-    debugPrint('[TAP] Confirm & Send: ${widget.asset.symbol} to=${widget.to} amount=${widget.amount} (send_screen.dart)');
     final (txHash, errMsg) = await widget.onConfirm(pin);
     if (mounted) {
       if (txHash != null) {

@@ -581,7 +581,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
               const Spacer(),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: _loading ? null : () { debugPrint('[TAP] Review Transaction: ${_asset?.symbol} → ${_toCtrl.text.trim()} amount=${_amountCtrl.text.trim()} (send_screen.dart)'); _review(); },
+                onPressed: _loading ? null : () { _review(); },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.textPrimary,
                   foregroundColor: AppColors.background,

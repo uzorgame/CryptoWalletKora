@@ -28,7 +28,7 @@ class _AboutTileState extends State<AboutTile> {
       icon: Icons.info_outline_rounded,
       label: 'About',
       value: _version,
-      onTap: () => debugPrint('[TAP] About (version=$_version) (settings_screen.dart)'),
+      onTap: () {},
     );
   }
 }

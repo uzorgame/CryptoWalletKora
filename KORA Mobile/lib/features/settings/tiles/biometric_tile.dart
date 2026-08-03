@@ -47,7 +47,6 @@ class BiometricTile extends ConsumerWidget {
   }
 
   Future<void> _toggle(BuildContext context, WidgetRef ref, bool currentEnabled) async {
-    debugPrint('[TAP] Biometric Auth toggle → ${currentEnabled ? "disable" : "enable"} (settings_screen.dart)');
 
     if (!currentEnabled) {
       // Check if device supports any biometric or device credentials

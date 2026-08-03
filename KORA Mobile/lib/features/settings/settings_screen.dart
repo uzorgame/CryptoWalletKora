@@ -77,14 +77,14 @@ class SettingsScreen extends ConsumerWidget {
             SettingsTile(
               icon: Icons.lock_outline_rounded,
               label: 'Change PIN',
-              onTap: () { debugPrint('[TAP] Change PIN (settings_screen.dart)'); _showChangePinDialog(context, ref); },
+              onTap: () { _showChangePinDialog(context, ref); },
             ),
             BiometricTile(),
             AutoLockTile(),
             SettingsTile(
               icon: Icons.key_rounded,
               label: 'Show Seed Phrase',
-              onTap: () { debugPrint('[TAP] Show Seed Phrase (settings_screen.dart)'); _showSeedPhrase(context, ref); },
+              onTap: () { _showSeedPhrase(context, ref); },
             ),
             SizedBox(height: 20),
 
@@ -95,7 +95,7 @@ class SettingsScreen extends ConsumerWidget {
             SettingsTile(
               icon: Icons.privacy_tip_outlined,
               label: 'Privacy Policy',
-              onTap: () { debugPrint('[TAP] Privacy Policy (settings_screen.dart)'); context.pushSlide(const PrivacyPolicyScreen()); },
+              onTap: () { context.pushSlide(const PrivacyPolicyScreen()); },
             ),
             AboutTile(),
             SizedBox(height: 20),
@@ -106,14 +106,14 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.add_circle_outline_rounded,
               label: 'Add / Import Wallet',
               iconColor: AppColors.accent,
-              onTap: () { debugPrint('[TAP] Add/Import Wallet (settings_screen.dart)'); context.pushSlide(const OnboardingScreen()); },
+              onTap: () { context.pushSlide(const OnboardingScreen()); },
             ),
             SettingsTile(
               icon: Icons.logout_rounded,
               label: 'Remove Wallet',
               iconColor: AppColors.negative,
               labelColor: AppColors.negative,
-              onTap: () { debugPrint('[TAP] Remove Wallet (settings_screen.dart)'); _confirmRemoveWallet(context, ref); },
+              onTap: () { _confirmRemoveWallet(context, ref); },
             ),
             SizedBox(height: 40),
           ],
@@ -135,12 +135,11 @@ class SettingsScreen extends ConsumerWidget {
             style: TextStyle(color: AppColors.textSecondary, height: 1.5)),
         actions: [
           TextButton(
-            onPressed: () { debugPrint('[TAP] Remove Wallet: Cancel (settings_screen.dart)'); Navigator.of(context).pop(); },
+            onPressed: () { Navigator.of(context).pop(); },
             child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () async {
-              debugPrint('[TAP] Remove Wallet: Confirm (settings_screen.dart)');
               final wallet = ref.read(currentWalletProvider).value;
               if (wallet != null) {
                 await ref.read(currentWalletProvider.notifier).deleteWallet(wallet.id);

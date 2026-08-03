@@ -103,28 +103,28 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
               label: 'By popularity',
               subtitle: 'BTC first, then ETH, SOL…',
               selected: _sortMode == SortMode.popularity,
-              onTap: () { debugPrint('[TAP] Sort: By popularity (home_screen.dart)'); Navigator.pop(sheetCtx, SortMode.popularity); },
+              onTap: () { Navigator.pop(sheetCtx, SortMode.popularity); },
             ),
             SortOption(
               icon: Icons.account_balance_wallet_outlined,
               label: 'By portfolio value',
               subtitle: 'Highest USD value in wallet on top',
               selected: _sortMode == SortMode.totalValue,
-              onTap: () { debugPrint('[TAP] Sort: By portfolio value (home_screen.dart)'); Navigator.pop(sheetCtx, SortMode.totalValue); },
+              onTap: () { Navigator.pop(sheetCtx, SortMode.totalValue); },
             ),
             SortOption(
               icon: Icons.format_list_numbered_rounded,
               label: 'By quantity',
               subtitle: 'Most token units on top',
               selected: _sortMode == SortMode.quantity,
-              onTap: () { debugPrint('[TAP] Sort: By quantity (home_screen.dart)'); Navigator.pop(sheetCtx, SortMode.quantity); },
+              onTap: () { Navigator.pop(sheetCtx, SortMode.quantity); },
             ),
             SortOption(
               icon: Icons.trending_up_rounded,
               label: 'By coin price',
               subtitle: 'Most expensive coin on top',
               selected: _sortMode == SortMode.price,
-              onTap: () { debugPrint('[TAP] Sort: By coin price (home_screen.dart)'); Navigator.pop(sheetCtx, SortMode.price); },
+              onTap: () { Navigator.pop(sheetCtx, SortMode.price); },
             ),
             const SizedBox(height: 16),
           ],
@@ -162,7 +162,6 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
           color: AppColors.textPrimary,
           backgroundColor: AppColors.surface,
           onRefresh: () async {
-            debugPrint('[TAP] PullToRefresh (home_screen.dart)');
             BalanceService.invalidateAll();
             await ref.read(currentWalletProvider.notifier).refreshBalances();
           },
@@ -189,7 +188,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
                     ),
                     // Sort button
                     AnimatedTap(
-                      onTap: () { debugPrint('[TAP] Sort Assets button (home_screen.dart)'); _showSortSheet(); },
+                      onTap: () { _showSortSheet(); },
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -213,7 +212,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
                     const SizedBox(width: 8),
                     // Add token button
                     AnimatedTap(
-                      onTap: () { debugPrint('[TAP] Add Token button (home_screen.dart)'); context.pushSlide(const AddTokenScreen()); },
+                      onTap: () { context.pushSlide(const AddTokenScreen()); },
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -239,7 +238,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
                     asset: sorted[i],
                     visible: widget.balanceVisible,
                     currency: currency,
-                    onTap: () { debugPrint('[TAP] Asset tile: ${sorted[i].symbol} / ${sorted[i].blockchain} (home_screen.dart)'); context.pushSlide(AssetDetailScreen(asset: sorted[i])); },
+                    onTap: () { context.pushSlide(AssetDetailScreen(asset: sorted[i])); },
                   ),
                   childCount: sorted.length,
                 ),

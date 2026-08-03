@@ -120,7 +120,6 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                   final isActive = w.id == currentWallet?.id;
                   return AnimatedTap(
                     onTap: isActive ? null : () async {
-                      debugPrint('[TAP] Switch wallet: ${w.name} (${w.id}) (home_screen.dart)');
                       Navigator.pop(context);
                       await ref.read(currentWalletProvider.notifier).switchWallet(w.id);
                     },
@@ -180,7 +179,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                           ),
                         // Rename button
                         AnimatedTap(
-                          onTap: () { debugPrint('[TAP] Rename wallet: ${w.name} (home_screen.dart)'); _showRenameDialog(w.id, w.name); },
+                          onTap: () { _showRenameDialog(w.id, w.name); },
                           child: Container(
                             width: 32, height: 32,
                             decoration: BoxDecoration(

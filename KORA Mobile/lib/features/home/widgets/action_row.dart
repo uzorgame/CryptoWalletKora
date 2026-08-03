@@ -19,13 +19,13 @@ class ActionRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(children: [
         _ActionBtn(label: 'Send', icon: Icons.arrow_upward_rounded,
-            onTap: () { debugPrint('[TAP] Action: Send (home_screen.dart)'); context.pushModal(SendScreen(assets: assets)); }),
+            onTap: () { context.pushModal(SendScreen(assets: assets)); }),
         const SizedBox(width: 12),
         _ActionBtn(label: 'Receive', icon: Icons.arrow_downward_rounded,
-            onTap: () { debugPrint('[TAP] Action: Receive (home_screen.dart)'); openReceivePicker(context, assets); }),
+            onTap: () { openReceivePicker(context, assets); }),
         const SizedBox(width: 12),
         _ActionBtn(label: 'Scan', icon: Icons.qr_code_scanner_rounded,
-            onTap: () async { debugPrint('[TAP] Action: Scan QR (home_screen.dart)');
+            onTap: () async { 
               final addr = await context.pushModal<String>(const QrScannerScreen());
               if (addr != null && addr.isNotEmpty && context.mounted) {
                 context.pushModal(SendScreen(
