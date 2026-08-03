@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:kora/features/send/chain_labels.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/config/api_config.dart';
-import 'package:kora/core/services/biometric_service.dart';
-import 'package:kora/core/services/storage_service.dart';
 import 'package:kora/core/crypto/key_manager.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/models/asset.dart';
@@ -13,11 +11,7 @@ import 'package:kora/core/widgets/coin_icon.dart';
 import 'package:kora/features/address_book/address_book_screen.dart';
 import 'package:kora/features/scan/qr_scanner_screen.dart';
 // ─── Executor imports ─────────────────────────────────────────────────────────
-import 'package:kora/features/send/executors/evm_executor.dart';
-import 'package:kora/features/send/executors/tron_executor.dart';
-import 'package:kora/features/send/executors/solana_executor.dart';
-import 'package:kora/features/send/executors/utxo_executor.dart';
-import 'package:kora/features/send/services/transaction_executor.dart';
+import 'package:kora/features/send/executors/registry.dart';
 import 'package:kora/core/widgets/animated_tap.dart';
 import 'package:kora/features/send/tx_success_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
@@ -32,6 +26,13 @@ import 'package:kora/features/send/fee/bitcoin_cash_fee/bitcoin_cash_fee_provide
 import 'package:kora/features/send/fee/bsc_fee/bsc_fee_provider.dart';
 import 'package:kora/features/send/fee/ethereum_classic_fee/ethereum_classic_fee_provider.dart';
 import 'package:kora/core/services/tx_history_service.dart';
+import 'package:kora/features/send/review/review_sheet.dart';
+import 'package:kora/features/send/fee/fee_widget.dart';
+import 'package:kora/features/send/fee/fee_speed_selector.dart';
+import 'package:kora/features/send/widgets/asset_badge.dart';
+import 'package:kora/features/send/widgets/net_chip.dart';
+import 'package:kora/features/send/widgets/unsupported_banner.dart';
+import 'package:kora/features/send/widgets/section_label.dart';
 
 // ─── Chain helpers ─────────────────────────────────────────────────────────────
 
@@ -40,12 +41,9 @@ bool _isTron(String b)          => b == 'tron';
 bool _isSolana(String b)        => b == 'solana';
 bool _isUtxo(String b)    => APIConfig.utxoChains.contains(b);
 
-
 bool _sendSupported(Asset a) =>
     _isEvm(a.blockchain) || _isTron(a.blockchain) || _isSolana(a.blockchain) ||
     _isUtxo(a.blockchain);
-
-
 
 // ─── SendScreen ───────────────────────────────────────────────────────────────
 
@@ -96,7 +94,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     return widget.assets.where((a) =>
         a.name.toLowerCase().contains(q) ||
         a.symbol.toLowerCase().contains(q) ||
-        _netLabel(a.blockchain).toLowerCase().contains(q)).toList();
+        netLabel(a.blockchain).toLowerCase().contains(q)).toList();
   }
 
   @override
@@ -153,7 +151,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     final addr = _toCtrl.text.trim();
     final err = addr.isEmpty
         ? 'Enter recipient address'
-        : _getExecutor(_asset!.blockchain)?.validateAddress(addr);
+        : getExecutor(_asset!.blockchain)?.validateAddress(addr);
     if (err != _addrErr) setState(() => _addrErr = err);
   }
 
@@ -182,33 +180,6 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
       default:
         debugPrint('[FEE] No fee provider for $blockchain');
     }
-  }
-
-  TransactionExecutor? _getExecutor(String blockchain) {
-    return switch (blockchain) {
-      // EVM chains
-      'ethereum' || 'bsc' ||
-      'ethereum_classic' => EvmExecutor(),
-      
-      // TRON
-      'tron' => TronExecutor(),
-      
-      // Bitcoin-like
-      'bitcoin' || 'litecoin' || 'bitcoin_cash' => UtxoExecutor(blockchain, null),
-      
-      // Solana
-      'solana' => SolanaExecutor(),
-      
-      _ => null,
-    };
-  }
-
-  TransactionExecutor? _getExecutorWithFee(String blockchain, FeeEstimate? fee) {
-    final satPerVByte = (fee?.details?['satPerVByte'] as num?)?.toInt();
-    return switch (blockchain) {
-      'bitcoin' || 'litecoin' || 'bitcoin_cash' => UtxoExecutor(blockchain, satPerVByte),
-      _ => _getExecutor(blockchain),
-    };
   }
 
   void _applyMax() {
@@ -297,7 +268,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     final to  = _toCtrl.text.trim();
     final err = to.isEmpty
         ? 'Enter recipient address'
-        : _getExecutor(asset.blockchain)?.validateAddress(to);
+        : getExecutor(asset.blockchain)?.validateAddress(to);
     if (err != null) { setState(() => _addrErr = err); return; }
     final amtStr = _amountCtrl.text.trim();
     final amt    = double.tryParse(amtStr);
@@ -344,7 +315,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
       backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (_) => _ReviewSheet(
+      builder: (_) => ReviewSheet(
         asset: asset, to: to, amount: amtStr,
         feeEstimate: feeEstimate,
         onConfirm: (pin) async {
@@ -381,7 +352,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     debugPrint('[SEND][_execute] getSeedPhrase → ${mnemonic != null ? 'OK (${mnemonic.split(' ').length} words)' : 'NULL (wrong PIN or walletId not found)'}');
     if (mnemonic == null) return (null, null); // wrong PIN
 
-    final executor = _getExecutorWithFee(asset.blockchain, feeOverride);
+    final executor = getExecutorWithFee(asset.blockchain, feeOverride);
     if (executor == null) {
       debugPrint('[SEND][_execute] ERROR: no executor for ${asset.blockchain}');
       return (null, 'Blockchain ${asset.blockchain} is not supported');
@@ -498,11 +469,11 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
           padding: const EdgeInsets.all(24),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             // Selected asset badge (always locked in form step)
-            _AssetBadge(asset: liveAsset),
+            AssetBadge(asset: liveAsset),
             const SizedBox(height: 16),
 
             if (!supported) ...[
-              _UnsupportedBanner(asset.symbol),
+              UnsupportedBanner(asset.symbol),
               const Spacer(),
             ] else ...[
               Row(children: [
@@ -541,7 +512,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
                 ),
               ),
               const SizedBox(height: 16),
-              _SectionLabel('Amount'),
+              SectionLabel('Amount'),
               const SizedBox(height: 8),
               Row(children: [
                 Expanded(
@@ -599,10 +570,10 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
               }),
               const SizedBox(height: 24),
               // Fee display + speed selector
-              _FeeWidget(blockchain: asset.blockchain, selectedSpeed: _selectedSpeed, isToken: asset.type == AssetType.token),
+              FeeWidget(blockchain: asset.blockchain, selectedSpeed: _selectedSpeed, isToken: asset.type == AssetType.token),
               if (_supportsSpeedSelector(asset.blockchain)) ...[
                 const SizedBox(height: 10),
-                _FeeSpeedSelector(
+                FeeSpeedSelector(
                   selected: _selectedSpeed,
                   onSelect: _selectSpeed,
                 ),
@@ -746,7 +717,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
                                           fontWeight: FontWeight.w600)),
                                   const SizedBox(height: 5),
                                   Row(children: [
-                                    _NetChip(a.blockchain),
+                                    NetChip(a.blockchain),
                                   ]),
                                 ]),
                           ),
@@ -796,657 +767,10 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
 
 // ─── Review bottom sheet ──────────────────────────────────────────────────────
 
-class _ReviewSheet extends StatefulWidget {
-  const _ReviewSheet({
-    required this.asset,
-    required this.to,
-    required this.amount,
-    required this.onConfirm,
-    required this.onSuccess,
-    this.feeEstimate,
-  });
-  final Asset asset;
-  final String to;
-  final String amount;
-  final FeeEstimate? feeEstimate;
-  final Future<(String?, String?)> Function(String pin) onConfirm;
-  final void Function(String txHash) onSuccess;
-
-  @override
-  State<_ReviewSheet> createState() => _ReviewSheetState();
-}
-
-class _ReviewSheetState extends State<_ReviewSheet> {
-  String  _pin             = '';
-  bool    _loading         = false;
-  String? _error;
-  bool    _biometricEnabled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    final enabled = await StorageService.readBool(StorageService.KEY_BIOMETRIC_ENABLED) ?? false;
-    if (!mounted) return;
-    setState(() => _biometricEnabled = enabled);
-    if (enabled) {
-      await Future.delayed(const Duration(milliseconds: 400));
-      if (mounted) _tryBiometric();
-    }
-  }
-
-  Future<void> _tryBiometric() async {
-    if (_loading) return;
-    setState(() { _loading = true; _error = null; });
-    final result = await BiometricService.authenticate(
-      reason: 'Confirm transaction in Kora Wallet',
-      biometricOnly: false,
-    );
-    if (!mounted) return;
-    if (result.isSuccess) {
-      final pin = await KeyManager.getPinForBiometric();
-      if (!mounted) return;
-      if (pin != null) {
-        await _executeWithPin(pin);
-      } else {
-        setState(() {
-          _loading = false;
-          _error = 'Biometric PIN not set up. Please enter PIN manually.';
-        });
-      }
-    } else if (result == BiometricResult.cancelled) {
-      setState(() { _loading = false; });
-    } else {
-      setState(() { _loading = false; _error = result.message; });
-    }
-  }
-
-  void _onDigit(String d) {
-    if (_pin.length >= 6 || _loading) return;
-    HapticFeedback.lightImpact();
-    setState(() { _pin += d; _error = null; });
-    if (_pin.length == 6) _executeWithPin(_pin);
-  }
-
-  void _onBackspace() {
-    if (_pin.isEmpty || _loading) return;
-    setState(() => _pin = _pin.substring(0, _pin.length - 1));
-  }
-
-  Future<void> _executeWithPin(String pin) async {
-    setState(() { _loading = true; _error = null; });
-    debugPrint('[TAP] Confirm & Send: ${widget.asset.symbol} to=${widget.to} amount=${widget.amount} (send_screen.dart)');
-    final (txHash, errMsg) = await widget.onConfirm(pin);
-    if (mounted) {
-      if (txHash != null) {
-        Navigator.of(context).pop();
-        widget.onSuccess(txHash);
-      } else {
-        setState(() {
-          _loading = false;
-          _pin = '';
-          _error = errMsg ?? 'Incorrect PIN. Please try again.';
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final a = widget.asset;
-    final short = widget.to.length > 20
-        ? '${widget.to.substring(0, 10)}…${widget.to.substring(widget.to.length - 8)}'
-        : widget.to;
-
-    // Format fee for display
-    String feeText = '';
-    if (widget.feeEstimate != null) {
-      final fee = widget.feeEstimate!;
-      final sym = _feeSymbol(a.blockchain);
-      String native;
-      if (fee.feeInNative >= 1) {
-        native = fee.feeInNative.toStringAsFixed(2);
-      } else if (fee.feeInNative >= 0.001) {
-        native = fee.feeInNative.toStringAsFixed(4);
-      } else {
-        native = fee.feeInNative.toStringAsFixed(8)
-            .replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
-      }
-      feeText = '$native $sym';
-      if (fee.feeInUsd > 0) {
-        final String usd;
-        if (fee.feeInUsd >= 0.01) {
-          usd = '\$${fee.feeInUsd.toStringAsFixed(2)}';
-        } else if (fee.feeInUsd >= 0.0001) {
-          usd = '\$${fee.feeInUsd.toStringAsFixed(4)}';
-        } else {
-          usd = '\$${fee.feeInUsd.toStringAsFixed(6)}'
-              .replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
-        }
-        feeText += '  ($usd)';
-      }
-    }
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        left: 24, right: 24, top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-      ),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        // Drag handle
-        Center(child: Container(
-          width: 36, height: 4,
-          decoration: BoxDecoration(
-            color: AppColors.border, borderRadius: BorderRadius.circular(2)),
-        )),
-        const SizedBox(height: 20),
-        Text('Review Transaction',
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 20),
-
-        // ── Static transaction summary ────────────────────────────────────
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border, width: 0.5),
-          ),
-          child: Column(children: [
-            _ReviewRow('Asset',  '${a.symbol}  ·  ${_netLabel(a.blockchain)}'),
-            _ReviewRow('To',     short),
-            _ReviewRow('Amount', '${widget.amount} ${a.symbol}',
-                last: feeText.isEmpty),
-            if (feeText.isNotEmpty)
-              _ReviewRow('Network Fee', feeText, last: true),
-          ]),
-        ),
-        const SizedBox(height: 12),
-
-        // Warning
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppColors.warning.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.warning.withValues(alpha: 0.25), width: 0.5),
-          ),
-          child: Row(children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 16),
-            const SizedBox(width: 8),
-            Expanded(child: Text(
-              'Transactions are irreversible. Verify the address before confirming.',
-              style: TextStyle(color: AppColors.warning, fontSize: 11, height: 1.4),
-            )),
-          ]),
-        ),
-        const SizedBox(height: 24),
-
-        // ── Auth section ──────────────────────────────────────────────────
-        Text(
-          _biometricEnabled ? 'Confirm with biometrics or PIN' : 'Enter PIN to confirm',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-        ),
-        const SizedBox(height: 20),
-
-        // PIN dots
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (i) {
-            final filled = i < _pin.length;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              width: 14, height: 14,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: filled ? AppColors.textPrimary : Colors.transparent,
-                border: Border.all(
-                  color: filled ? AppColors.textPrimary : AppColors.textTertiary,
-                  width: 1.5,
-                ),
-              ),
-            );
-          }),
-        ),
-
-        // Error or spacer
-        if (_error != null) ...[
-          const SizedBox(height: 12),
-          Text(_error!,
-              style: TextStyle(color: AppColors.negative, fontSize: 12),
-              textAlign: TextAlign.center),
-        ] else
-          const SizedBox(height: 28),
-
-        const SizedBox(height: 8),
-
-        // PIN numpad
-        _SendNumpad(
-          onDigit: _onDigit,
-          onBackspace: _onBackspace,
-          onBiometric: _biometricEnabled ? _tryBiometric : null,
-          loading: _loading,
-        ),
-      ]),
-    );
-  }
-}
-
-String _feeSymbol(String blockchain) => const {
-  'bitcoin': 'BTC', 'ethereum': 'ETH', 'bsc': 'BNB',
-  'ethereum_classic': 'ETC', 'solana': 'SOL', 'tron': 'TRX',
-  'litecoin': 'LTC', 'bitcoin_cash': 'BCH',
-}[blockchain] ?? '';
-
 // ─── Fee speed selector ───────────────────────────────────────────────────────
-
-class _FeeSpeedSelector extends StatelessWidget {
-  const _FeeSpeedSelector({required this.selected, required this.onSelect});
-  final FeeSpeed selected;
-  final void Function(FeeSpeed) onSelect;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: FeeSpeed.values.map((spd) {
-      final isSelected = spd == selected;
-      final label = switch (spd) {
-        FeeSpeed.slow   => 'Slow',
-        FeeSpeed.normal => 'Normal',
-        FeeSpeed.fast   => 'Fast',
-      };
-      return Expanded(
-        child: GestureDetector(
-          onTap: () => onSelect(spd),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            margin: EdgeInsets.only(
-              left: spd == FeeSpeed.slow ? 0 : 4,
-              right: spd == FeeSpeed.fast ? 0 : 4,
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 9),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.textPrimary : AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isSelected ? AppColors.textPrimary : AppColors.border,
-                width: 0.5,
-              ),
-            ),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isSelected ? AppColors.background : AppColors.textSecondary,
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ),
-        ),
-      );
-    }).toList());
-  }
-}
 
 // ─── PIN numpad (for send/review) ─────────────────────────────────────────────
 
-class _SendNumpad extends StatelessWidget {
-  const _SendNumpad({
-    required this.onDigit,
-    required this.onBackspace,
-    this.onBiometric,
-    this.loading = false,
-  });
-  final void Function(String) onDigit;
-  final VoidCallback onBackspace;
-  final VoidCallback? onBiometric;
-  final bool loading;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      _buildRow(['1', '2', '3']),
-      const SizedBox(height: 12),
-      _buildRow(['4', '5', '6']),
-      const SizedBox(height: 12),
-      _buildRow(['7', '8', '9']),
-      const SizedBox(height: 12),
-      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        SizedBox(
-          width: 72, height: 72,
-          child: onBiometric != null
-              ? _SendNumBtn(
-                  onTap: loading ? null : onBiometric,
-                  child: Icon(Icons.fingerprint_rounded,
-                      color: AppColors.textSecondary, size: 28),
-                )
-              : const SizedBox.shrink(),
-        ),
-        _SendNumBtn(label: '0', onTap: loading ? null : () => onDigit('0')),
-        SizedBox(
-          width: 72, height: 72,
-          child: _SendNumBtn(
-            onTap: loading ? null : onBackspace,
-            child: loading
-                ? SizedBox(
-                    width: 18, height: 18,
-                    child: CircularProgressIndicator(
-                        color: AppColors.textPrimary, strokeWidth: 2))
-                : Icon(Icons.backspace_outlined,
-                    color: AppColors.textSecondary, size: 22),
-          ),
-        ),
-      ]),
-    ]);
-  }
-
-  Widget _buildRow(List<String> digits) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: digits
-        .map((d) => _SendNumBtn(label: d, onTap: loading ? null : () => onDigit(d)))
-        .toList(),
-  );
-}
-
-class _SendNumBtn extends StatelessWidget {
-  const _SendNumBtn({this.label, this.child, this.onTap});
-  final String? label;
-  final Widget? child;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) => AnimatedTap(
-    onTap: onTap,
-    pressScale: 0.88,
-    pressOpacity: 0.65,
-    child: Container(
-      width: 72, height: 72,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: AppColors.surface,
-      ),
-      child: Center(
-        child: label != null
-            ? Text(label!,
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400))
-            : child,
-      ),
-    ),
-  );
-}
-
-class _ReviewRow extends StatelessWidget {
-  const _ReviewRow(this.label, this.value, {this.last = false});
-  final String label, value;
-  final bool last;
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(vertical: 11),
-    decoration: BoxDecoration(border: last ? null
-        : Border(bottom: BorderSide(color: AppColors.separator, width: 0.5))),
-    child: Row(children: [
-      Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-      const Spacer(),
-      Flexible(child: Text(value, textAlign: TextAlign.right,
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w500))),
-    ]),
-  );
-}
-
 // ─── Shared helpers + widgets ─────────────────────────────────────────────────
 
-String _netLabel(String b) => const {
-  'ethereum': 'Ethereum',    'bsc': 'BNB Smart Chain',
-  'tron': 'Tron',
-  'solana': 'Solana',        'bitcoin': 'Bitcoin',     'dogecoin': 'Dogecoin',
-  'litecoin': 'Litecoin',
-}[b] ?? b;
-
-class _AssetBadge extends StatelessWidget {
-  const _AssetBadge({required this.asset});
-  final Asset asset;
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    decoration: BoxDecoration(color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border, width: 0.5)),
-    child: Row(children: [
-      CoinIcon(symbol: asset.symbol, iconUrl: asset.iconUrl, size: 36),
-      const SizedBox(width: 12),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(asset.symbol,
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 2),
-        _NetChip(asset.blockchain),
-      ])),
-      Text(asset.formattedBalance,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-    ]),
-  );
-}
-
-class _NetChip extends StatelessWidget {
-  const _NetChip(this.blockchain);
-  final String blockchain;
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5)),
-    child: Text(_netLabel(blockchain),
-        style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.w600)),
-  );
-}
-
-class _FeeWidget extends ConsumerWidget {
-  const _FeeWidget({required this.blockchain, this.selectedSpeed = FeeSpeed.normal, this.isToken = false});
-  final String blockchain;
-  final FeeSpeed selectedSpeed;
-  final bool isToken;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    AsyncValue<FeeEstimate?>? feeState;
-    final spd = selectedSpeed;
-
-    switch (blockchain) {
-      case 'bitcoin':
-        feeState = ref.watch(bitcoinFeeProvider(spd));
-      case 'ethereum':
-        feeState = ref.watch(ethereumFeeProvider(EthereumFeeParams(blockchain: 'ethereum', speed: FeeSpeed.normal, isToken: isToken)));
-      case 'bsc':
-        feeState = ref.watch(bscFeeProvider(FeeSpeed.normal));
-      case 'ethereum_classic':
-        feeState = ref.watch(ethereumClassicFeeProvider(FeeSpeed.normal));
-      case 'solana':
-        feeState = ref.watch(solanaFeeProvider(null));
-      case 'tron':
-        feeState = ref.watch(tronFeeProvider);
-      case 'litecoin':
-        feeState = ref.watch(litecoinFeeProvider(spd));
-      case 'bitcoin_cash':
-        feeState = ref.watch(bitcoinCashFeeProvider(spd));
-      default:
-        return const SizedBox.shrink();
-    }
-
-    return feeState?.when(
-      data: (fee) {
-        if (fee == null) {
-          return Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.orange.withOpacity(0.5), width: 0.5),
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Icon(Icons.warning_amber_outlined, color: Colors.orange, size: 16),
-                const SizedBox(width: 8),
-                Text('Network Fee: Unable to fetch',
-                    style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600)),
-              ]),
-              const SizedBox(height: 4),
-              Text('All fee APIs unavailable. Check connection.',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 10, fontStyle: FontStyle.italic)),
-            ]),
-          );
-        }
-        
-        final symbol = _getBlockchainSymbol(blockchain);
-        
-        // Format native fee - smart precision based on magnitude
-        String feeNative;
-        if (fee.feeInNative >= 1) {
-          feeNative = fee.feeInNative.toStringAsFixed(2);
-        } else if (fee.feeInNative >= 0.001) {
-          feeNative = fee.feeInNative.toStringAsFixed(4);
-        } else {
-          feeNative = fee.feeInNative.toStringAsFixed(8)
-              .replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
-        }
-
-        // Format USD - enough decimals to always show a non-zero value
-        String feeUsd = '';
-        if (fee.feeInUsd > 0) {
-          if (fee.feeInUsd >= 1) {
-            feeUsd = '\$${fee.feeInUsd.toStringAsFixed(2)}';
-          } else if (fee.feeInUsd >= 0.01) {
-            feeUsd = '\$${fee.feeInUsd.toStringAsFixed(3)}';
-          } else if (fee.feeInUsd >= 0.0001) {
-            feeUsd = '\$${fee.feeInUsd.toStringAsFixed(4)}';
-          } else {
-            feeUsd = '\$${fee.feeInUsd.toStringAsFixed(6)}'
-                .replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
-          }
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.border, width: 0.5),
-          ),
-          child: Row(children: [
-            Icon(Icons.local_gas_station_outlined, color: AppColors.textSecondary, size: 16),
-            const SizedBox(width: 8),
-            Text('Network Fee:', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-            const Spacer(),
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text('$feeNative $symbol',
-                  style: TextStyle(color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w600)),
-              if (feeUsd.isNotEmpty)
-                Text(feeUsd,
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-            ]),
-          ]),
-        );
-      },
-      loading: () => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border, width: 0.5),
-        ),
-        child: Row(children: [
-          SizedBox(width: 12, height: 12, 
-            child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.textSecondary)),
-          const SizedBox(width: 10),
-          Text('Loading fee...', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-        ]),
-      ),
-      error: (error, __) => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.orange.withOpacity(0.5), width: 0.5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Icon(Icons.warning_amber_outlined, color: Colors.orange, size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Network Fee: Unable to fetch',
-                  style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-              ),
-            ]),
-            const SizedBox(height: 6),
-            Text(
-              'API Error: ${error.toString().replaceAll('Exception: ', '').replaceAll('FeeApiException [${blockchain}]: ', '')}',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Please check connection or try again later',
-              style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontStyle: FontStyle.italic),
-            ),
-          ],
-        ),
-      ),
-    ) ?? const SizedBox.shrink();
-  }
-
-  String _getBlockchainSymbol(String blockchain) {
-    return switch (blockchain) {
-      'bitcoin' => 'BTC',
-      'ethereum' => 'ETH',
-      'bsc' => 'BNB',
-      'ethereum_classic' => 'ETC',
-      'solana' => 'SOL',
-      'tron' => 'TRX',
-      'litecoin' => 'LTC',
-      'bitcoin_cash' => 'BCH',
-      _ => '',
-    };
-  }
-}
-
-class _UnsupportedBanner extends StatelessWidget {
-  const _UnsupportedBanner(this.symbol);
-  final String symbol;
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(color: AppColors.warning.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 0.5)),
-    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Icon(Icons.construction_rounded, color: AppColors.warning, size: 18),
-      const SizedBox(width: 10),
-      Expanded(child: Text(
-        'Sending $symbol is not yet supported in this release. '
-        'Support for more chains will be added in a future update.',
-        style: TextStyle(color: AppColors.warning, fontSize: 12, height: 1.4),
-      )),
-    ]),
-  );
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text);
-  final String text;
-  @override
-  Widget build(BuildContext context) =>
-      Text(text, style: TextStyle(color: AppColors.textSecondary,
-          fontSize: 13, fontWeight: FontWeight.w500));
-}
-
