@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/services/tx_history_service.dart';
 import 'package:kora/core/state/providers/currency_provider.dart';
@@ -20,8 +19,9 @@ import 'package:kora/core/utils/page_transitions.dart';
 import 'package:kora/core/widgets/animated_tap.dart';
 import 'package:kora/core/config/api_config.dart';
 import 'package:kora/core/services/balance_service.dart';
-import 'package:kora/features/asset_detail/transaction_details_screen.dart';
 import 'package:kora/features/asset_detail/token_price_chart_widget.dart';
+import 'package:kora/features/asset_detail/widgets/collapsible_details.dart';
+import 'package:kora/features/asset_detail/widgets/transaction_tile.dart';
 
 // ─── Supported chains for history ─────────────────────────────────────────────
 bool _hasHistory(String chain) =>
@@ -288,7 +288,7 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
           const SizedBox(height: 20),
 
           // ── Collapsible Details ───────────────────────────────────────────
-          _CollapsibleDetails(
+          CollapsibleDetails(
             asset: asset,
             expanded: _detailsExpanded,
             onToggle: () { debugPrint('[TAP] Toggle details: ${asset.symbol} expanded=${!_detailsExpanded} (asset_detail_screen.dart)'); setState(() => _detailsExpanded = !_detailsExpanded); },
@@ -337,7 +337,7 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
                   title: 'No transactions yet',
                   subtitle: 'Transactions will appear here once confirmed.')
             else
-              ...(_txRecords.map((tx) => _TxTile(tx: tx, asset: asset))),
+              ...(_txRecords.map((tx) => TransactionTile(tx: tx, asset: asset))),
           ],
 
           const SizedBox(height: 40),
@@ -349,184 +349,7 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
 
 // ─── Collapsible Details section ──────────────────────────────────────────────
 
-class _CollapsibleDetails extends StatelessWidget {
-  const _CollapsibleDetails({
-    required this.asset,
-    required this.expanded,
-    required this.onToggle,
-    required this.onCopyAddress,
-  });
-  final Asset asset;
-  final bool expanded;
-  final VoidCallback onToggle;
-  final VoidCallback onCopyAddress;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 0.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 14,
-              spreadRadius: 0,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(children: [
-          // Header row — always visible
-          AnimatedTap(
-            onTap: onToggle,
-            pressScale: 0.98,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(children: [
-                Text('Details',
-                    style: TextStyle(
-                        color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-                const Spacer(),
-                AnimatedRotation(
-                  turns: expanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 250),
-                  child: Icon(Icons.expand_more_rounded,
-                      color: AppColors.textSecondary, size: 20),
-                ),
-              ]),
-            ),
-          ),
-          // Animated expandable content
-          AnimatedSize(
-            duration: const Duration(milliseconds: 280),
-            curve: Curves.easeInOut,
-            child: expanded
-                ? Column(children: [
-                    Divider(color: AppColors.separator, height: 0.5, thickness: 0.5),
-                    _InfoRow(label: 'Network',  value: _networkName(asset.blockchain)),
-                    _InfoRow(label: 'Symbol',   value: asset.symbol),
-                    _InfoRow(label: 'Decimals', value: asset.decimals.toString()),
-                    _InfoRow(
-                      label: 'Address',
-                      value: _shortenAddress(asset.contractAddress),
-                      onCopy: onCopyAddress,
-                    ),
-                  ])
-                : const SizedBox.shrink(),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  static String _networkName(String b) {
-    const names = <String, String>{
-      'bitcoin': 'Bitcoin', 'ethereum': 'Ethereum', 'solana': 'Solana',
-      'bsc': 'BNB Smart Chain', 'tron': 'Tron',
-      'litecoin': 'Litecoin',
-      'optimism': 'OP Mainnet', 'avalanche': 'Avalanche C-Chain',
-    };
-    return names[b] ?? b;
-  }
-
-  static String _shortenAddress(String addr) {
-    if (addr.length <= 16) return addr;
-    return '${addr.substring(0, 8)}...${addr.substring(addr.length - 6)}';
-  }
-}
-
 // ─── Transaction tile ─────────────────────────────────────────────────────────
-
-class _TxTile extends StatelessWidget {
-  const _TxTile({required this.tx, required this.asset});
-  final TxRecord tx;
-  final Asset asset;
-
-  @override
-  Widget build(BuildContext context) {
-    final isIn    = tx.direction == TxDirection.incoming;
-    final isSelf  = tx.direction == TxDirection.self;
-    final color   = isSelf ? AppColors.textSecondary
-        : isIn   ? AppColors.positive
-        :          AppColors.negative;
-    final sign    = isSelf ? '' : isIn ? '+' : '−';
-    final amtStr  = '${sign}${tx.amount.toStringAsFixed(tx.amount < 0.001 ? 6 : 4)} ${tx.symbol}';
-    final dateStr = DateFormat('MMM d, HH:mm').format(tx.timestamp);
-
-    return GestureDetector(
-      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => TransactionDetailsScreen(tx: tx, asset: asset),
-      )),
-      child: Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            spreadRadius: 0,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(children: [
-        // Direction icon
-        Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            isSelf ? Icons.sync_rounded
-                : isIn ? Icons.arrow_downward_rounded
-                :        Icons.arrow_upward_rounded,
-            color: color, size: 18,
-          ),
-        ),
-        const SizedBox(width: 12),
-        // Hash + date
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(tx.shortHash,
-              style: TextStyle(
-                  color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 3),
-          Text(dateStr,
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-        ])),
-        // Amount + confirmation
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(amtStr,
-              style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 3),
-          if (tx.confirmed)
-            Text('Confirmed',
-                style: TextStyle(color: AppColors.positive, fontSize: 11))
-          else
-            Row(mainAxisSize: MainAxisSize.min, children: [
-              SizedBox(
-                width: 9, height: 9,
-                child: CircularProgressIndicator(
-                  strokeWidth: 1.5, color: Color(0xFF2196F3)),
-              ),
-              const SizedBox(width: 4),
-              Text('Processing',
-                  style: TextStyle(color: Color(0xFF2196F3), fontSize: 11)),
-            ]),
-        ]),
-      ]),
-    ),
-    );
-  }
-}
 
 // ─── Empty / error state ──────────────────────────────────────────────────────
 
@@ -592,31 +415,3 @@ class _ActionBtn extends StatelessWidget {
 
 // ─── Info row ──────────────────────────────────────────────────────────────────
 
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value, this.onCopy});
-  final String label, value;
-  final VoidCallback? onCopy;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.separator, width: 0.5))),
-      child: Row(children: [
-        Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
-        const Spacer(),
-        Text(value, style: TextStyle(
-            color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
-        if (onCopy != null) ...[
-          const SizedBox(width: 8),
-          AnimatedTap(
-            onTap: onCopy,
-            child: Icon(Icons.copy_rounded, color: AppColors.textTertiary, size: 15),
-          ),
-        ],
-      ]),
-    ),
-  );
-}
