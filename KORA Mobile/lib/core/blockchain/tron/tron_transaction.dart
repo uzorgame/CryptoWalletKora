@@ -63,7 +63,7 @@ class TronTransactionBuilder {
       type: TronTransactionType.trc20Transfer,
       ownerAddress: _ownerAddress!,
       toAddress: _toAddress!,
-      amount: _amount!,ц
+      amount: _amount!,
       contractAddress: _contractAddress,
     );
   }
