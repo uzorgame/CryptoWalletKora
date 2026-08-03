@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/services/biometric_service.dart';
 import 'package:kora/core/services/theme_notifier.dart';
-import 'package:kora/core/state/providers/currency_provider.dart';
 import 'package:kora/core/state/providers/settings_provider.dart' hide currencyProvider;
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
@@ -11,12 +9,16 @@ import 'package:kora/core/crypto/key_manager.dart';
 import 'package:kora/core/repositories/wallet_repository.dart';
 import 'package:kora/features/onboarding/onboarding_screen.dart';
 import 'package:kora/features/onboarding/wallet_selection_screen.dart';
-import 'package:kora/features/settings/currency_selector_screen.dart';
-import 'package:kora/features/settings/auto_lock_selector_screen.dart';
 import 'package:kora/features/settings/show_seed_phrase_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
 import 'package:kora/features/settings/privacy_policy_screen.dart';
+import 'package:kora/features/settings/widgets/section_header.dart';
+import 'package:kora/features/settings/widgets/settings_tile.dart';
+import 'package:kora/features/settings/tiles/appearance_tile.dart';
+import 'package:kora/features/settings/tiles/biometric_tile.dart';
+import 'package:kora/features/settings/tiles/auto_lock_tile.dart';
+import 'package:kora/features/settings/tiles/currency_tile.dart';
+import 'package:kora/features/settings/tiles/about_tile.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -71,43 +73,42 @@ class SettingsScreen extends ConsumerWidget {
             SizedBox(height: 24),
 
             // Security section
-            _SectionHeader('Security'),
-            _SettingsTile(
+            SectionHeader('Security'),
+            SettingsTile(
               icon: Icons.lock_outline_rounded,
               label: 'Change PIN',
               onTap: () { debugPrint('[TAP] Change PIN (settings_screen.dart)'); _showChangePinDialog(context, ref); },
             ),
-            _BiometricTile(),
-            _AutoLockTile(),
-            _SettingsTile(
+            BiometricTile(),
+            AutoLockTile(),
+            SettingsTile(
               icon: Icons.key_rounded,
               label: 'Show Seed Phrase',
               onTap: () { debugPrint('[TAP] Show Seed Phrase (settings_screen.dart)'); _showSeedPhrase(context, ref); },
             ),
             SizedBox(height: 20),
 
-
             // General section
-            _SectionHeader('General'),
-            _AppearanceTile(),
-            _CurrencyTile(),
-            _SettingsTile(
+            SectionHeader('General'),
+            AppearanceTile(),
+            CurrencyTile(),
+            SettingsTile(
               icon: Icons.privacy_tip_outlined,
               label: 'Privacy Policy',
               onTap: () { debugPrint('[TAP] Privacy Policy (settings_screen.dart)'); context.pushSlide(const PrivacyPolicyScreen()); },
             ),
-            _AboutTile(),
+            AboutTile(),
             SizedBox(height: 20),
 
             // Danger zone
-            _SectionHeader('Wallet', color: AppColors.negative),
-            _SettingsTile(
+            SectionHeader('Wallet', color: AppColors.negative),
+            SettingsTile(
               icon: Icons.add_circle_outline_rounded,
               label: 'Add / Import Wallet',
               iconColor: AppColors.accent,
               onTap: () { debugPrint('[TAP] Add/Import Wallet (settings_screen.dart)'); context.pushSlide(const OnboardingScreen()); },
             ),
-            _SettingsTile(
+            SettingsTile(
               icon: Icons.logout_rounded,
               label: 'Remove Wallet',
               iconColor: AppColors.negative,
@@ -423,292 +424,12 @@ class SettingsScreen extends ConsumerWidget {
 
 // ─── Appearance toggle tile ──────────────────────────────────────────────────
 
-class _AppearanceTile extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: ThemeNotifier.instance,
-      builder: (_, __) {
-        final isDark = ThemeNotifier.instance.isDark;
-        return _SettingsTile(
-          icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-          label: 'Appearance',
-          value: isDark ? 'Dark' : 'Light',
-          onTap: () { debugPrint('[TAP] Appearance toggle → ${isDark ? 'Light' : 'Dark'} (settings_screen.dart)'); ThemeNotifier.instance.setTheme(isDark ? 'Light' : 'Dark'); },
-        );
-      },
-    );
-  }
-}
-
 // ─── Biometric toggle tile ───────────────────────────────────────────────────
-
-class _BiometricTile extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final enabled = ref.watch(biometricEnabledProvider);
-    return AnimatedTap(
-      onTap: () => _toggle(context, ref, enabled),
-      pressScale: 0.97,
-      child: Container(
-        margin: EdgeInsets.only(bottom: 2),
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.separator, width: 0.5),
-        ),
-        child: Row(children: [
-          Icon(Icons.fingerprint_rounded, color: AppColors.textSecondary, size: 20),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text('Biometric Auth',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w400)),
-          ),
-          Switch(
-            value: enabled,
-            onChanged: (v) => _toggle(context, ref, !v),
-            activeThumbColor: AppColors.background,
-            activeTrackColor: AppColors.textPrimary,
-            inactiveThumbColor: AppColors.textTertiary,
-            inactiveTrackColor: AppColors.separator,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Future<void> _toggle(BuildContext context, WidgetRef ref, bool currentEnabled) async {
-    debugPrint('[TAP] Biometric Auth toggle → ${currentEnabled ? "disable" : "enable"} (settings_screen.dart)');
-
-    if (!currentEnabled) {
-      // Check if device supports any biometric or device credentials
-      final deviceSupported = await BiometricService.isDeviceSupported();
-      debugPrint('[Biometric] isDeviceSupported=$deviceSupported (settings_screen.dart)');
-
-      if (!deviceSupported) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Biometric authentication is not supported on this device')),
-          );
-        }
-        return;
-      }
-
-      final result = await BiometricService.authenticate(
-        reason: 'Enable biometric unlock for Kora Wallet',
-        biometricOnly: false,
-      );
-      debugPrint('[Biometric] authenticate result: ${result.name} — ${result.message} (settings_screen.dart)');
-
-      if (result.isSuccess) {
-        // Prompt for PIN to store it for future biometric-based decryption
-        if (context.mounted) {
-          final pin = await _askForPin(context);
-          if (pin == null) return; // user cancelled
-          final valid = await KeyManager.verifyAppPin(pin);
-          if (!valid) {
-            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Incorrect PIN — biometric not enabled')),
-            );
-            return;
-          }
-          await KeyManager.storePinForBiometric(pin);
-        }
-        await ref.read(settingsProvider.notifier).setBiometricEnabled(true);
-        debugPrint('[Biometric] Enabled ✓ (settings_screen.dart)');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Biometric authentication enabled')),
-          );
-        }
-      } else if (context.mounted && !result.isCancelled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.message)),
-        );
-      }
-    } else {
-      await KeyManager.deletePinForBiometric();
-      await ref.read(settingsProvider.notifier).setBiometricEnabled(false);
-      debugPrint('[Biometric] Disabled ✓ (settings_screen.dart)');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Biometric authentication disabled')),
-        );
-      }
-    }
-  }
-
-  /// Shows a simple PIN-entry dialog and returns the entered PIN or null.
-  static Future<String?> _askForPin(BuildContext context) async {
-    final ctrl = TextEditingController();
-    return showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Confirm PIN',
-            style: TextStyle(color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600, fontSize: 16)),
-        content: TextField(
-          controller: ctrl,
-          obscureText: true,
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          autofocus: true,
-          style: TextStyle(color: AppColors.textPrimary, letterSpacing: 4),
-          decoration: InputDecoration(
-            labelText: 'Enter your PIN',
-            labelStyle: TextStyle(color: AppColors.textSecondary),
-            counterText: '',
-            enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.separator)),
-            focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.textPrimary)),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(null),
-            child: Text('Cancel',
-                style: TextStyle(color: AppColors.textSecondary)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
-            child: Text('Confirm',
-                style: TextStyle(color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ─── Auto-lock tile ──────────────────────────────────────────────────────────
 
-class _AutoLockTile extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final current = ref.watch(autoLockTimeoutProvider);
-    return _SettingsTile(
-      icon: Icons.timer_outlined,
-      label: 'Auto-Lock',
-      value: current.displayName,
-      onTap: () { debugPrint('[TAP] Auto-Lock picker (settings_screen.dart)'); _showPicker(context, ref, current); },
-    );
-  }
-
-  void _showPicker(
-      BuildContext context, WidgetRef ref, AutoLockTimeout current) {
-    context.pushSlide(const AutoLockSelectorScreen());
-  }
-}
-
 // ─── Currency picker tile ────────────────────────────────────────────────────
-
-class _CurrencyTile extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cur = ref.watch(currencyProvider);
-    return _SettingsTile(
-      icon: Icons.currency_exchange_rounded,
-      label: 'Currency',
-      value: '${cur.currency.symbol}  ${cur.currency.code.toUpperCase()}',
-      onTap: () => _showPicker(context, ref, cur.currency),
-    );
-  }
-
-  void _showPicker(BuildContext context, WidgetRef ref, AppCurrency selected) {
-    debugPrint('[TAP] Currency picker (settings_screen.dart)');
-    context.pushSlide(const CurrencySelectorScreen());
-  }
-}
 
 // ─── About tile (dynamic version) ────────────────────────────────────────────
 
-class _AboutTile extends StatefulWidget {
-  @override
-  State<_AboutTile> createState() => _AboutTileState();
-}
-
-class _AboutTileState extends State<_AboutTile> {
-  String _version = '';
-
-  @override
-  void initState() {
-    super.initState();
-    PackageInfo.fromPlatform().then((info) {
-      if (mounted) setState(() => _version = 'v${info.version}');
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _SettingsTile(
-      icon: Icons.info_outline_rounded,
-      label: 'About',
-      value: _version,
-      onTap: () => debugPrint('[TAP] About (version=$_version) (settings_screen.dart)'),
-    );
-  }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title, {this.color});
-  final String title;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.only(bottom: 8),
-    child: Text(title,
-        style: TextStyle(
-            color: color ?? AppColors.textSecondary,
-            fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.3)),
-  );
-}
-
-class _SettingsTile extends StatelessWidget {
-  const _SettingsTile({
-    required this.icon, required this.label, required this.onTap,
-    this.value, this.iconColor, this.labelColor,
-  });
-  final IconData icon;
-  final String label;
-  final String? value;
-  final VoidCallback onTap;
-  final Color? iconColor, labelColor;
-
-  @override
-  Widget build(BuildContext context) => AnimatedTap(
-    onTap: onTap,
-    pressScale: 0.97,
-    child: Container(
-      margin: EdgeInsets.only(bottom: 2),
-      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.separator, width: 0.5),
-      ),
-      child: Row(children: [
-        Icon(icon, color: iconColor ?? AppColors.textSecondary, size: 20),
-        SizedBox(width: 12),
-        Expanded(
-          child: Text(label,
-              style: TextStyle(
-                  color: labelColor ?? AppColors.textPrimary,
-                  fontSize: 15, fontWeight: FontWeight.w400)),
-        ),
-        if (value != null)
-          Text(value!, style: TextStyle(color: AppColors.textSecondary, fontSize: 14))
-        else
-          Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 20),
-      ]),
-    ),
-  );
-}
