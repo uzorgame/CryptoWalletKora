@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The in-form number pad the send flow types amounts and PINs on.
 

@@ -1,5 +1,5 @@
   import 'package:kora/core/models/asset.dart';
-import 'package:kora/core/widgets/coin_icon.dart';
+import 'package:kora/core/widgets/chips/coin_icon.dart';
 
 /// Represents a token in the catalog (not yet added to wallet).
 class CatalogToken {

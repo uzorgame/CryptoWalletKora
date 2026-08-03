@@ -6,7 +6,7 @@ import 'package:kora/core/services/price_chart_service.dart';
 import 'package:kora/core/state/providers/price_chart_provider.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 class TokenPriceChartWidget extends ConsumerStatefulWidget {
   const TokenPriceChartWidget({super.key, required this.symbol});

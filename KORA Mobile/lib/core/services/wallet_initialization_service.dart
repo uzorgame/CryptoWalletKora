@@ -8,7 +8,7 @@ import 'package:kora/core/blockchain/tron/tron_wallet.dart';
 import 'package:kora/core/crypto/hd_wallet.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/repositories/price_repository.dart' show PriceRepository, CryptoPrice;
-import 'package:kora/core/widgets/coin_icon.dart';
+import 'package:kora/core/widgets/chips/coin_icon.dart';
 import 'package:kora/core/constants/token_catalog.dart';
 
 // ─── Isolate workers (top-level — required by compute()) ─────────────────────

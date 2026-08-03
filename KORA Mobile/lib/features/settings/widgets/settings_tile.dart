@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // One row of the settings list: icon, title, value and where tapping it leads.
 

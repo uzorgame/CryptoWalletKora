@@ -6,7 +6,7 @@ import 'package:kora/core/services/lock_service.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/features/home/home_screen.dart';
 import 'package:kora/core/crypto/encryption.dart';
-import 'package:kora/core/widgets/coin_icon.dart';
+import 'package:kora/core/widgets/chips/coin_icon.dart';
 import 'package:kora/features/onboarding/onboarding_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {

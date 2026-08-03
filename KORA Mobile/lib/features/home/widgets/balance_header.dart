@@ -4,7 +4,7 @@ import 'package:kora/core/state/providers/currency_provider.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/services/theme_notifier.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/features/home/wallet_switcher/wallet_switcher_sheet.dart';
 
 // The wallet's name, total value and 24h move. Tapping the name opens the wallet switcher.

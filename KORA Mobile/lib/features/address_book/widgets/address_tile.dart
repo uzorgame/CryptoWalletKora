@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kora/features/address_book/chains.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/services/address_book_service.dart';
 import 'package:kora/core/theme/app_theme.dart';
 

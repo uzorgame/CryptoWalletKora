@@ -12,7 +12,7 @@ import 'package:kora/core/constants/token_catalog.dart';
 import 'package:kora/core/repositories/price_repository.dart' show PriceRepository;
 import 'package:kora/core/services/balance_service.dart';
 import 'package:kora/core/services/tx_history_service.dart';
-import 'package:kora/core/widgets/coin_icon.dart';
+import 'package:kora/core/widgets/chips/coin_icon.dart';
 
 // ==================== REPOSITORY PROVIDER ====================
 

@@ -4,7 +4,7 @@ import 'package:kora/core/services/biometric_service.dart';
 import 'package:kora/core/state/providers/settings_provider.dart' hide currencyProvider;
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/crypto/key_manager.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The biometric unlock toggle, with the availability checks behind it.
 

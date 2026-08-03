@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/features/onboarding/create_wallet_screen.dart';
 import 'package:kora/features/onboarding/import_wallet_screen.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The sheet offering the two ways to add a wallet: create new, or import from a phrase.
 

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/coin_icon.dart';
+import 'package:kora/core/widgets/chips/coin_icon.dart';
 import 'package:kora/features/receive/receive_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 class ReceivePickerScreen extends StatefulWidget {
   const ReceivePickerScreen({super.key, required this.assets});

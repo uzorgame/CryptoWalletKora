@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The fold-out block of facts about the asset, under the chart.
 

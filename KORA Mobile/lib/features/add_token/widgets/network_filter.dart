@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/coin_icon.dart';
+import 'package:kora/core/widgets/chips/coin_icon.dart';
 
 // The network filter strip: which chains can be filtered by, and the chip that picks one.
 

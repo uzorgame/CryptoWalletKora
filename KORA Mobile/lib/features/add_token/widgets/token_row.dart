@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kora/features/add_token/widgets/network_filter.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/constants/token_catalog.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/coin_icon.dart';
+import 'package:kora/core/widgets/chips/coin_icon.dart';
 
 // One token in the search results, with its add / added state.
 

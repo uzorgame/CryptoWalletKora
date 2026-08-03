@@ -4,7 +4,7 @@ import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/services/theme_notifier.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The banner shown while the wallet's stored addresses still need migrating.
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/coin_icon.dart';
+import 'package:kora/core/widgets/chips/coin_icon.dart';
 import 'package:kora/features/send/widgets/net_chip.dart';
 
 // The coin icon, name and network of the asset being sent.

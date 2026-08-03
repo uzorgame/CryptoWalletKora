@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The orders the asset list can be shown in, and the sheet row that picks one.
 

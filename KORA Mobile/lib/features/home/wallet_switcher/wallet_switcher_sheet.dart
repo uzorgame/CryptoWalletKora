@@ -4,7 +4,7 @@ import 'package:kora/core/models/wallet.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/services/theme_notifier.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/features/home/wallet_switcher/add_wallet_sheet.dart';
 
 // The sheet listing every wallet on this device, for switching between them.

@@ -5,7 +5,7 @@ import 'package:kora/core/state/providers/asset_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/features/send/send_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The home shell's bottom navigation bar.
 

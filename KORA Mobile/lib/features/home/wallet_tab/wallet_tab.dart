@@ -11,7 +11,7 @@ import 'package:kora/core/constants/token_catalog.dart';
 import 'package:kora/core/services/storage_service.dart';
 import 'package:kora/core/services/balance_service.dart';
 import 'package:kora/core/utils/page_transitions.dart';
-import 'package:kora/core/widgets/animated_tap.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/state/providers/price_chart_provider.dart';
 import 'package:kora/features/home/wallet_tab/asset_sort.dart';
 import 'package:kora/features/home/widgets/balance_header.dart';
