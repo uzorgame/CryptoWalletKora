@@ -7,7 +7,10 @@ import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/chips/coin_icon.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
+import 'package:kora/core/widgets/kora_button.dart';
+import 'package:kora/core/widgets/kora_field.dart';
 import 'package:kora/features/address_book/address_book_screen.dart';
 import 'package:kora/features/scan/qr_scanner_screen.dart';
 // ─── Executor imports ─────────────────────────────────────────────────────────
@@ -30,9 +33,7 @@ import 'package:kora/features/send/review/review_sheet.dart';
 import 'package:kora/features/send/fee/fee_widget.dart';
 import 'package:kora/features/send/fee/fee_speed_selector.dart';
 import 'package:kora/features/send/widgets/asset_badge.dart';
-import 'package:kora/features/send/widgets/net_chip.dart';
 import 'package:kora/features/send/widgets/unsupported_banner.dart';
-import 'package:kora/features/send/widgets/section_label.dart';
 
 // ─── Chain helpers ─────────────────────────────────────────────────────────────
 
@@ -449,105 +450,93 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text('Send'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () {
-            if (multiAsset) {
-              // Go back to picker step
-              setState(() { _asset = null; _addrErr = null; });
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
+      appBar: koraAppBar(
+        context,
+        'Send',
+        onBack: () {
+          if (multiAsset) {
+            // Go back to picker step
+            setState(() { _asset = null; _addrErr = null; });
+          } else {
+            Navigator.of(context).pop();
+          }
+        },
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            // Selected asset badge (always locked in form step)
-            AssetBadge(asset: liveAsset),
-            const SizedBox(height: 16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const KoraSlabel('Asset'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 22),
+            child: AssetBadge(asset: liveAsset),
+          ),
 
-            if (!supported) ...[
-              UnsupportedBanner(asset.symbol),
-              const Spacer(),
-            ] else ...[
-              Row(children: [
-                const Expanded(child: SizedBox.shrink()),
-                AnimatedTap(
-                  onTap: _openAddressBook,
-                  child: Text('Address Book',
-                      style: TextStyle(color: AppColors.accent, fontSize: 12)),
-                ),
-              ]),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _toCtrl,
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 14),
-                decoration: _fieldDeco(
-                  '${asset.symbol} Address',
-                  error: _addrErr,
-                ).copyWith(
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.qr_code_scanner_rounded,
-                            color: AppColors.textSecondary, size: 20),
-                        onPressed: _scanQr,
-                        tooltip: 'Scan QR',
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.book_outlined,
-                            color: AppColors.textSecondary, size: 20),
-                        onPressed: _openAddressBook,
-                        tooltip: 'Address Book',
-                      ),
-                    ],
+          if (!supported) ...[
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              child: UnsupportedBanner(asset.symbol),
+            ),
+            const Spacer(),
+          ] else ...[
+            const KoraSlabel('Recipient'),
+            KoraField(
+              child: Row(children: [
+                Expanded(
+                  child: TextField(
+                    controller: _toCtrl,
+                    style: koraInputStyle(),
+                    decoration: koraInputDecoration(
+                        'ADDRESS ON ${netLabel(asset.blockchain).toUpperCase()}'),
                   ),
                 ),
+                AnimatedTap(
+                  onTap: _scanQr,
+                  child: Icon(Icons.qr_code_scanner_rounded,
+                      color: AppColors.textTertiary, size: 17),
+                ),
+                const SizedBox(width: 14),
+                AnimatedTap(
+                  onTap: _openAddressBook,
+                  child: Icon(Icons.book_outlined,
+                      color: AppColors.textTertiary, size: 17),
+                ),
+              ]),
+            ),
+            if (_addrErr != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
+                child: Text(_addrErr!.toUpperCase(),
+                    style: kLabel(AppColors.negative, size: 9, tracking: 0.08)),
               ),
-              const SizedBox(height: 16),
-              SectionLabel('Amount'),
-              const SizedBox(height: 8),
-              Row(children: [
+            const KoraSlabel('Amount'),
+            KoraField(
+              child: Row(children: [
                 Expanded(
                   child: TextField(
                     controller: _amountCtrl,
-                    style: TextStyle(color: AppColors.textPrimary),
+                    style: kNum(AppColors.textPrimary, size: 17),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: _fieldDeco('0.00').copyWith(
-                      suffixText: asset.symbol,
-                      suffixStyle: TextStyle(
-                          color: AppColors.textSecondary, fontSize: 14),
-                    ),
+                    decoration: koraInputDecoration('0.00'),
                   ),
                 ),
-                const SizedBox(width: 10),
+                Text(asset.symbol,
+                    style: kMonoText(AppColors.textTertiary, size: 11)),
+                const SizedBox(width: 12),
                 AnimatedTap(
                   onTap: _applyMax,
-                  pressScale: 0.9,
+                  pressScale: 0.92,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border, width: 0.5),
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                    decoration: BoxDecoration(border: kHairline()),
                     child: Text('MAX',
-                        style: TextStyle(
-                            color: AppColors.accent,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700)),
+                        style: kLabel(AppColors.textPrimary, size: 9, tracking: 0.16)),
                   ),
                 ),
               ]),
-              const SizedBox(height: 6),
-              Builder(builder: (_) {
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
+              child: Builder(builder: (_) {
                 final maxSend = _maxSendable(liveAsset);
                 final hasFeeDeduction = liveAsset.type == AssetType.native &&
                     maxSend < liveAsset.balanceAsDouble;
@@ -555,54 +544,47 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      hasFeeDeduction
-                          ? 'Available: ${_fmt(maxSend, liveAsset.decimals)} ${liveAsset.symbol} (after fee)'
-                          : 'Balance: ${liveAsset.formattedBalance}',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                      (hasFeeDeduction
+                              ? 'Available: ${_fmt(maxSend, liveAsset.decimals)} ${liveAsset.symbol} (after fee)'
+                              : 'Balance: ${liveAsset.formattedBalance}')
+                          .toUpperCase(),
+                      style: kMonoText(AppColors.textTertiary, size: 9),
                     ),
-                    if (_amountErr != null) ...[  
-                      const SizedBox(height: 4),
-                      Text(_amountErr!,
-                          style: const TextStyle(color: Colors.red, fontSize: 12)),
+                    if (_amountErr != null) ...[
+                      const SizedBox(height: 5),
+                      Text(_amountErr!.toUpperCase(),
+                          style: kLabel(AppColors.negative, size: 9, tracking: 0.08)),
                     ],
                   ],
                 );
               }),
-              const SizedBox(height: 24),
-              // Fee display + speed selector
-              FeeWidget(blockchain: asset.blockchain, selectedSpeed: _selectedSpeed, isToken: asset.type == AssetType.token),
-              if (_supportsSpeedSelector(asset.blockchain)) ...[
-                const SizedBox(height: 10),
-                FeeSpeedSelector(
+            ),
+            const KoraSlabel('Network fee'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              child: FeeWidget(blockchain: asset.blockchain, selectedSpeed: _selectedSpeed, isToken: asset.type == AssetType.token),
+            ),
+            if (_supportsSpeedSelector(asset.blockchain)) ...[
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: FeeSpeedSelector(
                   selected: _selectedSpeed,
                   onSelect: _selectSpeed,
                 ),
-              ],
-              const Spacer(),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _loading ? null : () { _review(); },
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.textPrimary,
-                  foregroundColor: AppColors.background,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-                child: _loading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                            color: AppColors.background, strokeWidth: 2),
-                    )
-                    : Text('Review Transaction',
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 16)),
               ),
             ],
-          ]),
-        ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
+              child: KoraCta(
+                label: 'Review Transaction',
+                onTap: () { _review(); },
+                busy: _loading,
+              ),
+            ),
+          ],
+        ]),
       ),
     );
   }
@@ -613,76 +595,52 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text('Send'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: koraAppBar(context, 'Send',
+          onBack: () => Navigator.of(context).pop()),
       body: Column(children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: TextField(
-            controller: _searchCtrl,
-            onChanged: (v) => setState(() => _pickerQuery = v),
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
-            decoration: InputDecoration(
-              hintText: 'Search asset…',
-              hintStyle: TextStyle(color: AppColors.textTertiary),
-              prefixIcon: Icon(Icons.search_rounded,
-                  color: AppColors.textTertiary, size: 20),
-              suffixIcon: _pickerQuery.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(Icons.close_rounded,
-                          color: AppColors.textTertiary, size: 18),
-                      onPressed: () {
-                        _searchCtrl.clear();
-                        setState(() => _pickerQuery = '');
-                      },
-                    )
-                  : null,
-              filled: true,
-              fillColor: AppColors.surface,
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.border)),
-              enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.border)),
-              focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                      color: AppColors.textSecondary, width: 1.2)),
+        const SizedBox(height: 14),
+        KoraField(
+          child: Row(children: [
+            Icon(Icons.search_rounded, color: AppColors.textTertiary, size: 17),
+            const SizedBox(width: 9),
+            Expanded(
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (v) => setState(() => _pickerQuery = v),
+                style: koraInputStyle(),
+                decoration: koraInputDecoration('SEARCH ASSET'),
+              ),
             ),
-          ),
+            if (_pickerQuery.isNotEmpty)
+              AnimatedTap(
+                onTap: () {
+                  _searchCtrl.clear();
+                  setState(() => _pickerQuery = '');
+                },
+                child: Icon(Icons.close_rounded,
+                    color: AppColors.textTertiary, size: 16),
+              ),
+          ]),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 8),
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
               _pickerQuery.isEmpty
-                  ? 'My assets'
-                  : 'Results (${filtered.length})',
-              style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5),
+                  ? 'MY ASSETS'
+                  : 'RESULTS (${filtered.length})',
+              style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16),
             ),
           ),
         ),
         Expanded(
           child: filtered.isEmpty
               ? Center(
-                  child: Text('No assets found',
-                      style: TextStyle(
-                          color: AppColors.textTertiary, fontSize: 15)))
+                  child: Text('NO ASSETS FOUND',
+                      style: kLabel(AppColors.textTertiary, size: 10, tracking: 0.14)))
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  padding: EdgeInsets.zero,
                   itemCount: filtered.length,
                   itemBuilder: (_, i) {
                     final a = filtered[i];
@@ -695,49 +653,45 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
                         // Fetch fee when asset is selected
                         _fetchFeeForAsset(a);
                       },
-                      pressScale: 0.97,
-                      child: Padding(
+                      pressScale: 0.98,
+                      pressOpacity: 0.85,
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 10),
+                            horizontal: 22, vertical: 14),
+                        decoration:
+                            BoxDecoration(border: Border(bottom: kHairlineSide())),
                         child: Row(children: [
-                          CoinIcon(
-                              symbol: a.symbol,
-                              iconUrl: a.iconUrl,
-                              size: 46),
-                          const SizedBox(width: 14),
                           Expanded(
-                            child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                            child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
                                 children: [
                                   Text(a.symbol,
-                                      style: TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600)),
-                                  const SizedBox(height: 5),
-                                  Row(children: [
-                                    NetChip(a.blockchain),
-                                  ]),
+                                      style: kLabel(AppColors.textPrimary,
+                                          size: 12.5, tracking: 0.06)),
+                                  const SizedBox(width: 7),
+                                  Flexible(
+                                    child: Text(a.name,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: kBody(AppColors.textSecondary,
+                                            size: 11)),
+                                  ),
                                 ]),
                           ),
                           Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(a.formattedBalance,
-                                    style: TextStyle(
-                                        color: AppColors.textPrimary,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500)),
-                                const SizedBox(height: 3),
+                                    style: kNum(AppColors.textPrimary, size: 13)),
+                                const SizedBox(height: 4),
                                 Text(a.formattedUsdValue,
-                                    style: TextStyle(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 12)),
+                                    style: kMonoText(
+                                        AppColors.textSecondary, size: 10)),
                               ]),
-                          const SizedBox(width: 4),
-                          Icon(Icons.arrow_forward_ios_rounded,
-                              color: AppColors.textTertiary, size: 14),
+                          const SizedBox(width: 10),
+                          Text('›',
+                              style:
+                                  kMonoText(AppColors.textTertiary, size: 13)),
                         ]),
                       ),
                     );
@@ -747,22 +701,6 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
       ]),
     );
   }
-
-  InputDecoration _fieldDeco(String hint, {String? error}) => InputDecoration(
-    hintText: hint,
-    hintStyle: TextStyle(color: AppColors.textTertiary),
-    errorText: error,
-    errorStyle: TextStyle(color: AppColors.negative, fontSize: 11),
-    filled: true,
-    fillColor: AppColors.surface,
-    border:        OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.border)),
-    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: error != null ? AppColors.negative : AppColors.border)),
-    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.textSecondary, width: 1.5)),
-    errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.negative)),
-  );
 }
 
 // ─── Review bottom sheet ──────────────────────────────────────────────────────
