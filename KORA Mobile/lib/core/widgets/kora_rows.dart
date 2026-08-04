@@ -178,16 +178,14 @@ class KoraSettingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // An instruction, so it is set to be read: the sans face at medium against the mono
-    // value beside it. See [kRowText] for why this row alone does not take the tracked
-    // uppercase every other table uses.
+    // The same voice every other table in this application speaks — see [kRowText].
     return KoraRow(
       onTap: onTap,
       topLine: topLine,
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
       children: [
         Expanded(
-          child: Text(label,
+          child: Text(label.toUpperCase(),
               overflow: TextOverflow.ellipsis,
               style: kRowText(labelColor ?? AppColors.textPrimary)),
         ),

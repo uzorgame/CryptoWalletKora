@@ -36,7 +36,7 @@ class CurrencySelectorScreen extends ConsumerWidget {
               child: Row(children: [
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(currency.name,
+                    Text(currency.name.toUpperCase(),
                         style: kRowText(
                             isSelected ? AppColors.textPrimary : AppColors.textSecondary)),
                     const SizedBox(height: 4),

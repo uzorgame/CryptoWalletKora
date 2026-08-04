@@ -49,7 +49,7 @@ class AutoLockSelectorScreen extends ConsumerWidget {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(timeout.displayName,
+                              Text(timeout.displayName.toUpperCase(),
                                   style: kRowText(
                                       isSelected
                                           ? AppColors.textPrimary

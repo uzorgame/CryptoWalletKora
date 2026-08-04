@@ -85,29 +85,15 @@ TextStyle kBody(Color color, {double size = 13, FontWeight weight = FontWeight.w
       height: 1.55,
     );
 
-/// The label on a row that is an instruction rather than a value — the settings list, the
-/// choices in a selector.
+/// The leading text of a row in any table — the settings list, the selectors, the sheets.
 ///
-/// Everywhere else a row's leading text is a token the eye recognises: a ticker, a wallet's
-/// name, RECEIVED. Those are set in tracked monospace caps, and they should be. A settings
-/// label is a phrase that gets read instead — "Add / import wallet" — and uppercase throws
-/// away the silhouette of the word while a monospace face flattens the letter widths that
-/// silhouette is made of. So: the sans face, one step up in weight, tightened slightly.
-///
-/// The weight is what makes it look chosen. Regular sans beside a monospace value reads as
-/// a default; medium against the same value reads as two faces put together on purpose,
-/// which is the whole idea of the row.
-TextStyle kRowText(Color color, {double size = 14, FontWeight weight = FontWeight.w500}) {
-  final s = size * kTextScale;
-  return TextStyle(
-    fontFamily: kSans,
-    color: color,
-    fontSize: s,
-    fontWeight: weight,
-    height: 1.3,
-    letterSpacing: -0.01 * s,
-  );
-}
+/// Tracked monospace caps, the same setting a ticker or RECEIVED carries. A sans face reads
+/// a shade faster for phrases, and this was tried both ways; consistency won. A settings tab
+/// in a different typeface from the wallet list beside it is noticed the moment the tab is
+/// opened, while the reading difference is not noticed at all. One voice across the whole
+/// application is worth more than a few milliseconds per row.
+TextStyle kRowText(Color color, {double size = 12.5, double tracking = 0.06}) =>
+    kLabel(color, size: size, tracking: tracking);
 
 // ─── Hairlines ──────────────────────────────────────────────────────────────────────────
 
