@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/config/api_config.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_button.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kora/features/send/fee/models/fee_estimate.dart';
 
@@ -82,53 +84,47 @@ class TxSuccessScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 22),
           child: Column(
             children: [
-              const SizedBox(height: 56),
+              const SizedBox(height: 54),
 
-              // ── Success animation ──────────────────────────────────────────
+              // The mark arrives on the house curve — no bounce; a wallet's good news should
+              // land, not wobble.
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.elasticOut,
-                builder: (_, v, child) => Transform.scale(scale: v, child: child),
+                duration: const Duration(milliseconds: 340),
+                curve: kEase,
+                builder: (_, v, child) => Opacity(
+                  opacity: v.clamp(0.0, 1.0),
+                  child: Transform.scale(scale: 0.9 + 0.1 * v, child: child),
+                ),
                 child: Container(
-                  width: 80, height: 80,
+                  width: 64, height: 64,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.positive.withValues(alpha: 0.12),
+                    border: Border.all(color: AppColors.positive, width: 1),
                   ),
                   child: Icon(Icons.check_rounded,
-                      color: AppColors.positive, size: 44),
+                      color: AppColors.positive, size: 30),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 22),
 
               Text('Sent!',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                  )),
-              const SizedBox(height: 6),
-              Text('Transaction broadcast successfully',
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 14)),
+                  style: kNum(AppColors.textPrimary, size: 24, weight: FontWeight.w600)),
+              const SizedBox(height: 10),
+              Text('TRANSACTION BROADCAST SUCCESSFULLY',
+                  style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.14)),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
-              // ── Details card ───────────────────────────────────────────────
+              // ── Details ────────────────────────────────────────────────────
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border, width: 0.5),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: BoxDecoration(border: kHairline()),
                 child: Column(children: [
                   _SuccessRow('Asset',
-                      '${asset.symbol}  ·  ${asset.name}'),
+                      '${asset.symbol} · ${asset.name}'),
                   _SuccessRow('From',
                       fromShort,
                       onTap: () => _copy(context, asset.contractAddress, 'From address')),
@@ -141,9 +137,8 @@ class TxSuccessScreen extends ConsumerWidget {
                     _SuccessRow('Network Fee', feeText),
                   _SuccessRow('TX Hash',
                       txShort,
-                      mono: true,
                       trailing: Icon(Icons.copy_rounded,
-                          size: 14, color: AppColors.textTertiary),
+                          size: 13, color: AppColors.textTertiary),
                       onTap: () => _copy(context, txHash, 'TX hash'),
                       last: true),
                 ]),
@@ -165,40 +160,25 @@ class TxSuccessScreen extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Text('VIEW IN EXPLORER',
+                          style: kLabel(AppColors.textSecondary, size: 9.5, tracking: 0.14)),
+                      const SizedBox(width: 6),
                       Icon(Icons.open_in_new_rounded,
-                          size: 13, color: AppColors.textTertiary),
-                      const SizedBox(width: 4),
-                      Text('View in Explorer',
-                          style: TextStyle(
-                              color: AppColors.textTertiary, fontSize: 13)),
+                          size: 12, color: AppColors.textSecondary),
                     ],
                   ),
                 ),
 
               const SizedBox(height: 8),
 
-              // ── Done button ────────────────────────────────────────────────
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.textPrimary,
-                    foregroundColor: AppColors.background,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Done',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w600)),
-                ),
+              KoraCta(
+                label: 'Done',
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
             ],
           ),
         ),
@@ -213,7 +193,6 @@ class _SuccessRow extends StatelessWidget {
   const _SuccessRow(
     this.label,
     this.value, {
-    this.mono   = false,
     this.last   = false,
     this.trailing,
     this.onTap,
@@ -221,7 +200,6 @@ class _SuccessRow extends StatelessWidget {
 
   final String  label;
   final String  value;
-  final bool    mono;
   final bool    last;
   final Widget? trailing;
   final VoidCallback? onTap;
@@ -229,14 +207,13 @@ class _SuccessRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final row = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 13),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13)),
+          Text(label.toUpperCase(),
+              style: kMonoText(AppColors.textSecondary, size: 9.5)),
           const SizedBox(width: 16),
           Flexible(
             child: Row(
@@ -246,12 +223,8 @@ class _SuccessRow extends StatelessWidget {
                 Flexible(
                   child: Text(value,
                       textAlign: TextAlign.end,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: mono ? 'monospace' : null,
-                      )),
+                      style: kMonoText(AppColors.textPrimary, size: 11,
+                          weight: FontWeight.w500)),
                 ),
                 if (trailing != null) ...[
                   const SizedBox(width: 6),
@@ -269,7 +242,7 @@ class _SuccessRow extends StatelessWidget {
       children: [
         onTap != null ? GestureDetector(onTap: onTap, child: row) : row,
         if (!last)
-          Divider(height: 0, thickness: 0.5, color: AppColors.border),
+          Divider(height: 0, thickness: 1, color: AppColors.border),
       ],
     );
   }
