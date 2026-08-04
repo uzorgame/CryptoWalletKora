@@ -36,11 +36,10 @@ class CurrencySelectorScreen extends ConsumerWidget {
               child: Row(children: [
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(currency.name,
-                        style: kBody(
+                    Text(currency.name.toUpperCase(),
+                        style: kLabel(
                             isSelected ? AppColors.textPrimary : AppColors.textSecondary,
-                            size: 13.5,
-                            weight: isSelected ? FontWeight.w500 : FontWeight.w400)),
+                            size: 12.5, tracking: 0.06)),
                     const SizedBox(height: 4),
                     Text('${currency.symbol}  ${currency.code.toUpperCase()}',
                         style: kMonoText(AppColors.textTertiary, size: 9.5)),

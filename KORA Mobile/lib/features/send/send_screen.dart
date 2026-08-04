@@ -634,7 +634,12 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
                           // A crypto amount is not a price: the last digits are the
                           // difference between sending everything and leaving dust behind,
                           // so the figure shrinks to fit rather than ending in an ellipsis.
-                          Flexible(
+                          //
+                          // Expanded, not Flexible: the figure claims the whole line so MAX
+                          // stays pinned to the right edge. Flexible let it collapse to the
+                          // width of the digits, and MAX came sliding in beside a short
+                          // number instead of holding its corner.
+                          Expanded(
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,

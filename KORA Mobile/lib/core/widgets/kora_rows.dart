@@ -178,12 +178,20 @@ class KoraSettingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The same voice every other row in this application speaks: tracked monospace at
+    // .krsym size. Settings used to be the one screen set in Inter sentence case, which is
+    // why it read as a page from the app that came before — a whole tab in a different
+    // typeface from the tables on either side of it.
     return KoraRow(
       onTap: onTap,
       topLine: topLine,
       children: [
-        Text(label, style: kBody(labelColor ?? AppColors.textPrimary, size: 13.5)),
-        const Spacer(),
+        Expanded(
+          child: Text(label.toUpperCase(),
+              overflow: TextOverflow.ellipsis,
+              style: kLabel(labelColor ?? AppColors.textPrimary,
+                  size: 12.5, tracking: 0.06)),
+        ),
         if (value != null)
           Text(value!.toUpperCase(),
               style: kMonoText(valueColor ?? AppColors.textSecondary, size: 10)),
