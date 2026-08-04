@@ -91,7 +91,7 @@ class _ThemeFadeOverlayState extends State<_ThemeFadeOverlay>
     // Snapshot the NEW theme's background so the fade blends into it naturally
     _overlayColor = ThemeNotifier.instance.isDark
         ? const Color(0xFF0A0A0A)
-        : const Color(0xFFF2F2F7);
+        : const Color(0xFFFFFFFF);
     // Start smooth fade transition
     _ctrl.forward(from: 0);
   }

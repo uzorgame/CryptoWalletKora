@@ -7,6 +7,10 @@ import 'package:kora/core/crypto/key_manager.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
+import 'package:kora/core/widgets/kora_button.dart';
+import 'package:kora/core/widgets/kora_field.dart';
 import 'package:kora/features/home/home_screen.dart';
 
 class CreateWalletScreen extends ConsumerStatefulWidget {
@@ -106,24 +110,31 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
 
   @override
   Widget build(BuildContext context) {
+    final title = _step == 0 ? 'Create Wallet'
+        : _step == 1 ? 'Recovery Phrase'
+        : _step == 2 ? 'Confirm Backup'
+        : _hasAppPin ? 'Enter App PIN' : 'Set PIN';
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text(_step == 0 ? 'Create Wallet'
-            : _step == 1 ? 'Recovery Phrase'
-            : _step == 2 ? 'Confirm Backup'
-            : _hasAppPin ? 'Enter App PIN' : 'Set PIN'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: _step == 0
+      appBar: koraAppBar(context, title,
+          onBack: _step == 0
               ? () => Navigator.of(context).pop()
-              : () => setState(() => _step--),
-        ),
-      ),
+              : () => setState(() => _step--)),
       body: SafeArea(
+        // The step change travels: a fade with a short rise, on the house curve. An instant
+        // swap reads as a glitch in a flow this deliberate.
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
+          duration: const Duration(milliseconds: 240),
+          switchInCurve: kEase,
+          switchOutCurve: kEase,
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween<Offset>(begin: const Offset(0, 0.012), end: Offset.zero)
+                  .animate(animation),
+              child: child,
+            ),
+          ),
           child: _step == 0 ? _buildNameStep()
               : _step == 1 ? _buildPhraseStep()
               : _step == 2 ? _buildConfirmStep()
@@ -134,107 +145,101 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
   }
 
   Widget _buildNameStep() {
-    return Padding(
+    return Column(
       key: const ValueKey(0),
-      padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const SizedBox(height: 8),
-        Text('Give your wallet a name',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 15)),
-        const SizedBox(height: 24),
-        TextField(
-          controller: _nameCtrl,
-          style: TextStyle(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: 'Wallet name',
-            filled: true,
-            fillColor: AppColors.card,
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.border)),
-            enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.border)),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.textSecondary, width: 1.5)),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
+          child: Text('Give your wallet a name',
+              style: kBody(AppColors.textPrimary, size: 14, weight: FontWeight.w500)),
+        ),
+        const KoraSlabel('Name'),
+        KoraField(
+          child: TextField(
+            controller: _nameCtrl,
+            style: koraInputStyle(),
+            decoration: koraInputDecoration('WALLET NAME'),
           ),
         ),
         const Spacer(),
-        FilledButton(
-          onPressed: _next,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.textPrimary,
-            foregroundColor: AppColors.background,
-            minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
+          child: KoraCta(label: 'Continue', onTap: _next),
         ),
-      ]),
+      ],
     );
   }
 
   Widget _buildPhraseStep() {
-    return Padding(
+    return Column(
       key: const ValueKey(1),
-      padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(
-          'Write down these 12 words in order and store them somewhere safe. Never share them with anyone.',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 15, height: 1.5),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
+          child: Text(
+            'Write down these 12 words in order and store them somewhere safe. Never share them with anyone.',
+            style: kBody(AppColors.textSecondary),
+          ),
         ),
-        const SizedBox(height: 24),
-        AnimatedTap(
-          onTap: () => setState(() => _mnemonicRevealed = !_mnemonicRevealed),
-          pressScale: 0.98,
-          child: Stack(children: [
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3, childAspectRatio: 2.6,
-                crossAxisSpacing: 8, mainAxisSpacing: 8,
-              ),
-              itemCount: 12,
-              itemBuilder: (_, i) => Container(
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.border, width: 0.5),
-                ),
-                child: Row(children: [
-                  const SizedBox(width: 8),
-                  Text('${i+1}', style: TextStyle(
-                      color: AppColors.textTertiary, fontSize: 11, fontWeight: FontWeight.w500)),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(
-                    _mnemonicRevealed ? _words[i] : '••••',
-                    style: TextStyle(
-                      color: _mnemonicRevealed ? AppColors.textPrimary : AppColors.textSecondary,
-                      fontSize: 13, fontWeight: FontWeight.w500),
-                  )),
-                ]),
-              ),
-            ),
-            if (!_mnemonicRevealed)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.background.withValues(alpha: 0.75),
-                    borderRadius: BorderRadius.circular(12),
+        const SizedBox(height: 18),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+          child: AnimatedTap(
+            onTap: () => setState(() => _mnemonicRevealed = !_mnemonicRevealed),
+            pressScale: 0.99,
+            child: Stack(children: [
+              // The word grid: cells separated by one-pixel gaps of the border colour — the
+              // same construction as the numpad, because it is the same language.
+              Container(
+                decoration: BoxDecoration(color: AppColors.border, border: kHairline()),
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3, childAspectRatio: 2.9,
+                    crossAxisSpacing: 1, mainAxisSpacing: 1,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.visibility_outlined, color: AppColors.textPrimary, size: 28),
-                      const SizedBox(height: 8),
-                      Text('Tap to reveal', style: TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
-                    ],
+                  itemCount: 12,
+                  itemBuilder: (_, i) => Container(
+                    color: AppColors.background,
+                    padding: const EdgeInsets.symmetric(horizontal: 9),
+                    child: Row(children: [
+                      Text((i + 1).toString().padLeft(2, '0'),
+                          style: kMonoText(AppColors.textTertiary, size: 8.5)),
+                      const SizedBox(width: 7),
+                      Expanded(child: Text(
+                        _mnemonicRevealed ? _words[i] : '····',
+                        overflow: TextOverflow.ellipsis,
+                        style: kMonoText(
+                            _mnemonicRevealed
+                                ? AppColors.textPrimary
+                                : AppColors.textTertiary,
+                            size: 10.5, weight: FontWeight.w500),
+                      )),
+                    ]),
                   ),
                 ),
               ),
-          ]),
+              if (!_mnemonicRevealed)
+                Positioned.fill(
+                  child: Container(
+                    color: AppColors.background.withValues(alpha: 0.82),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.visibility_outlined,
+                            color: AppColors.textPrimary, size: 22),
+                        const SizedBox(height: 10),
+                        Text('TAP TO REVEAL',
+                            style: kLabel(AppColors.textPrimary, size: 10, tracking: 0.16)),
+                      ],
+                    ),
+                  ),
+                ),
+            ]),
+          ),
         ),
         const SizedBox(height: 16),
         if (_mnemonicRevealed)
@@ -244,164 +249,147 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Copied to clipboard')));
             },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.copy_rounded, color: AppColors.textSecondary, size: 16),
-                const SizedBox(width: 6),
-                Text('Copy to clipboard',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              ],
+            child: Center(
+              child: Text('COPY TO CLIPBOARD',
+                  style: kLabel(AppColors.textSecondary, size: 9.5, tracking: 0.14)),
             ),
           ),
         const Spacer(),
-        FilledButton(
-          onPressed: _next,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.textPrimary,
-            foregroundColor: AppColors.background,
-            minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          child: const Text("I've saved my phrase", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
+          child: KoraCta(label: "I've saved my phrase", onTap: _next),
         ),
-      ]),
+      ],
     );
   }
 
   Widget _buildConfirmStep() {
-    return Padding(
+    return Column(
       key: const ValueKey(2),
-      padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(
-          'Confirm that you have saved your recovery phrase securely.',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 15, height: 1.5),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
+          child: Text(
+            'Confirm that you have saved your recovery phrase securely.',
+            style: kBody(AppColors.textSecondary),
+          ),
         ),
-        const SizedBox(height: 24),
-        AnimatedTap(
-          onTap: () => setState(() => _confirmed = !_confirmed),
-          pressScale: 0.97,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _confirmed ? AppColors.textPrimary : AppColors.border,
-                width: _confirmed ? 1.5 : 0.5,
+        const SizedBox(height: 18),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+          child: AnimatedTap(
+            onTap: () => setState(() => _confirmed = !_confirmed),
+            pressScale: 0.98,
+            child: AnimatedContainer(
+              duration: kControl,
+              curve: kEase,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: _confirmed ? AppColors.borderHi : AppColors.border,
+                  width: 1,
+                ),
               ),
+              child: Row(children: [
+                // A square checkbox — filled ink when set, hairline when not.
+                AnimatedContainer(
+                  duration: kControl,
+                  curve: kEase,
+                  width: 18, height: 18,
+                  decoration: BoxDecoration(
+                    color: _confirmed ? AppColors.textPrimary : Colors.transparent,
+                    border: Border.all(
+                        color: _confirmed ? AppColors.textPrimary : AppColors.borderHi,
+                        width: 1),
+                  ),
+                  child: _confirmed
+                      ? Icon(Icons.check_rounded, color: AppColors.background, size: 13)
+                      : null,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'I have securely saved my 12-word recovery phrase.',
+                    style: kBody(AppColors.textPrimary, size: 13),
+                  ),
+                ),
+              ]),
             ),
-            child: Row(children: [
-              Container(
-                width: 22, height: 22,
-                decoration: BoxDecoration(
-                  color: _confirmed ? AppColors.textPrimary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                      color: _confirmed ? AppColors.textPrimary : AppColors.textTertiary),
-                ),
-                child: _confirmed
-                    ? Icon(Icons.check_rounded, color: AppColors.background, size: 14)
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'I have securely saved my 12-word recovery phrase.',
-                  style: TextStyle(color: AppColors.textPrimary, fontSize: 14, height: 1.4),
-                ),
-              ),
-            ]),
           ),
         ),
         const Spacer(),
-        FilledButton(
-          onPressed: _next,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.textPrimary,
-            foregroundColor: AppColors.background,
-            minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          child: const Text('Continue', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
+          child: KoraCta(label: 'Continue', onTap: _next),
         ),
-      ]),
+      ],
     );
   }
 
   Widget _buildPinStep() {
-    final inputDecor = InputDecoration(
-      filled: true,
-      fillColor: AppColors.card,
-      border:        OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(12)), borderSide: BorderSide(color: AppColors.border)),
-      enabledBorder: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(12)), borderSide: BorderSide(color: AppColors.border)),
-      focusedBorder: OutlineInputBorder(borderRadius: const BorderRadius.all(Radius.circular(12)), borderSide: BorderSide(color: AppColors.textSecondary, width: 1.5)),
-    );
-    return Padding(
+    return Column(
       key: const ValueKey(3),
-      padding: const EdgeInsets.all(24),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(
-          _hasAppPin
-              ? 'Enter your 6-digit app PIN to add this wallet.'
-              : 'Choose a 6-digit PIN to protect your wallet. Never share it with anyone.',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 15, height: 1.5),
-        ),
-        const SizedBox(height: 28),
-        TextField(
-          controller: _pinCtrl,
-          obscureText: _pinObscure,
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          style: TextStyle(color: AppColors.textPrimary, letterSpacing: 8, fontSize: 22),
-          decoration: inputDecor.copyWith(
-            hintText: _hasAppPin ? 'App PIN' : 'PIN',
-            hintStyle: TextStyle(color: AppColors.textTertiary, letterSpacing: 1, fontSize: 15),
-            counterText: '',
-            suffixIcon: IconButton(
-              icon: Icon(_pinObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                  color: AppColors.textTertiary),
-              onPressed: () => setState(() => _pinObscure = !_pinObscure),
-            ),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
+          child: Text(
+            _hasAppPin
+                ? 'Enter your 6-digit app PIN to add this wallet.'
+                : 'Choose a 6-digit PIN to protect your wallet. Never share it with anyone.',
+            style: kBody(AppColors.textSecondary),
           ),
-          onChanged: (_) => setState(() => _pinError = null),
+        ),
+        KoraSlabel(_hasAppPin ? 'App PIN' : 'PIN'),
+        KoraField(
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                controller: _pinCtrl,
+                obscureText: _pinObscure,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                style: kNum(AppColors.textPrimary, size: 18).copyWith(letterSpacing: 8),
+                decoration: koraInputDecoration(_hasAppPin ? 'APP PIN' : 'PIN')
+                    .copyWith(counterText: ''),
+                onChanged: (_) => setState(() => _pinError = null),
+              ),
+            ),
+            AnimatedTap(
+              onTap: () => setState(() => _pinObscure = !_pinObscure),
+              child: Icon(
+                _pinObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                color: AppColors.textTertiary, size: 17),
+            ),
+          ]),
         ),
         if (!_hasAppPin) ...[
-          const SizedBox(height: 14),
-          TextField(
-            controller: _pinConfCtrl,
-            obscureText: true,
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            style: TextStyle(color: AppColors.textPrimary, letterSpacing: 8, fontSize: 22),
-            decoration: inputDecor.copyWith(
-              hintText: 'Confirm PIN',
-              hintStyle: TextStyle(color: AppColors.textTertiary, letterSpacing: 1, fontSize: 15),
-              counterText: '',
+          const KoraSlabel('Confirm PIN'),
+          KoraField(
+            child: TextField(
+              controller: _pinConfCtrl,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              style: kNum(AppColors.textPrimary, size: 18).copyWith(letterSpacing: 8),
+              decoration: koraInputDecoration('CONFIRM PIN').copyWith(counterText: ''),
+              onChanged: (_) => setState(() => _pinError = null),
             ),
-            onChanged: (_) => setState(() => _pinError = null),
           ),
         ],
-        if (_pinError != null) ...[  
-          const SizedBox(height: 10),
-          Text(_pinError!, style: TextStyle(color: AppColors.negative, fontSize: 13)),
-        ],
+        if (_pinError != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
+            child: Text(_pinError!.toUpperCase(),
+                style: kLabel(AppColors.negative, size: 9.5, tracking: 0.1)),
+          ),
         const Spacer(),
-        FilledButton(
-          onPressed: _loading ? null : _createWallet,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.textPrimary,
-            foregroundColor: AppColors.background,
-            minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          child: _loading
-              ? SizedBox(width: 20, height: 20,
-                  child: CircularProgressIndicator(color: AppColors.background, strokeWidth: 2))
-              : const Text('Create Wallet', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
+          child: KoraCta(label: 'Create Wallet', onTap: _createWallet, busy: _loading),
         ),
-      ]),
+      ],
     );
   }
 }
