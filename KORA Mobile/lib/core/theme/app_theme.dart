@@ -2,35 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 
-// ─────────────────────── Private dark palette ────────────────────────────────
-const _dBackground   = Color(0xFF000000);
-const _dSurface      = Color(0xFF111111);
-const _dCard         = Color(0xFF1A1A1A);
-const _dCardElevated = Color(0xFF242424);
-const _dSeparator    = Color(0xFF1C1C1E);
-const _dBorder       = Color(0xFF2C2C2E);
-const _dTextPrimary  = Color(0xFFFFFFFF);
-const _dTextSecondary= Color(0xFF8E8E93);
-const _dTextTertiary = Color(0xFF48484A);
-const _dPositive     = Color(0xFF30D158);
-const _dNegative     = Color(0xFFFF453A);
-const _dAccent       = Color(0xFF0A84FF);
-const _dWarning      = Color(0xFFFF9F0A);
+// ─────────────────────── KORA dark palette ────────────────────────────────────
+// The same tokens as the Windows wallet's kora_design.dart, so the two products are one
+// design. `accent` maps to the ink colour on purpose: in this language the primary action is
+// the inverted surface, not a brand blue.
+const _dBackground   = Color(0xFF0A0A0A);
+const _dSurface      = Color(0xFF0F0F0F);
+const _dCard         = Color(0xFF0F0F0F);
+const _dCardElevated = Color(0xFF161616);
+const _dSeparator    = Color(0x1AFFFFFF);
+const _dBorder       = Color(0x1AFFFFFF);
+const _dBorderHi     = Color(0x38FFFFFF);
+const _dTextPrimary  = Color(0xFFF0F0F0);
+const _dTextSecondary= Color(0xFF8A8A8A);
+const _dTextTertiary = Color(0xFF4A4A4A);
+const _dPositive     = Color(0xFF3FB950);
+const _dNegative     = Color(0xFFF85149);
+const _dAccent       = Color(0xFFF0F0F0);
+const _dWarning      = Color(0xFFD29922);
 
-// ─────────────────────── Private light palette ───────────────────────────────
+// ─────────────────────── KORA light palette ───────────────────────────────────
 const _lBackground   = Color(0xFFFFFFFF);
-const _lSurface      = Color(0xFFF2F2F7);
+const _lSurface      = Color(0xFFFFFFFF);
 const _lCard         = Color(0xFFFFFFFF);
-const _lCardElevated = Color(0xFFE5E5EA);
-const _lSeparator    = Color(0xFFE5E5EA);
-const _lBorder       = Color(0xFFD1D1D6);
-const _lTextPrimary  = Color(0xFF000000);
-const _lTextSecondary= Color(0xFF6C6C70);
-const _lTextTertiary = Color(0xFFAEAEB2);
-const _lPositive     = Color(0xFF34C759);
-const _lNegative     = Color(0xFFFF3B30);
-const _lAccent       = Color(0xFF007AFF);
-const _lWarning      = Color(0xFFFF9500);
+const _lCardElevated = Color(0xFFFAFAFA);
+const _lSeparator    = Color(0x1F000000);
+const _lBorder       = Color(0x1F000000);
+const _lBorderHi     = Color(0x47000000);
+const _lTextPrimary  = Color(0xFF111111);
+const _lTextSecondary= Color(0xFF6B6B6B);
+const _lTextTertiary = Color(0xFFA0A0A0);
+const _lPositive     = Color(0xFF1A7F37);
+const _lNegative     = Color(0xFFCF222E);
+const _lAccent       = Color(0xFF111111);
+const _lWarning      = Color(0xFF9A6700);
 
 // ─────────────────────────── AppColors (dynamic) ─────────────────────────────
 class AppColors {
@@ -44,6 +49,9 @@ class AppColors {
   static Color get cardElevated  => _d ? _dCardElevated : _lCardElevated;
   static Color get separator     => _d ? _dSeparator    : _lSeparator;
   static Color get border        => _d ? _dBorder       : _lBorder;
+
+  /// The brighter hairline: focus rings, pressed outlines, the PIN dots' rest state.
+  static Color get borderHi      => _d ? _dBorderHi     : _lBorderHi;
 
   static Color get textPrimary   => _d ? _dTextPrimary   : _lTextPrimary;
   static Color get textSecondary => _d ? _dTextSecondary : _lTextSecondary;
@@ -73,7 +81,7 @@ class AppColors {
 }
 
 // ─────────────────────────── AppTheme ────────────────────────────────────────
-const _fontFamily = 'SFProDisplay';
+const _fontFamily = 'Inter';
 
 class AppTheme {
   AppTheme._();
@@ -143,7 +151,7 @@ class AppTheme {
         backgroundColor: _lTextPrimary,
         foregroundColor: _lBackground,
         minimumSize:     const Size(double.infinity, 56),
-        shape:           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape:           RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3, fontFamily: _fontFamily),
       ),
     ),
@@ -152,7 +160,7 @@ class AppTheme {
         foregroundColor: _lTextPrimary,
         minimumSize:     const Size(double.infinity, 56),
         side:            const BorderSide(color: _lBorder),
-        shape:           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape:           RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3, fontFamily: _fontFamily),
       ),
     ),
@@ -160,16 +168,16 @@ class AppTheme {
       filled:         true,
       fillColor:      _lSurface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border:         OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _lBorder)),
-      enabledBorder:  OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _lBorder)),
-      focusedBorder:  OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _lTextSecondary, width: 1.5)),
-      errorBorder:    OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _lNegative)),
+      border:         OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: const BorderSide(color: _lBorder)),
+      enabledBorder:  OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: const BorderSide(color: _lBorder)),
+      focusedBorder:  OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: const BorderSide(color: _lTextSecondary, width: 1.5)),
+      errorBorder:    OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: const BorderSide(color: _lNegative)),
       hintStyle:      const TextStyle(color: _lTextTertiary, fontSize: 15, fontFamily: _fontFamily),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor:  _lCardElevated,
       contentTextStyle: const TextStyle(color: _lTextPrimary, fontSize: 14, fontFamily: _fontFamily),
-      shape:            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape:            RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       behavior:         SnackBarBehavior.floating,
       insetPadding:     const EdgeInsets.all(16),
     ),
@@ -233,7 +241,7 @@ class AppTheme {
         backgroundColor: _dTextPrimary,
         foregroundColor: _dBackground,
         minimumSize:     const Size(double.infinity, 56),
-        shape:           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape:           RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3, fontFamily: _fontFamily),
       ),
     ),
@@ -242,7 +250,7 @@ class AppTheme {
         foregroundColor: _dTextPrimary,
         minimumSize:     const Size(double.infinity, 56),
         side:            const BorderSide(color: _dBorder),
-        shape:           RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape:           RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3, fontFamily: _fontFamily),
       ),
     ),
@@ -250,16 +258,16 @@ class AppTheme {
       filled:         true,
       fillColor:      _dSurface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border:         OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _dBorder)),
-      enabledBorder:  OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _dBorder)),
-      focusedBorder:  OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _dTextSecondary, width: 1.5)),
-      errorBorder:    OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _dNegative)),
+      border:         OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: const BorderSide(color: _dBorder)),
+      enabledBorder:  OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: const BorderSide(color: _dBorder)),
+      focusedBorder:  OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: const BorderSide(color: _dTextSecondary, width: 1.5)),
+      errorBorder:    OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: const BorderSide(color: _dNegative)),
       hintStyle:      const TextStyle(color: _dTextTertiary, fontSize: 15, fontFamily: _fontFamily),
     ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor:  _dCardElevated,
       contentTextStyle: const TextStyle(color: _dTextPrimary, fontSize: 14, fontFamily: _fontFamily),
-      shape:            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape:            RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       behavior:         SnackBarBehavior.floating,
       insetPadding:     const EdgeInsets.all(16),
     ),
