@@ -12,7 +12,8 @@ import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/constants/token_catalog.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/chips/coin_icon.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
 import 'package:kora/features/receive/receive_screen.dart';
 import 'package:kora/features/send/send_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
@@ -197,16 +198,13 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text(asset.symbol),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () { Navigator.of(context).pop(); },
-        ),
+      appBar: koraAppBar(
+        context,
+        asset.symbol,
+        onBack: () { Navigator.of(context).pop(); },
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh_rounded, size: 20),
+            icon: Icon(Icons.refresh_rounded, size: 18, color: AppColors.textSecondary),
             onPressed: () { _loadHistory(force: true); },
           ),
         ],
@@ -218,54 +216,34 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
         child: ListView(padding: EdgeInsets.zero, children: [
 
           // ── Header card ───────────────────────────────────────────────────
-          Container(
-            margin: const EdgeInsets.all(20),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border, width: 0.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.07),
-                  blurRadius: 20,
-                  spreadRadius: 0,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(children: [
-              CoinIcon(symbol: asset.symbol, iconUrl: asset.iconUrl, size: 64),
-              const SizedBox(height: 16),
+          // The holding leads from the left, as it does on the desktop coin page: what is
+          // held, what it is worth, how it moved and what one unit costs — in that order.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('${asset.symbol} · ${asset.name.toUpperCase()}',
+                  style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16)),
+              const SizedBox(height: 10),
               Text(asset.formattedBalance,
-                  style: TextStyle(
-                      color: AppColors.textPrimary, fontSize: 28,
-                      fontWeight: FontWeight.w700, letterSpacing: -0.5)),
-              const SizedBox(height: 4),
-              Text(currency.formatAmount(asset.balanceInUsd),
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-              const SizedBox(height: 12),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: (isUp ? AppColors.positive : AppColors.negative).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
-                        color: isUp ? AppColors.positive : AppColors.negative, size: 13),
-                    const SizedBox(width: 3),
+                  style: kNum(AppColors.textPrimary, size: 32)),
+              const SizedBox(height: 10),
+              Row(crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
                     Text(asset.formattedPriceChange,
-                        style: TextStyle(
-                            color: isUp ? AppColors.positive : AppColors.negative,
-                            fontSize: 13, fontWeight: FontWeight.w600)),
+                        style: kMonoText(
+                            isUp ? AppColors.positive : AppColors.negative, size: 11)),
+                    const SizedBox(width: 12),
+                    Text(currency.formatAmount(asset.balanceInUsd),
+                        style: kMonoText(AppColors.textSecondary, size: 11)),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                          '${currency.formatPrice(asset.priceUsd)} / ${asset.symbol}',
+                          overflow: TextOverflow.ellipsis,
+                          style: kMonoText(AppColors.textTertiary, size: 11)),
+                    ),
                   ]),
-                ),
-                const SizedBox(width: 8),
-                Text('${currency.formatPrice(asset.priceUsd)} per ${asset.symbol}',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              ]),
             ]),
           ),
 
@@ -275,14 +253,17 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
 
           // ── Action buttons ────────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(children: [
-              _ActionBtn(label: 'Send', icon: Icons.arrow_upward_rounded,
-                  onTap: () { context.pushModal(SendScreen(assets: [asset])); }),
-              const SizedBox(width: 12),
-              _ActionBtn(label: 'Receive', icon: Icons.arrow_downward_rounded,
-                  onTap: () { context.pushModal(ReceiveScreen(preselectedAsset: asset)); }),
-            ]),
+            padding: const EdgeInsets.symmetric(horizontal: 22),
+            child: Container(
+              decoration: BoxDecoration(color: AppColors.border, border: kHairline()),
+              child: Row(children: [
+                _ActionBtn(label: 'Send', primary: true,
+                    onTap: () { context.pushModal(SendScreen(assets: [asset])); }),
+                const SizedBox(width: 1),
+                _ActionBtn(label: 'Receive',
+                    onTap: () { context.pushModal(ReceiveScreen(preselectedAsset: asset)); }),
+              ]),
+            ),
           ),
 
           const SizedBox(height: 20),
@@ -305,13 +286,13 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
             Padding(
               padding: EdgeInsets.fromLTRB(20, 12, 20, 8),
               child: Row(children: [
-                Text('Transactions',
-                    style: TextStyle(
-                        color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600)),
+                Text('TRANSACTIONS',
+                    style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.18)),
                 const Spacer(),
                 if (_txLoading)
-                  SizedBox(width: 16, height: 16,
-                      child: CircularProgressIndicator(color: AppColors.accent, strokeWidth: 1.5)),
+                  SizedBox(width: 12, height: 12,
+                      child: CircularProgressIndicator(
+                          color: AppColors.textTertiary, strokeWidth: 1.2)),
               ]),
             ),
             if (_txLoading && _txRecords.isEmpty)
@@ -359,16 +340,16 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 40),
+    padding: const EdgeInsets.symmetric(vertical: 44, horizontal: 40),
     child: Column(children: [
-      Icon(icon, color: AppColors.textTertiary, size: 48),
-      const SizedBox(height: 12),
-      Text(title,
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
-      const SizedBox(height: 6),
-      Text(subtitle,
+      Text(title.toUpperCase(),
+          style: kLabel(AppColors.textSecondary, size: 10.5, tracking: 0.16)),
+      const SizedBox(height: 10),
+      Text(subtitle.toUpperCase(),
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          style: kLabel(AppColors.textTertiary, size: 8.5, tracking: 0.1,
+                  weight: FontWeight.w400)
+              .copyWith(height: 1.8)),
     ]),
   );
 }
@@ -376,37 +357,25 @@ class _EmptyState extends StatelessWidget {
 // ─── Action button ─────────────────────────────────────────────────────────────
 
 class _ActionBtn extends StatelessWidget {
-  const _ActionBtn({required this.label, required this.icon, required this.onTap});
+  const _ActionBtn({required this.label, required this.onTap, this.primary = false});
   final String label;
-  final IconData icon;
   final VoidCallback onTap;
+  final bool primary;
 
   @override
   Widget build(BuildContext context) => Expanded(
     child: AnimatedTap(
       onTap: onTap,
-      pressScale: 0.92,
+      pressScale: 0.95,
+      pressOpacity: 0.8,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 12,
-              spreadRadius: 0,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(children: [
-          Icon(icon, color: AppColors.textPrimary, size: 20),
-          const SizedBox(height: 5),
-          Text(label, style: TextStyle(
-              color: AppColors.textPrimary, fontSize: 12, fontWeight: FontWeight.w500)),
-        ]),
+        color: primary ? AppColors.textPrimary : AppColors.background,
+        alignment: Alignment.center,
+        child: Text(label.toUpperCase(),
+            style: kLabel(
+                primary ? AppColors.background : AppColors.textSecondary,
+                size: 10.5, tracking: 0.14)),
       ),
     ),
   );
