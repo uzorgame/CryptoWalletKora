@@ -890,6 +890,16 @@ class _AssetPickSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxH = MediaQuery.of(context).size.height * 0.62;
+    // Richest first. Choosing what to send starts from what there is to send, so the coins
+    // holding real value sit at the top and the empty ones fall to the bottom — the same
+    // order the wallet list defaults to.
+    final ordered = [...assets]
+      ..sort((a, b) {
+        final byValue = b.balanceInUsd.compareTo(a.balanceInUsd);
+        if (byValue != 0) return byValue;
+        // Nothing in either: keep them steady rather than letting equal values shuffle.
+        return a.symbol.compareTo(b.symbol);
+      });
     return Container(
       decoration: BoxDecoration(
         color: AppColors.background,
@@ -908,9 +918,9 @@ class _AssetPickSheet extends StatelessWidget {
             constraints: BoxConstraints(maxHeight: maxH),
             child: ListView.builder(
               shrinkWrap: true,
-              itemCount: assets.length,
+              itemCount: ordered.length,
               itemBuilder: (_, i) {
-                final a = assets[i];
+                final a = ordered[i];
                 final on = a.id == selectedId;
                 return AnimatedTap(
                   onTap: () => onPick(a),

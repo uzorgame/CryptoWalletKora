@@ -34,8 +34,8 @@ class _PolicyContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Effective March 2026  ·  Version 3.5.0',
-          style: kBody(AppColors.textTertiary, size: 12),
+          'EFFECTIVE MARCH 2026 · VERSION 3.5.0',
+          style: kMonoText(AppColors.textTertiary, size: 10),
         ),
         const SizedBox(height: 16),
         const _PolicySection(
@@ -127,8 +127,9 @@ class _PolicyContent extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Copyright © 2024–2026 Kora. All Rights Reserved.',
-          style: kBody(AppColors.textTertiary, size: 12, weight: FontWeight.w500),
+          'COPYRIGHT © 2024–2026 KORA. ALL RIGHTS RESERVED.',
+          style: kLabel(AppColors.textTertiary, size: 9, tracking: 0.12,
+              weight: FontWeight.w400),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
@@ -149,14 +150,17 @@ class _PolicySection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // The heading is a section heading, set exactly as the ones over the wallet's
+          // tables. The paragraph under it stays in the reading face — a page of legal
+          // prose in tracked monospace is a page nobody finishes.
           Text(
             title,
-            style: kBody(AppColors.textPrimary, size: 15, weight: FontWeight.w600),
+            style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.18),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             body,
-            style: kBody(AppColors.textSecondary, size: 14).copyWith(height: 1.55),
+            style: kBody(AppColors.textSecondary, size: 13),
           ),
         ],
       ),

@@ -481,6 +481,7 @@ body.light .kphone{
   <button data-go="create">Створення гаманця</button>
   <button data-go="importw">Імпорт гаманця</button>
   <button data-go="lockscr">Екран блокування</button>
+  <button data-go="walletselect">Вибір гаманця</button>
   <hr>
   <button data-go="home" class="on">Гаманець</button>
   <button data-go="detail">Монета (BTC)</button>
@@ -539,6 +540,27 @@ body.light .kphone{
       <div style="height:12px"></div>
     </div>
     <div class="bnav" id="bnavHome"></div>
+    <div class="homebar"></div>
+  </div>
+
+  <!-- ═══ WALLET SELECT ═══ -->
+  <div class="screen" id="walletselect">
+    <div class="statusbar"><span>9:41</span><span></span></div>
+    <div class="scroll" style="padding:0 24px">
+      <div style="font-size:28px;font-weight:700;letter-spacing:-.5px;margin-top:20px">Select Wallet</div>
+      <div style="font-size:15px;color:var(--t2);margin-top:8px">Choose a wallet to continue</div>
+      <div style="margin-top:24px;border:1px solid var(--border);padding:20px;display:flex;align-items:center;gap:16px">
+        <div style="width:48px;height:48px;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:24px">👛</div>
+        <div style="flex:1">
+          <div style="font-size:17px;font-weight:600">My Wallet</div>
+          <div style="font-size:14px;color:var(--t2);margin-top:4px">11 assets</div>
+        </div>
+        <span style="color:var(--t2)">›</span>
+      </div>
+    </div>
+    <button class="cta" style="margin:0 24px">Create New Wallet</button>
+    <button class="ghost" style="margin:12px 24px 0">Import Existing Wallet</button>
+    <div style="height:32px;flex:none"></div>
     <div class="homebar"></div>
   </div>
 
@@ -1035,6 +1057,24 @@ body.light .kphone{
       <button class="kni" onclick="go('receivepicker')"><span class="no">03</span><span class="lb">Receive</span></button>
       <button class="kni" onclick="go('settings')"><span class="no">04</span><span class="lb">Settings</span></button>
     </div>
+    <div class="homebar"></div>
+  </div>
+
+  <!-- ═══ K-WALLET SELECT ═══ -->
+  <div class="screen" id="k-walletselect">
+    <div class="statusbar"><span class="kmono" style="font-size:12.5px">9:41</span><span></span></div>
+    <div class="scroll">
+      <div class="khead" style="padding-bottom:0">
+        <div class="kbal-label klabel" style="margin-top:0">SELECT WALLET</div>
+        <div class="ktitle" style="font-size:26px;margin-top:8px">Choose a wallet<br>to continue</div>
+      </div>
+      <div class="ksec"><span class="h">Wallets</span><span class="aside" id="kWsCount">2 ON THIS DEVICE</span></div>
+      <div class="krows" id="kWsList"></div>
+      <div style="height:18px"></div>
+    </div>
+    <button class="kcta" onclick="go('create')">Create new wallet</button>
+    <button class="kghost" onclick="go('importw')">Import existing wallet</button>
+    <div style="height:34px;flex:none"></div>
     <div class="homebar"></div>
   </div>
 
@@ -1826,6 +1866,22 @@ document.getElementById('kTokenList').innerHTML = TOKENS.map(t=>`
       <div class="krsub">${t.net.toUpperCase()}${t.tag!==t.net.toUpperCase()?' · '+t.tag:''}</div></div>
     <button class="kadd ${t.added?'added':''}" onclick="this.classList.toggle('added');this.textContent=this.classList.contains('added')?'Added':'Add'">${t.added?'Added':'Add'}</button>
   </div>`).join('');
+
+/* Вибір гаманця після видалення: монограма замість піктограми, рядок замість картки,
+   і вартість гаманця там, де око вже звикло шукати число. */
+const KWSELECT=[
+  {name:'MY WALLET', assets:11, bal:'$14,982.63'},
+  {name:'SAVINGS',   assets:4,  bal:'$3,412.09'},
+];
+document.getElementById('kWsList').innerHTML=KWSELECT.map((w,i)=>`
+  <div class="krow" onclick="go('home')">
+    <span>${KICON(34,0)}</span>
+    <div class="krmid"><div class="krsym">${w.name}</div>
+      <div class="krsub">${w.assets} ASSETS</div></div>
+    <div class="krright"><div class="krqty knum">${w.bal}</div></div>
+    <span class="krval" style="margin-left:12px">›</span>
+  </div>`).join('');
+document.getElementById('kWsCount').textContent=KWSELECT.length+' ON THIS DEVICE';
 
 /* Перемикання гаманця — лише через PIN додатку, як switchWalletWithPassphrase на десктопі */
 const KWALLETS=[{name:'MY WALLET',bal:'$14,982.63'},{name:'SAVINGS',bal:'$3,412.09'}];
