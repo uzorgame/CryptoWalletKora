@@ -5,13 +5,14 @@ import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/widgets/kora_mask.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 
 // One asset in the wallet tab's list — a hairline table row, not a card.
 //
-// The symbol leads in tracked mono with the full name grey beside it; the catalog's names
-// already carry the network where it matters ("Tether (Tron)"), which is why no separate
-// network chip survives here. The 24h move sits with the price, coloured by direction, the
-// way the desktop table prints it.
+// The ticker sits in a box at the head of the row and the full name reads beside it, so
+// the asset is named once instead of three times. The catalog's names carry the network
+// where it matters ("Tether (Tron)"). The 24h move sits with the price, coloured by
+// direction, the way the desktop table prints it.
 class AssetTile extends StatelessWidget {
   const AssetTile({super.key, required this.asset, required this.visible,
       required this.currency, required this.onTap});
@@ -33,20 +34,13 @@ class AssetTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
         decoration: BoxDecoration(border: Border(bottom: kHairlineSide())),
         child: Row(children: [
+          KoraSymbolBox(asset.symbol),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(asset.symbol,
-                        style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
-                    const SizedBox(width: 7),
-                    Flexible(
-                      child: Text(asset.name,
-                          overflow: TextOverflow.ellipsis,
-                          style: kBody(AppColors.textSecondary, size: 11)),
-                    ),
-                  ]),
+              Text(asset.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
               const SizedBox(height: 5),
               Row(children: [
                 Text(currency.formatPrice(asset.priceUsd),
@@ -65,17 +59,11 @@ class AssetTile extends StatelessWidget {
               height: 13.5 * kTextScale * 1.35,
               child: Align(
                 alignment: Alignment.centerRight,
+                // No ticker after the figure: the box at the head of the row already
+                // names it, and a third mention was the duplication this row started with.
                 child: visible
-                    ? Row(crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(_formatAmount(asset.balanceAsDouble),
-                              style: kNum(AppColors.textPrimary, size: 13.5)),
-                          const SizedBox(width: 5),
-                          Text(asset.symbol,
-                              style: kBody(AppColors.textSecondary, size: 10)),
-                        ])
+                    ? Text(_formatAmount(asset.balanceAsDouble),
+                        style: kNum(AppColors.textPrimary, size: 13.5))
                     : const KoraMask(count: 4, textSize: 13.5 * kTextScale),
               ),
             ),

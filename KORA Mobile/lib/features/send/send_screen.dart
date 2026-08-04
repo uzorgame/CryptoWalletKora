@@ -11,6 +11,7 @@ import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_app_bar.dart';
 import 'package:kora/core/widgets/kora_button.dart';
 import 'package:kora/core/widgets/kora_field.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 import 'package:kora/core/widgets/input/numpad.dart';
 import 'package:kora/features/address_book/address_book_screen.dart';
 import 'package:kora/features/scan/qr_scanner_screen.dart';
@@ -936,31 +937,16 @@ class _AssetPickSheet extends StatelessWidget {
                       ),
                     ),
                     child: Row(children: [
+                      KoraSymbolBox(a.symbol),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.baseline,
-                                  textBaseline: TextBaseline.alphabetic,
-                                  children: [
-                                    Text(a.symbol,
-                                        style: kLabel(
-                                            on
-                                                ? AppColors.textPrimary
-                                                : AppColors.textPrimary,
-                                            size: 12.5,
-                                            tracking: 0.06)),
-                                    const SizedBox(width: 7),
-                                    Flexible(
-                                      child: Text(a.name,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: kBody(
-                                              AppColors.textSecondary,
-                                              size: 11)),
-                                    ),
-                                  ]),
+                              Text(a.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: kLabel(AppColors.textPrimary,
+                                      size: 12.5, tracking: 0.06)),
                               const SizedBox(height: 4),
                               Text('\$${a.priceUsd.toStringAsFixed(a.priceUsd >= 1 ? 2 : 4)}',
                                   style: kMonoText(
@@ -969,17 +955,8 @@ class _AssetPickSheet extends StatelessWidget {
                       ),
                       Column(crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Row(crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: [
-                                  Text(a.formattedBalance,
-                                      style: kNum(AppColors.textPrimary,
-                                          size: 13.5)),
-                                  const SizedBox(width: 5),
-                                  Text(a.symbol,
-                                      style: kBody(AppColors.textSecondary,
-                                          size: 10)),
-                                ]),
+                            Text(a.formattedBalance,
+                                style: kNum(AppColors.textPrimary, size: 13.5)),
                             const SizedBox(height: 4),
                             Text(a.formattedUsdValue,
                                 style: kMonoText(

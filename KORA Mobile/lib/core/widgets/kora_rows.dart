@@ -266,6 +266,31 @@ class KoraBox extends StatelessWidget {
   }
 }
 
+/// The ticker in a box, at the head of every row that names an asset.
+///
+/// The prototype's `.knet`: mono 8px at .12em in secondary ink, a 1px border, and a fixed
+/// 58px of width so the boxes down a list form a column rather than a ragged edge.
+///
+/// It replaced the coloured coin discs, and does the one thing they were ever really for —
+/// telling you which asset a row is before you read a word. A disc says that by convention,
+/// and only to somebody who already knows the convention; a boxed ticker says it outright,
+/// in the same three letters the rest of the application uses.
+class KoraSymbolBox extends StatelessWidget {
+  const KoraSymbolBox(this.symbol, {super.key});
+
+  final String symbol;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        constraints: const BoxConstraints(minWidth: 58),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(border: kHairline()),
+        child: Text(symbol.toUpperCase(),
+            style: kLabel(AppColors.textSecondary, size: 8, tracking: 0.12)),
+      );
+}
+
 /// A hairline caption — the network beside a saved address.
 class KoraTag extends StatelessWidget {
   const KoraTag(this.text, {super.key});

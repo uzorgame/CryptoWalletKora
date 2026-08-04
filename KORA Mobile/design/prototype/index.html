@@ -1767,9 +1767,10 @@ const kMask=(n)=>`<span class="kmask">${'<i></i>'.repeat(n)}</span>`;
 function renderKAssets(){
   document.getElementById('kAssetList').innerHTML = ASSETS.map(a=>`
     <div class="krow" onclick="go('detail')">
-      <div class="krmid" style="margin-left:0"><div class="krsym">${a.sym} <span class="kname2">${a.name}</span></div>
+      <span class="knet">${a.sym}</span>
+      <div class="krmid"><div class="krsym">${a.name}</div>
         <div class="krsub">${a.price} · <span class="kchg ${a.dir}">${a.chg}</span></div></div>
-      <div class="krright"><div class="krqty knum">${kEyeOn?a.amt+' <span class="kname2">'+a.sym+'</span>':kMask(4)}</div>
+      <div class="krright"><div class="krqty knum">${kEyeOn?a.amt:kMask(4)}</div>
         <div class="krval">${kEyeOn?a.val:kMask(4)}</div></div>
     </div>`).join('');
   document.getElementById('kBal').innerHTML = kEyeOn?'$14,982.63':kMask(6);
@@ -1815,9 +1816,10 @@ function kSetMax(){kAmount=ASSETS[kSendAssetIdx].amt.replace(/,/g,'');kRefreshAm
 /* Список активів у шіті вибору — всі 16, з балансами */
 document.getElementById('kAssetPickList').innerHTML = ASSETS.map((a,i)=>`
   <div class="krow" onclick="kPickSendAsset(${i})">
-    <div class="krmid" style="margin-left:0"><div class="krsym">${a.sym} <span class="kname2">${a.name}</span></div>
+    <span class="knet">${a.sym}</span>
+    <div class="krmid"><div class="krsym">${a.name}</div>
       <div class="krsub">${a.price}</div></div>
-    <div class="krright"><div class="krqty knum">${a.amt} <span class="kname2">${a.sym}</span></div><div class="krval">${a.val}</div></div>
+    <div class="krright"><div class="krqty knum">${a.amt}</div><div class="krval">${a.val}</div></div>
   </div>`).join('');
 
 /* PIN-пади редизайну: блокування, створення, підпис */
@@ -1856,13 +1858,15 @@ function kCreateStep(d){
 /* Списки вибору активу та токенів — той самий рядок-таблиця */
 document.getElementById('kPickerList').innerHTML = ASSETS.map(a=>`
   <div class="krow" onclick="go('receive')">
-    <div class="krmid" style="margin-left:0"><div class="krsym">${a.sym} <span class="kname2">${a.name}</span></div>
-      <div class="krsub">${a.amt} <span class="kname2">${a.sym}</span></div></div>
+    <span class="knet">${a.sym}</span>
+    <div class="krmid"><div class="krsym">${a.name}</div>
+      <div class="krsub">${a.amt}</div></div>
     <span class="krval">›</span>
   </div>`).join('');
 document.getElementById('kTokenList').innerHTML = TOKENS.map(t=>`
   <div class="krow" style="cursor:default">
-    <div class="krmid" style="margin-left:0"><div class="krsym">${t.sym} <span class="kname2">${t.name}</span></div>
+    <span class="knet">${t.sym}</span>
+    <div class="krmid"><div class="krsym">${t.name}</div>
       <div class="krsub">${t.net.toUpperCase()}${t.tag!==t.net.toUpperCase()?' · '+t.tag:''}</div></div>
     <button class="kadd ${t.added?'added':''}" onclick="this.classList.toggle('added');this.textContent=this.classList.contains('added')?'Added':'Add'">${t.added?'Added':'Add'}</button>
   </div>`).join('');

@@ -5,13 +5,14 @@ import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_app_bar.dart';
 import 'package:kora/core/widgets/kora_field.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 import 'package:kora/features/receive/receive_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 
 /// The receive tab, exactly the prototype's picker: CHOOSE AN ASSET over a hairline table.
-/// Each row reads the symbol, the name and how much of it the wallet holds; the chevron is
-/// the only ornament. Tapping opens that asset's address.
+/// Each row reads the ticker in its box, the full name, and how much of it the wallet
+/// holds; the chevron is the only ornament. Tapping opens that asset's address.
 class ReceivePickerScreen extends StatefulWidget {
   const ReceivePickerScreen({
     super.key,
@@ -85,28 +86,16 @@ class _AssetRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
         decoration: BoxDecoration(border: Border(bottom: kHairlineSide())),
         child: Row(children: [
+          KoraSymbolBox(asset.symbol),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(asset.symbol,
-                        style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
-                    const SizedBox(width: 7),
-                    Flexible(
-                      child: Text(asset.name,
-                          overflow: TextOverflow.ellipsis,
-                          style: kBody(AppColors.textSecondary, size: 11)),
-                    ),
-                  ]),
+              Text(asset.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
               const SizedBox(height: 4),
-              Row(children: [
-                Text(asset.formattedBalance,
-                    style: kMonoText(AppColors.textSecondary, size: 10)),
-                const SizedBox(width: 5),
-                Text(asset.symbol,
-                    style: kBody(AppColors.textSecondary, size: 10)),
-              ]),
+              Text(asset.formattedBalance,
+                  style: kMonoText(AppColors.textSecondary, size: 10)),
             ]),
           ),
           Text('›', style: kMonoText(AppColors.textSecondary, size: 13)),
