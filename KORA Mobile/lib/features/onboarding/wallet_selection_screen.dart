@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/kora_button.dart';
 import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_button.dart';
+import 'package:kora/core/widgets/kora_mark.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 import 'package:kora/core/models/wallet.dart';
 import 'package:kora/core/repositories/wallet_repository.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
@@ -11,8 +12,14 @@ import 'package:kora/features/onboarding/create_wallet_screen.dart';
 import 'package:kora/features/onboarding/import_wallet_screen.dart';
 import 'package:kora/features/home/home_screen.dart';
 
-/// Screen shown after wallet deletion when other wallets exist
-/// Allows user to select an existing wallet or create/import a new one
+/// Shown after a wallet is removed and another has to be opened before the app can go
+/// anywhere.
+///
+/// A table of wallets, not a stack of cards: the monogram the header already carries, the
+/// name, how much is in it, and a chevron. The wallet's worth sits at the right edge because
+/// that is where every number in this application lives — and because choosing between
+/// wallets by their asset count, which is all this screen used to offer, says nothing about
+/// which one was meant.
 class WalletSelectionScreen extends ConsumerStatefulWidget {
   const WalletSelectionScreen({super.key});
 
@@ -43,7 +50,7 @@ class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
   Future<void> _selectWallet(Wallet wallet) async {
     // Set as current wallet
     await ref.read(currentWalletProvider.notifier).switchWallet(wallet.id);
-    
+
     if (mounted) {
       // Navigate to home screen
       Navigator.of(context).pushAndRemoveUntil(
@@ -59,152 +66,131 @@ class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const SizedBox(height: 20),
-                    // Header
-                    Text(
-                      'Select Wallet',
-                      style: kNum(AppColors.textPrimary, size: 26,
-                          weight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Choose a wallet to continue',
-                      style: kBody(AppColors.textSecondary, size: 15),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Wallet list
-                    Expanded(
-                      child: _wallets.isEmpty
-                          ? Center(
-                              child: Text(
-                                'No wallets available',
-                                style: kBody(AppColors.textSecondary, size: 16),
-                              ),
-                            )
-                          : ListView.separated(
-                              itemCount: _wallets.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final wallet = _wallets[index];
-                                return _WalletCard(
-                                  wallet: wallet,
-                                  onTap: () => _selectWallet(wallet),
-                                );
-                              },
-                            ),
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Create new wallet button
-                    KoraCta(
-                      label: 'Create New Wallet',
+            ? Center(
+                child: CircularProgressIndicator(
+                    color: AppColors.textTertiary, strokeWidth: 1.5))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ListView(padding: EdgeInsets.zero, children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('SELECT WALLET',
+                                style: kLabel(AppColors.textTertiary,
+                                    size: 9.5, tracking: 0.16)),
+                            const SizedBox(height: 8),
+                            Text('Choose a wallet\nto continue',
+                                style: kNum(AppColors.textPrimary,
+                                        size: 26, weight: FontWeight.w600)
+                                    .copyWith(height: 1.15)),
+                          ],
+                        ),
+                      ),
+                      KoraSection(
+                        'Wallets',
+                        aside: _wallets.length == 1
+                            ? '1 on this device'
+                            : '${_wallets.length} on this device',
+                      ),
+                      if (_wallets.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: Center(
+                            child: Text('NO WALLETS ON THIS DEVICE',
+                                style: kLabel(AppColors.textTertiary,
+                                    size: 10, tracking: 0.14)),
+                          ),
+                        )
+                      else
+                        for (final (i, w) in _wallets.indexed)
+                          _WalletRow(
+                            wallet: w,
+                            topLine: i == 0,
+                            onTap: () => _selectWallet(w),
+                          ),
+                      const SizedBox(height: 18),
+                    ]),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: KoraCta(
+                      label: 'Create new wallet',
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const CreateWalletScreen(),
                         ),
                       ),
                     ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // Import wallet button
-                    KoraGhost(
-                      label: 'Import Existing Wallet',
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: KoraGhost(
+                      label: 'Import existing wallet',
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const ImportWalletScreen(),
                         ),
                       ),
                     ),
-                    
-                    const SizedBox(height: 32),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 34),
+                ],
               ),
       ),
     );
   }
 }
 
-class _WalletCard extends StatelessWidget {
-  const _WalletCard({
-    required this.wallet,
-    required this.onTap,
-  });
+/// One wallet: the monogram, its name, what it holds, and what that is worth.
+class _WalletRow extends StatelessWidget {
+  const _WalletRow({required this.wallet, required this.onTap, this.topLine = false});
 
   final Wallet wallet;
   final VoidCallback onTap;
+  final bool topLine;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedTap(
+    final count = wallet.assets.length;
+    final total = wallet.assets.fold<double>(0, (s, a) => s + a.balanceInUsd);
+
+    return KoraRow(
       onTap: onTap,
-      pressScale: 0.97,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.zero,
+      topLine: topLine,
+      children: [
+        const KoraMark(size: 34),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(wallet.name.toUpperCase(),
+                overflow: TextOverflow.ellipsis,
+                style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
+            const SizedBox(height: 4),
+            Text(count == 1 ? '1 ASSET' : '$count ASSETS',
+                style: kMonoText(AppColors.textSecondary, size: 10)),
+          ]),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.border, width: 1),
-            borderRadius: BorderRadius.zero,
-          ),
-          child: Row(
-            children: [
-              // Wallet icon
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.15),
-                  borderRadius: BorderRadius.zero,
-                ),
-                child: Icon(
-                  Icons.account_balance_wallet_rounded,
-                  color: AppColors.accent,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              
-              // Wallet info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      wallet.name,
-                      style: kNum(AppColors.textPrimary, size: 17, weight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${wallet.assets.length} assets',
-                      style: kBody(AppColors.textSecondary, size: 14),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Arrow icon
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: AppColors.textSecondary,
-                size: 18,
-              ),
-            ],
-          ),
-        ),
-      ),
+        // A stored balance of zero means this wallet has not been opened since it was
+        // written, not that it holds nothing — printing $0.00 would be a claim the screen
+        // cannot make from what it has.
+        if (total > 0) ...[
+          const SizedBox(width: 10),
+          Text(_money(total), style: kNum(AppColors.textPrimary, size: 13.5)),
+        ],
+        const SizedBox(width: 12),
+        Text('›', style: kMonoText(AppColors.textSecondary, size: 13)),
+      ],
     );
+  }
+
+  static String _money(double v) {
+    if (v < 1000) return '\$${v.toStringAsFixed(2)}';
+    if (v < 1000000) return '\$${(v / 1000).toStringAsFixed(2)}K';
+    return '\$${(v / 1000000).toStringAsFixed(2)}M';
   }
 }
