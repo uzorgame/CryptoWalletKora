@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/widgets/kora_button.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/models/wallet.dart';
 import 'package:kora/core/repositories/wallet_repository.dart';
@@ -68,12 +69,8 @@ class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
                     // Header
                     Text(
                       'Select Wallet',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5,
-                      ),
+                      style: kNum(AppColors.textPrimary, size: 26,
+                          weight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -107,49 +104,25 @@ class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
                     const SizedBox(height: 16),
                     
                     // Create new wallet button
-                    FilledButton(
-                      onPressed: () => Navigator.of(context).push(
+                    KoraCta(
+                      label: 'Create New Wallet',
+                      onTap: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const CreateWalletScreen(),
                         ),
                       ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.textPrimary,
-                        foregroundColor: AppColors.background,
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      child: const Text('Create New Wallet'),
                     ),
                     
                     const SizedBox(height: 12),
                     
                     // Import wallet button
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(context).push(
+                    KoraGhost(
+                      label: 'Import Existing Wallet',
+                      onTap: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const ImportWalletScreen(),
                         ),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textPrimary,
-                        minimumSize: const Size(double.infinity, 56),
-                        side: BorderSide(color: AppColors.border),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      child: const Text('Import Existing Wallet'),
                     ),
                     
                     const SizedBox(height: 32),
