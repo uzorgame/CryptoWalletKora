@@ -5,20 +5,27 @@ import 'package:kora/core/theme/kora_design.dart';
 
 // The PIN pad — a hairline grid whose one-pixel gaps are the border colour showing through,
 // the same construction as every joined control in this language. Digits set in the display
-// face. The API is untouched: digits, backspace, an optional biometric slot, and a loading
-// flag that deadens the keys while a verification is in flight.
+// face. The API is a superset of the original: digits, backspace, an optional biometric
+// slot, a loading flag that deadens the keys while a verification is in flight — and an
+// optional decimal key for the send screen, where the same grid enters amounts.
 class Numpad extends StatelessWidget {
   const Numpad({
     super.key,
     required this.onDigit,
     required this.onBackspace,
     this.onBiometric,
+    this.onDot,
     this.loading = false,
   });
 
   final void Function(String) onDigit;
   final VoidCallback onBackspace;
   final VoidCallback? onBiometric;
+
+  /// When set, the bottom-left key is a decimal point — the amount pad. Takes the slot the
+  /// biometric key would use; a pad never needs both.
+  final VoidCallback? onDot;
+
   final bool loading;
 
   @override
@@ -37,13 +44,18 @@ class Numpad extends StatelessWidget {
           const SizedBox(height: 1),
           Row(children: [
             Expanded(
-              child: onBiometric != null
+              child: onDot != null
                   ? _Key(
-                      onTap: loading ? null : onBiometric,
-                      child: Icon(Icons.fingerprint_rounded,
-                          color: AppColors.textSecondary, size: 22),
+                      onTap: loading ? null : onDot,
+                      child: Text('.', style: kNum(AppColors.textPrimary, size: 19)),
                     )
-                  : const _Key(onTap: null, child: SizedBox.shrink()),
+                  : onBiometric != null
+                      ? _Key(
+                          onTap: loading ? null : onBiometric,
+                          child: Icon(Icons.fingerprint_rounded,
+                              color: AppColors.textSecondary, size: 22),
+                        )
+                      : const _Key(onTap: null, child: SizedBox.shrink()),
             ),
             const SizedBox(width: 1),
             Expanded(
@@ -87,7 +99,7 @@ class _Key extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final key = Container(
-      height: 54,
+      height: 52,
       color: AppColors.background,
       alignment: Alignment.center,
       child: child,

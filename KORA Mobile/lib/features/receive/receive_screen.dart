@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:kora/core/config/api_config.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/models/asset.dart';
@@ -189,28 +190,31 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> with ThemeAwareMi
               ),
               const SizedBox(height: 18),
 
-              // Copy and Share as one joined group, Copy suggested.
+              // Copy and Share as one joined group — the prototype's pair, equal weight.
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 22),
                 child: Container(
                   decoration: BoxDecoration(color: AppColors.border, border: kHairline()),
                   child: Row(children: [
-                    Expanded(
-                      child: AnimatedTap(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: address));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Address copied to clipboard')));
-                        },
-                        pressScale: 0.96,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          color: AppColors.textPrimary,
-                          alignment: Alignment.center,
-                          child: Text('COPY ADDRESS',
-                              style: kLabel(AppColors.background, size: 10.5, tracking: 0.16)),
-                        ),
-                      ),
+                    _JoinedButton(
+                      label: 'COPY',
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: address));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Address copied to clipboard')));
+                      },
+                    ),
+                    const SizedBox(width: 1),
+                    _JoinedButton(
+                      label: 'SHARE',
+                      onTap: () {
+                        if (address.isEmpty || _selected == null) return;
+                        Share.share(
+                          address,
+                          subject:
+                              '${_selected!.symbol} address (${_networkLabel(_selected!.blockchain)})',
+                        );
+                      },
                     ),
                   ]),
                 ),
@@ -272,8 +276,34 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> with ThemeAwareMi
   }
 }
 
+/// One cell of the joined Copy / Share pair — equal weight, like the prototype's kbtn.
+class _JoinedButton extends StatelessWidget {
+  const _JoinedButton({required this.label, required this.onTap});
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: AnimatedTap(
+        onTap: onTap,
+        pressScale: 0.96,
+        pressOpacity: 0.8,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          color: AppColors.background,
+          alignment: Alignment.center,
+          child: Text(label,
+              style: kLabel(AppColors.textSecondary, size: 10.5, tracking: 0.14)),
+        ),
+      ),
+    );
+  }
+}
+
 String _networkLabel(String b) => const {
-  'bitcoin':    'Bitcoin',       'ethereum':  'Ethereum',
-  'bsc':        'BNB Smart Chain','tron':     'Tron',
-  'solana':     'Solana',        'litecoin':   'Litecoin',
+  'bitcoin':    'Bitcoin',        'ethereum':         'Ethereum',
+  'bsc':        'BNB Smart Chain','tron':             'Tron',
+  'solana':     'Solana',         'litecoin':         'Litecoin',
+  'bitcoin_cash': 'Bitcoin Cash', 'ethereum_classic': 'Ethereum Classic',
 }[b] ?? b;

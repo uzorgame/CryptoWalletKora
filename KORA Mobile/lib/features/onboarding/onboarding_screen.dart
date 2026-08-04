@@ -20,24 +20,26 @@ class OnboardingScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(flex: 2),
+              // The prototype's order: mark, words, then the three claims right under
+              // them — one composed block, with all the air below it.
+              const SizedBox(height: 84),
               const Center(child: KoraMark(size: 64)),
-              const SizedBox(height: 28),
+              const SizedBox(height: 26),
               Text(
                 'Welcome to\nKora Wallet',
                 textAlign: TextAlign.center,
                 style: kNum(AppColors.textPrimary, size: 30, weight: FontWeight.w600)
                     .copyWith(height: 1.15),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Text(
                 'The secure, self-custody crypto wallet.\nYour keys, your coins.',
                 textAlign: TextAlign.center,
-                style: kBody(AppColors.textSecondary, size: 14),
+                style: kBody(AppColors.textSecondary, size: 13).copyWith(height: 1.55),
               ),
-              const Spacer(flex: 2),
+              const SizedBox(height: 26),
               const _FeatureRow(),
-              const SizedBox(height: 36),
+              const Spacer(),
               KoraCta(
                 label: 'Create New Wallet',
                 onTap: () => Navigator.of(context).push(
@@ -53,7 +55,7 @@ class OnboardingScreen extends StatelessWidget {
                       builder: (_) => const ImportWalletScreen()),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 44),
             ],
           ),
         ),
@@ -88,10 +90,10 @@ class _FeatureTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
       decoration: BoxDecoration(border: kHairline()),
       child: Text(label.toUpperCase(),
-          style: kLabel(AppColors.textSecondary, size: 8.5, tracking: 0.12)),
+          style: kLabel(AppColors.textSecondary, size: 8, tracking: 0.1)),
     );
   }
 }

@@ -115,8 +115,8 @@ class _SquareButton extends StatelessWidget {
       onTap: onTap,
       pressScale: 0.9,
       child: Container(
-        width: 32,
-        height: 32,
+        width: 30,
+        height: 30,
         decoration: BoxDecoration(border: kHairline()),
         child: Icon(icon, color: AppColors.textSecondary, size: 15),
       ),

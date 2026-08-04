@@ -24,9 +24,22 @@ import 'package:kora/features/home/widgets/migration_banner.dart';
 // The wallet tab: header, action shortcuts and the asset list, with pull-to-refresh.
 
 class WalletTab extends ConsumerStatefulWidget {
-  const WalletTab({super.key, required this.balanceVisible, required this.onToggleBalance});
+  const WalletTab({
+    super.key,
+    required this.balanceVisible,
+    required this.onToggleBalance,
+    required this.onOpenSend,
+    required this.onOpenReceive,
+    required this.onScanned,
+  });
   final bool balanceVisible;
   final VoidCallback onToggleBalance;
+
+  /// The action row and the bottom bar land on the same tabs — these carry the taps up to
+  /// the shell that owns the tab index.
+  final VoidCallback onOpenSend;
+  final VoidCallback onOpenReceive;
+  final ValueChanged<String> onScanned;
 
   @override
   ConsumerState<WalletTab> createState() => _WalletTabState();
@@ -158,7 +171,9 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
         final totalChange = totalUsd <= 0 ? 0.0
             : allAssets.fold<double>(0, (s, a) => s + a.priceChange24h * a.balanceInUsd) / totalUsd;
 
-        return RefreshIndicator(
+        return SafeArea(
+          bottom: false,
+          child: RefreshIndicator(
           color: AppColors.textPrimary,
           backgroundColor: AppColors.surface,
           onRefresh: () async {
@@ -175,7 +190,11 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
               onToggleVisibility: widget.onToggleBalance,
               currency: currency,
             )),
-            SliverToBoxAdapter(child: ActionRow(assets: assets)),
+            SliverToBoxAdapter(child: ActionRow(
+              onSend: widget.onOpenSend,
+              onReceive: widget.onOpenReceive,
+              onScanned: widget.onScanned,
+            )),
             SliverToBoxAdapter(child: MigrationBanner(assets: assets)),
             SliverToBoxAdapter(
               child: Padding(
@@ -224,6 +243,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
               ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
+          ),
           ),
         );
       },

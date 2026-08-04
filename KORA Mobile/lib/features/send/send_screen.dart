@@ -11,6 +11,7 @@ import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_app_bar.dart';
 import 'package:kora/core/widgets/kora_button.dart';
 import 'package:kora/core/widgets/kora_field.dart';
+import 'package:kora/core/widgets/input/numpad.dart';
 import 'package:kora/features/address_book/address_book_screen.dart';
 import 'package:kora/features/scan/qr_scanner_screen.dart';
 // ─── Executor imports ─────────────────────────────────────────────────────────
@@ -30,9 +31,7 @@ import 'package:kora/features/send/fee/bsc_fee/bsc_fee_provider.dart';
 import 'package:kora/features/send/fee/ethereum_classic_fee/ethereum_classic_fee_provider.dart';
 import 'package:kora/core/services/tx_history_service.dart';
 import 'package:kora/features/send/review/review_sheet.dart';
-import 'package:kora/features/send/fee/fee_widget.dart';
 import 'package:kora/features/send/fee/fee_speed_selector.dart';
-import 'package:kora/features/send/widgets/asset_badge.dart';
 import 'package:kora/features/send/widgets/unsupported_banner.dart';
 
 // ─── Chain helpers ─────────────────────────────────────────────────────────────
@@ -48,10 +47,25 @@ bool _sendSupported(Asset a) =>
 
 // ─── SendScreen ───────────────────────────────────────────────────────────────
 
+/// The send form, exactly the prototype's: the asset is a field that opens a sheet, the
+/// amount is a large figure driven by the wallet's own square keypad, the fee is one row.
+/// As a tab (embedded) the bottom bar stays under it; pushed from an asset's page it
+/// arrives with that asset chosen and a back arrow that pops.
 class SendScreen extends ConsumerStatefulWidget {
-  const SendScreen({super.key, required this.assets, this.initialAddress});
+  const SendScreen({
+    super.key,
+    required this.assets,
+    this.initialAddress,
+    this.embedded = false,
+    this.onExit,
+  });
   final List<Asset> assets;
   final String? initialAddress;
+
+  /// True when living as tab 02 under the shell's bar: the back arrow then hands control
+  /// back to the wallet tab through [onExit] instead of popping a route.
+  final bool embedded;
+  final VoidCallback? onExit;
 
   @override
   ConsumerState<SendScreen> createState() => _SendScreenState();
@@ -60,12 +74,10 @@ class SendScreen extends ConsumerStatefulWidget {
 class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
   final _toCtrl           = TextEditingController();
   final _amountCtrl       = TextEditingController();
-  final _pickerSearchCtrl = TextEditingController();
   Asset?    _asset;
   bool      _loading      = false;
   String?   _addrErr;
   String?   _amountErr;
-  String    _pickerQuery  = '';
   FeeSpeed  _selectedSpeed = FeeSpeed.normal;
 
   static const _speedSupportedChains = {
@@ -89,26 +101,10 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     });
   }
 
-  List<Asset> get _pickerFiltered {
-    if (_pickerQuery.isEmpty) return widget.assets;
-    final q = _pickerQuery.toLowerCase();
-    return widget.assets.where((a) =>
-        a.name.toLowerCase().contains(q) ||
-        a.symbol.toLowerCase().contains(q) ||
-        netLabel(a.blockchain).toLowerCase().contains(q)).toList();
-  }
-
   @override
   void initState() {
     super.initState();
-    // Auto-select only when coming from AssetDetailScreen (single asset)
-    if (widget.assets.length == 1) {
-      _asset = widget.assets.first;
-      // Fetch fee for selected asset
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _fetchFeeForAsset(_asset!);
-      });
-    }
+    _pickInitialAsset();
     if (widget.initialAddress != null) {
       _toCtrl.text = widget.initialAddress!;
     }
@@ -116,15 +112,45 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     _amountCtrl.addListener(_onAmountChanged);
   }
 
+  /// The form always has an asset in front of it, like the prototype: pushed with one, that
+  /// one; as a tab, the first asset that actually holds a balance, else simply the first.
+  void _pickInitialAsset() {
+    if (widget.assets.isEmpty) return;
+    _asset = widget.assets.length == 1
+        ? widget.assets.first
+        : widget.assets.firstWhere((a) => a.balanceAsDouble > 0,
+            orElse: () => widget.assets.first);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _asset != null) _fetchFeeForAsset(_asset!);
+    });
+  }
+
+  @override
+  void didUpdateWidget(SendScreen old) {
+    super.didUpdateWidget(old);
+    // The shell hands a scanned address to the living tab this way.
+    if (widget.initialAddress != null &&
+        widget.initialAddress != old.initialAddress) {
+      _toCtrl.text = widget.initialAddress!;
+      _onAddrChanged();
+    }
+    // A freshly funded wallet's assets arrive after the first build.
+    if (_asset == null && widget.assets.isNotEmpty) {
+      setState(_pickInitialAsset);
+    }
+  }
+
   @override
   void dispose() {
     _toCtrl.dispose();
     _amountCtrl.dispose();
-    _pickerSearchCtrl.dispose();
     super.dispose();
   }
 
-  void _onAmountChanged() => _checkAmountAgainstFee();
+  void _onAmountChanged() {
+    _checkAmountAgainstFee();
+    setState(() {}); // the large figure and the CTA's readiness both read the controller
+  }
 
   void _checkAmountAgainstFee() {
     final asset = _asset;
@@ -225,6 +251,26 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     return s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
+  // ─── The keypad drives the amount ───────────────────────────────────────────
+
+  void _padDigit(String d) {
+    final t = _amountCtrl.text;
+    if (t.replaceAll('.', '').length >= 12) return;
+    _amountCtrl.text = t + d;
+  }
+
+  void _padDot() {
+    final t = _amountCtrl.text;
+    if (t.contains('.')) return;
+    _amountCtrl.text = t.isEmpty ? '0.' : '$t.';
+  }
+
+  void _padBackspace() {
+    final t = _amountCtrl.text;
+    if (t.isEmpty) return;
+    _amountCtrl.text = t.substring(0, t.length - 1);
+  }
+
   Future<void> _scanQr() async {
     final result = await Navigator.of(context).push<String>(
       MaterialPageRoute<String>(builder: (_) => const QrScannerScreen()),
@@ -259,6 +305,25 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
       'tron'              => ref.read(tronFeeProvider).valueOrNull,
       'litecoin'          => ref.read(litecoinFeeProvider(spd)).valueOrNull,
       'bitcoin_cash'      => ref.read(bitcoinCashFeeProvider(spd)).valueOrNull,
+      _                   => null,
+    };
+  }
+
+  /// The same providers, watched — the fee row re-renders as the quote arrives.
+  AsyncValue<FeeEstimate?>? _watchCurrentFee() {
+    final asset = _asset;
+    if (asset == null) return null;
+    final spd = _selectedSpeed;
+    const normal = FeeSpeed.normal;
+    return switch (asset.blockchain) {
+      'bitcoin'           => ref.watch(bitcoinFeeProvider(spd)),
+      'ethereum'          => ref.watch(ethereumFeeProvider(EthereumFeeParams(blockchain: 'ethereum', speed: normal, isToken: asset.type == AssetType.token))),
+      'bsc'               => ref.watch(bscFeeProvider(normal)),
+      'ethereum_classic'  => ref.watch(ethereumClassicFeeProvider(normal)),
+      'solana'            => ref.watch(solanaFeeProvider(null)),
+      'tron'              => ref.watch(tronFeeProvider),
+      'litecoin'          => ref.watch(litecoinFeeProvider(spd)),
+      'bitcoin_cash'      => ref.watch(bitcoinCashFeeProvider(spd)),
       _                   => null,
     };
   }
@@ -321,15 +386,23 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
           final (hash, err) = await _execute(pin, asset, to, amtStr, feeEstimate);
           return (hash, err);
         },
-        onSuccess: (txHash) => Navigator.of(context).pushReplacement(
-          PushPageRoute(page: TxSuccessScreen(
+        onSuccess: (txHash) {
+          // A tab cannot be replaced, only covered; a pushed screen steps aside.
+          final route = PushPageRoute<void>(page: TxSuccessScreen(
             asset: asset,
             toAddress: to,
             amount: amtStr,
             txHash: txHash,
             feeEstimate: feeEstimate,
-          )),
-        ),
+          ));
+          if (widget.embedded) {
+            _toCtrl.clear();
+            _amountCtrl.clear();
+            Navigator.of(context).push(route);
+          } else {
+            Navigator.of(context).pushReplacement(route);
+          }
+        },
       ),
     );
   }
@@ -426,287 +499,472 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     return s[0].toUpperCase() + s.substring(1);
   }
 
+  // ─── The asset sheet ────────────────────────────────────────────────────────
+
+  void _openAssetSheet() {
+    if (widget.assets.length < 2) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AssetPickSheet(
+        assets: widget.assets,
+        selectedId: _asset?.id,
+        onPick: (a) {
+          Navigator.of(context).pop();
+          if (a.id == _asset?.id) return;
+          setState(() {
+            _asset = a;
+            _addrErr = null;
+            _amountErr = null;
+            _amountCtrl.clear();
+          });
+          _onAddrChanged();
+          _fetchFeeForAsset(a);
+        },
+      ),
+    );
+  }
+
+  // ─── Build ──────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
-    final multiAsset = widget.assets.length > 1;
+    final asset = _asset;
 
-    // ── Step 1: asset picker (only when opened from home with multiple assets) ──
-    if (_asset == null && multiAsset) {
-      return _buildPickerScaffold(context);
+    if (asset == null) {
+      // A wallet with nothing to send — words only, in the language.
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: koraAppBar(context, 'Send',
+            onBack: widget.embedded
+                ? widget.onExit
+                : () => Navigator.of(context).pop()),
+        body: Center(
+          child: Text('NO ASSETS TO SEND',
+              style: kLabel(AppColors.textTertiary, size: 10, tracking: 0.14)),
+        ),
+      );
     }
 
-    // ── Step 2: send form ──────────────────────────────────────────────────────
-    final asset     = _asset!;
     // Live balance from provider reflects optimistic updates after sends
-    final _liveBalance = ref.watch(currentWalletProvider).value?.assets
+    final liveBalanceStr = ref.watch(currentWalletProvider).value?.assets
         .firstWhere((a) => a.id == asset.id, orElse: () => asset)
         .balance ?? asset.balance;
-    final liveAsset = _liveBalance != asset.balance
-        ? asset.copyWith(balance: _liveBalance)
+    final liveAsset = liveBalanceStr != asset.balance
+        ? asset.copyWith(balance: liveBalanceStr)
         : asset;
     final supported = _sendSupported(asset);
+
+    final amountText = _amountCtrl.text;
+    final amountVal  = double.tryParse(amountText) ?? 0;
+    final usdText    = '≈ \$${(amountVal * liveAsset.priceUsd).toStringAsFixed(2)}';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(
         context,
         'Send',
-        onBack: () {
-          if (multiAsset) {
-            // Go back to picker step
-            setState(() { _asset = null; _addrErr = null; });
-          } else {
-            Navigator.of(context).pop();
-          }
-        },
+        onBack: widget.embedded
+            ? widget.onExit
+            : () => Navigator.of(context).pop(),
       ),
       body: SafeArea(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const KoraSlabel('Asset'),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22),
-            child: AssetBadge(asset: liveAsset),
-          ),
+        top: false,
+        bottom: !widget.embedded,
+        child: Column(children: [
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                const KoraSlabel('Asset'),
+                _assetField(liveAsset),
 
-          if (!supported) ...[
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22),
-              child: UnsupportedBanner(asset.symbol),
-            ),
-            const Spacer(),
-          ] else ...[
-            const KoraSlabel('Recipient'),
-            KoraField(
-              child: Row(children: [
-                Expanded(
-                  child: TextField(
-                    controller: _toCtrl,
-                    style: koraInputStyle(),
-                    decoration: koraInputDecoration(
-                        'ADDRESS ON ${netLabel(asset.blockchain).toUpperCase()}'),
+                if (!supported) ...[
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 22),
+                    child: UnsupportedBanner(asset.symbol),
                   ),
-                ),
-                AnimatedTap(
-                  onTap: _scanQr,
-                  child: Icon(Icons.qr_code_scanner_rounded,
-                      color: AppColors.textTertiary, size: 17),
-                ),
-                const SizedBox(width: 14),
-                AnimatedTap(
-                  onTap: _openAddressBook,
-                  child: Icon(Icons.book_outlined,
-                      color: AppColors.textTertiary, size: 17),
-                ),
-              ]),
-            ),
-            if (_addrErr != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
-                child: Text(_addrErr!.toUpperCase(),
-                    style: kLabel(AppColors.negative, size: 9, tracking: 0.08)),
-              ),
-            const KoraSlabel('Amount'),
-            KoraField(
-              child: Row(children: [
-                Expanded(
-                  child: TextField(
-                    controller: _amountCtrl,
-                    style: kNum(AppColors.textPrimary, size: 17),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: koraInputDecoration('0.00'),
+                ] else ...[
+                  const KoraSlabel('Recipient'),
+                  KoraField(
+                    child: Row(children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _toCtrl,
+                          style: koraInputStyle(),
+                          decoration: koraInputDecoration(
+                              'ADDRESS ON ${netLabel(asset.blockchain).toUpperCase()}'),
+                        ),
+                      ),
+                      AnimatedTap(
+                        onTap: _scanQr,
+                        child: Icon(Icons.qr_code_scanner_rounded,
+                            color: AppColors.textTertiary, size: 16),
+                      ),
+                      const SizedBox(width: 12),
+                      AnimatedTap(
+                        onTap: _openAddressBook,
+                        child: Icon(Icons.book_outlined,
+                            color: AppColors.textTertiary, size: 16),
+                      ),
+                    ]),
                   ),
-                ),
-                Text(asset.symbol,
-                    style: kMonoText(AppColors.textTertiary, size: 11)),
-                const SizedBox(width: 12),
-                AnimatedTap(
-                  onTap: _applyMax,
-                  pressScale: 0.92,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-                    decoration: BoxDecoration(border: kHairline()),
-                    child: Text('MAX',
-                        style: kLabel(AppColors.textPrimary, size: 9, tracking: 0.16)),
-                  ),
-                ),
-              ]),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
-              child: Builder(builder: (_) {
-                final maxSend = _maxSendable(liveAsset);
-                final hasFeeDeduction = liveAsset.type == AssetType.native &&
-                    maxSend < liveAsset.balanceAsDouble;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      (hasFeeDeduction
-                              ? 'Available: ${_fmt(maxSend, liveAsset.decimals)} ${liveAsset.symbol} (after fee)'
-                              : 'Balance: ${liveAsset.formattedBalance}')
-                          .toUpperCase(),
-                      style: kMonoText(AppColors.textTertiary, size: 9),
-                    ),
-                    if (_amountErr != null) ...[
-                      const SizedBox(height: 5),
-                      Text(_amountErr!.toUpperCase(),
+                  if (_addrErr != null && _toCtrl.text.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
+                      child: Text(_addrErr!.toUpperCase(),
                           style: kLabel(AppColors.negative, size: 9, tracking: 0.08)),
-                    ],
-                  ],
-                );
-              }),
+                    ),
+
+                  const KoraSlabel('Amount'),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(22, 4, 22, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            amountText.isEmpty ? '0' : amountText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: kNum(
+                                amountText.isEmpty
+                                    ? AppColors.textTertiary
+                                    : AppColors.textPrimary,
+                                size: 34),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(asset.symbol,
+                            style: kMonoText(AppColors.textTertiary, size: 12)),
+                        const Spacer(),
+                        AnimatedTap(
+                          onTap: _applyMax,
+                          pressScale: 0.92,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(border: kHairline()),
+                            child: Text('MAX',
+                                style: kLabel(AppColors.textSecondary,
+                                    size: 10, tracking: 0.14)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+                    child: Builder(builder: (_) {
+                      final maxSend = _maxSendable(liveAsset);
+                      final afterFee = liveAsset.type == AssetType.native &&
+                          maxSend < liveAsset.balanceAsDouble;
+                      return Row(children: [
+                        Text(usdText,
+                            style: kMonoText(AppColors.textTertiary, size: 10)),
+                        const Spacer(),
+                        Text(
+                          (afterFee
+                                  ? 'AVAILABLE ${_fmt(maxSend, liveAsset.decimals)} ${liveAsset.symbol}'
+                                  : 'BALANCE ${liveAsset.formattedBalance}')
+                              .toUpperCase(),
+                          style: kMonoText(AppColors.textTertiary, size: 9),
+                        ),
+                      ]);
+                    }),
+                  ),
+                  if (_amountErr != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 6, 22, 0),
+                      child: Text(_amountErr!.toUpperCase(),
+                          style: kLabel(AppColors.negative, size: 9, tracking: 0.08)),
+                    ),
+
+                  const KoraSlabel('Network fee'),
+                  _feeRow(asset),
+
+                  // The wallet's own keypad enters the amount — no system keyboard for
+                  // figures, exactly the prototype.
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 14, 0, 0),
+                    child: Numpad(
+                      onDigit: _padDigit,
+                      onBackspace: _padBackspace,
+                      onDot: _padDot,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            const KoraSlabel('Network fee'),
+          ),
+          if (supported)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 22),
-              child: FeeWidget(blockchain: asset.blockchain, selectedSpeed: _selectedSpeed, isToken: asset.type == AssetType.token),
-            ),
-            if (_supportsSpeedSelector(asset.blockchain)) ...[
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 22),
-                child: FeeSpeedSelector(
-                  selected: _selectedSpeed,
-                  onSelect: _selectSpeed,
-                ),
-              ),
-            ],
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
+              padding: const EdgeInsets.fromLTRB(22, 10, 22, 14),
               child: KoraCta(
                 label: 'Review Transaction',
-                onTap: () { _review(); },
+                onTap: amountVal > 0 ? _review : null,
                 busy: _loading,
               ),
             ),
-          ],
         ]),
       ),
     );
   }
 
-  Widget _buildPickerScaffold(BuildContext context) {
-    final _searchCtrl = _pickerSearchCtrl;
-    final filtered    = _pickerFiltered;
+  /// The asset as a field: symbol and name, the live balance under them, ▾ at the edge.
+  Widget _assetField(Asset liveAsset) {
+    final canPick = widget.assets.length > 1;
+    return AnimatedTap(
+      onTap: canPick ? _openAssetSheet : null,
+      pressScale: 0.99,
+      pressOpacity: 0.9,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 22),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        decoration: BoxDecoration(color: AppColors.surface, border: kHairline()),
+        child: Row(children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(liveAsset.symbol,
+                        style: kLabel(AppColors.textPrimary,
+                            size: 12.5, tracking: 0.06)),
+                    const SizedBox(width: 7),
+                    Flexible(
+                      child: Text(liveAsset.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: kBody(AppColors.textSecondary, size: 11)),
+                    ),
+                  ]),
+              const SizedBox(height: 3),
+              Text('BALANCE ${liveAsset.formattedBalance}'.toUpperCase(),
+                  style: kMonoText(AppColors.textSecondary, size: 10)),
+            ]),
+          ),
+          if (canPick)
+            Text('▾', style: kMonoText(AppColors.textTertiary, size: 12)),
+        ]),
+      ),
+    );
+  }
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: koraAppBar(context, 'Send',
-          onBack: () => Navigator.of(context).pop()),
-      body: Column(children: [
-        const SizedBox(height: 14),
-        KoraField(
-          child: Row(children: [
-            Icon(Icons.search_rounded, color: AppColors.textTertiary, size: 17),
-            const SizedBox(width: 9),
-            Expanded(
-              child: TextField(
-                controller: _searchCtrl,
-                onChanged: (v) => setState(() => _pickerQuery = v),
-                style: koraInputStyle(),
-                decoration: koraInputDecoration('SEARCH ASSET'),
+  /// The fee as one field-row: the quote and the speed, ▸ where a choice exists.
+  Widget _feeRow(Asset asset) {
+    final feeState = _watchCurrentFee();
+    final hasSpeeds = _supportsSpeedSelector(asset.blockchain);
+
+    Widget content;
+    if (feeState == null) {
+      content = Text('NOT AVAILABLE',
+          style: kMonoText(AppColors.textTertiary, size: 11));
+    } else {
+      content = feeState.when(
+        data: (fee) {
+          if (fee == null) {
+            return Text('FEE UNAVAILABLE · CHECK CONNECTION',
+                style: kMonoText(AppColors.warning, size: 10));
+          }
+          final usd = fee.feeInUsd > 0
+              ? '~ \$${fee.feeInUsd >= 0.01 ? fee.feeInUsd.toStringAsFixed(2) : fee.feeInUsd.toStringAsFixed(4)}'
+              : '~ ${_fmt(fee.feeInNative, 8)} ${_gasTicker(asset.blockchain)}';
+          return Text('$usd · ${_selectedSpeed.name.toUpperCase()}',
+              style: kMonoText(AppColors.textSecondary, size: 11));
+        },
+        loading: () => Text('ESTIMATING…',
+            style: kMonoText(AppColors.textTertiary, size: 11)),
+        error: (e, _) => Text('FEE UNAVAILABLE · TAP TO RETRY',
+            style: kMonoText(AppColors.warning, size: 10)),
+      );
+    }
+
+    return AnimatedTap(
+      onTap: () {
+        final isError = feeState is AsyncError || feeState?.valueOrNull == null;
+        if (isError) {
+          _fetchFeeForAsset(asset);
+        } else if (hasSpeeds) {
+          _openSpeedSheet();
+        }
+      },
+      pressScale: 0.99,
+      pressOpacity: 0.9,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 22),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        decoration: BoxDecoration(color: AppColors.surface, border: kHairline()),
+        child: Row(children: [
+          content,
+          const Spacer(),
+          if (hasSpeeds)
+            Text('▸', style: kMonoText(AppColors.textTertiary, size: 12)),
+        ]),
+      ),
+    );
+  }
+
+  static String _gasTicker(String blockchain) => switch (blockchain) {
+    'bitcoin' => 'BTC', 'ethereum' => 'ETH', 'bsc' => 'BNB',
+    'ethereum_classic' => 'ETC', 'solana' => 'SOL', 'tron' => 'TRX',
+    'litecoin' => 'LTC', 'bitcoin_cash' => 'BCH', _ => '',
+  };
+
+  void _openSpeedSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          border: Border(top: BorderSide(color: AppColors.borderHi, width: 1)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const SizedBox(height: 14),
+            Container(width: 24, height: 2, color: AppColors.textTertiary),
+            const SizedBox(height: 18),
+            Text('NETWORK FEE',
+                style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.18)),
+            const SizedBox(height: 14),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              child: FeeSpeedSelector(
+                selected: _selectedSpeed,
+                onSelect: (s) {
+                  Navigator.of(sheetCtx).pop();
+                  _selectSpeed(s);
+                },
               ),
             ),
-            if (_pickerQuery.isNotEmpty)
-              AnimatedTap(
-                onTap: () {
-                  _searchCtrl.clear();
-                  setState(() => _pickerQuery = '');
-                },
-                child: Icon(Icons.close_rounded,
-                    color: AppColors.textTertiary, size: 16),
-              ),
+            const SizedBox(height: 26),
           ]),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(22, 18, 22, 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              _pickerQuery.isEmpty
-                  ? 'MY ASSETS'
-                  : 'RESULTS (${filtered.length})',
-              style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16),
-            ),
-          ),
-        ),
-        Expanded(
-          child: filtered.isEmpty
-              ? Center(
-                  child: Text('NO ASSETS FOUND',
-                      style: kLabel(AppColors.textTertiary, size: 10, tracking: 0.14)))
-              : ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: filtered.length,
-                  itemBuilder: (_, i) {
-                    final a = filtered[i];
-                    return AnimatedTap(
-                      onTap: () {
-                        setState(() {
-                          _asset = a;
-                          _addrErr = null;
-                        });
-                        // Fetch fee when asset is selected
-                        _fetchFeeForAsset(a);
-                      },
-                      pressScale: 0.98,
-                      pressOpacity: 0.85,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 22, vertical: 14),
-                        decoration:
-                            BoxDecoration(border: Border(bottom: kHairlineSide())),
-                        child: Row(children: [
-                          Expanded(
-                            child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: [
-                                  Text(a.symbol,
-                                      style: kLabel(AppColors.textPrimary,
-                                          size: 12.5, tracking: 0.06)),
-                                  const SizedBox(width: 7),
-                                  Flexible(
-                                    child: Text(a.name,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: kBody(AppColors.textSecondary,
-                                            size: 11)),
-                                  ),
-                                ]),
-                          ),
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(a.formattedBalance,
-                                    style: kNum(AppColors.textPrimary, size: 13)),
-                                const SizedBox(height: 4),
-                                Text(a.formattedUsdValue,
-                                    style: kMonoText(
-                                        AppColors.textSecondary, size: 10)),
-                              ]),
-                          const SizedBox(width: 10),
-                          Text('›',
-                              style:
-                                  kMonoText(AppColors.textTertiary, size: 13)),
-                        ]),
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ]),
+      ),
     );
   }
 }
 
-// ─── Review bottom sheet ──────────────────────────────────────────────────────
+// ─── The asset sheet: the prototype's k-assetpick ─────────────────────────────
+// Symbol and name lead, the price under them; quantity and value at the right edge.
 
-// ─── Fee speed selector ───────────────────────────────────────────────────────
+class _AssetPickSheet extends StatelessWidget {
+  const _AssetPickSheet({
+    required this.assets,
+    required this.selectedId,
+    required this.onPick,
+  });
+  final List<Asset> assets;
+  final String? selectedId;
+  final ValueChanged<Asset> onPick;
 
-// ─── PIN numpad (for send/review) ─────────────────────────────────────────────
-
-// ─── Shared helpers + widgets ─────────────────────────────────────────────────
-
-// ─────────────────────────────────────────────────────────────────────────────
+  @override
+  Widget build(BuildContext context) {
+    final maxH = MediaQuery.of(context).size.height * 0.62;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.borderHi, width: 1)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(height: 14),
+          Container(width: 24, height: 2, color: AppColors.textTertiary),
+          const SizedBox(height: 18),
+          Text('CHOOSE ASSET',
+              style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.18)),
+          const SizedBox(height: 14),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxH),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: assets.length,
+              itemBuilder: (_, i) {
+                final a = assets[i];
+                final on = a.id == selectedId;
+                return AnimatedTap(
+                  onTap: () => onPick(a),
+                  pressScale: 0.98,
+                  pressOpacity: 0.85,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: i == 0 ? kHairlineSide() : BorderSide.none,
+                        bottom: kHairlineSide(),
+                      ),
+                    ),
+                    child: Row(children: [
+                      Expanded(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    Text(a.symbol,
+                                        style: kLabel(
+                                            on
+                                                ? AppColors.textPrimary
+                                                : AppColors.textPrimary,
+                                            size: 12.5,
+                                            tracking: 0.06)),
+                                    const SizedBox(width: 7),
+                                    Flexible(
+                                      child: Text(a.name,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: kBody(
+                                              AppColors.textSecondary,
+                                              size: 11)),
+                                    ),
+                                  ]),
+                              const SizedBox(height: 4),
+                              Text('\$${a.priceUsd.toStringAsFixed(a.priceUsd >= 1 ? 2 : 4)}',
+                                  style: kMonoText(
+                                      AppColors.textSecondary, size: 10)),
+                            ]),
+                      ),
+                      Column(crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(a.formattedBalance,
+                                      style: kNum(AppColors.textPrimary,
+                                          size: 13.5)),
+                                  const SizedBox(width: 5),
+                                  Text(a.symbol,
+                                      style: kBody(AppColors.textSecondary,
+                                          size: 10)),
+                                ]),
+                            const SizedBox(height: 4),
+                            Text(a.formattedUsdValue,
+                                style: kMonoText(
+                                    AppColors.textSecondary, size: 10)),
+                          ]),
+                      if (on) ...[
+                        const SizedBox(width: 12),
+                        Text('✓',
+                            style:
+                                kMonoText(AppColors.textPrimary, size: 12)),
+                      ],
+                    ]),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
+        ]),
+      ),
+    );
+  }
+}

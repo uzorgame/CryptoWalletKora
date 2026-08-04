@@ -11,6 +11,7 @@ import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_app_bar.dart';
 import 'package:kora/core/widgets/kora_button.dart';
 import 'package:kora/core/widgets/kora_field.dart';
+import 'package:kora/core/widgets/input/numpad.dart';
 import 'package:kora/features/home/home_screen.dart';
 
 class CreateWalletScreen extends ConsumerStatefulWidget {
@@ -27,10 +28,14 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
   bool   _mnemonicRevealed = false;
   bool   _confirmed       = false;
   bool   _loading         = false;
-  bool   _pinObscure      = true;
   bool   _hasAppPin       = false;
   String? _pinError;
   int _step = 0; // 0=name, 1=backup, 2=confirm, 3=pin
+
+  // The PIN arrives through the wallet's own keypad — six square dots filling as it is
+  // typed, exactly the prototype. Entered once to set, once more to confirm.
+  String _pinEntry   = '';
+  bool   _confirming = false;
 
   @override
   void initState() {
@@ -61,9 +66,60 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
           content: Text('Please confirm you have saved your recovery phrase')));
         return;
       }
-      setState(() { _step = 3; _pinCtrl.clear(); _pinConfCtrl.clear(); _pinError = null; });
+      setState(() {
+        _step = 3;
+        _pinCtrl.clear();
+        _pinConfCtrl.clear();
+        _pinError = null;
+        _pinEntry = '';
+        _confirming = false;
+      });
     } else {
       _createWallet();
+    }
+  }
+
+  // ─── The keypad fills the dots ───────────────────────────────────────────────
+
+  void _pinDigit(String d) {
+    if (_loading || _pinEntry.length >= 6) return;
+    setState(() { _pinEntry += d; _pinError = null; });
+    if (_pinEntry.length == 6) {
+      Future.delayed(const Duration(milliseconds: 220), _pinFull);
+    }
+  }
+
+  void _pinBackspace() {
+    if (_loading || _pinEntry.isEmpty) return;
+    setState(() => _pinEntry = _pinEntry.substring(0, _pinEntry.length - 1));
+  }
+
+  Future<void> _pinFull() async {
+    if (!mounted || _pinEntry.length != 6) return;
+    if (_hasAppPin) {
+      _pinCtrl.text = _pinEntry;
+      await _createWallet();
+      if (mounted && _pinError != null) setState(() => _pinEntry = '');
+      return;
+    }
+    if (!_confirming) {
+      setState(() {
+        _pinCtrl.text = _pinEntry;
+        _pinEntry = '';
+        _confirming = true;
+      });
+      return;
+    }
+    _pinConfCtrl.text = _pinEntry;
+    await _createWallet();
+    // A mismatch or a storage failure starts the entry over, from the first dot.
+    if (mounted && _pinError != null) {
+      setState(() {
+        _pinEntry = '';
+        _confirming = false;
+        _pinCtrl.clear();
+        _pinConfCtrl.clear();
+      });
     }
   }
 
@@ -112,7 +168,7 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
   Widget build(BuildContext context) {
     final title = _step == 0 ? 'Create Wallet'
         : _step == 1 ? 'Recovery Phrase'
-        : _step == 2 ? 'Confirm Backup'
+        : _step == 2 ? 'Confirm'
         : _hasAppPin ? 'Enter App PIN' : 'Set PIN';
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -257,7 +313,7 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
         const Spacer(),
         Padding(
           padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
-          child: KoraCta(label: "I've saved my phrase", onTap: _next),
+          child: KoraCta(label: 'Continue', onTap: _next),
         ),
       ],
     );
@@ -268,127 +324,109 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
       key: const ValueKey(2),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // The prototype's kcheckrow: a bare square check and the sentence, no box around
+        // them — the check itself is the state.
         Padding(
-          padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
-          child: Text(
-            'Confirm that you have saved your recovery phrase securely.',
-            style: kBody(AppColors.textSecondary),
-          ),
-        ),
-        const SizedBox(height: 18),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22),
+          padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
           child: AnimatedTap(
             onTap: () => setState(() => _confirmed = !_confirmed),
-            pressScale: 0.98,
-            child: AnimatedContainer(
-              duration: kControl,
-              curve: kEase,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: _confirmed ? AppColors.borderHi : AppColors.border,
-                  width: 1,
+            pressScale: 0.99,
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              AnimatedContainer(
+                duration: kControl,
+                curve: kEase,
+                width: 18, height: 18,
+                decoration: BoxDecoration(
+                  color: _confirmed ? AppColors.textPrimary : Colors.transparent,
+                  border: Border.all(
+                      color: _confirmed ? AppColors.textPrimary : AppColors.borderHi,
+                      width: 1),
+                ),
+                child: _confirmed
+                    ? Icon(Icons.check_rounded, color: AppColors.background, size: 13)
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Confirm that you have saved your recovery phrase securely.',
+                  style: kBody(AppColors.textPrimary, size: 13).copyWith(height: 1.55),
                 ),
               ),
-              child: Row(children: [
-                // A square checkbox — filled ink when set, hairline when not.
-                AnimatedContainer(
-                  duration: kControl,
-                  curve: kEase,
-                  width: 18, height: 18,
-                  decoration: BoxDecoration(
-                    color: _confirmed ? AppColors.textPrimary : Colors.transparent,
-                    border: Border.all(
-                        color: _confirmed ? AppColors.textPrimary : AppColors.borderHi,
-                        width: 1),
-                  ),
-                  child: _confirmed
-                      ? Icon(Icons.check_rounded, color: AppColors.background, size: 13)
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'I have securely saved my 12-word recovery phrase.',
-                    style: kBody(AppColors.textPrimary, size: 13),
-                  ),
-                ),
-              ]),
-            ),
+            ]),
           ),
         ),
         const Spacer(),
         Padding(
           padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
-          child: KoraCta(label: 'Continue', onTap: _next),
+          child: KoraCta(label: 'Continue', onTap: _confirmed ? _next : null),
         ),
       ],
     );
   }
 
   Widget _buildPinStep() {
+    final prompt = _hasAppPin
+        ? 'Enter your 6-digit app PIN to add this wallet.'
+        : _confirming
+            ? 'Enter the same PIN once more to confirm.'
+            : 'Create a 6-digit PIN to protect your wallet.';
     return Column(
       key: const ValueKey(3),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
-          child: Text(
-            _hasAppPin
-                ? 'Enter your 6-digit app PIN to add this wallet.'
-                : 'Choose a 6-digit PIN to protect your wallet. Never share it with anyone.',
-            style: kBody(AppColors.textSecondary),
-          ),
+          child: Text(prompt,
+              textAlign: TextAlign.center,
+              style: kBody(AppColors.textSecondary).copyWith(height: 1.55)),
         ),
-        KoraSlabel(_hasAppPin ? 'App PIN' : 'PIN'),
-        KoraField(
-          child: Row(children: [
-            Expanded(
-              child: TextField(
-                controller: _pinCtrl,
-                obscureText: _pinObscure,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                style: kNum(AppColors.textPrimary, size: 18).copyWith(letterSpacing: 8),
-                decoration: koraInputDecoration(_hasAppPin ? 'APP PIN' : 'PIN')
-                    .copyWith(counterText: ''),
-                onChanged: (_) => setState(() => _pinError = null),
-              ),
-            ),
-            AnimatedTap(
-              onTap: () => setState(() => _pinObscure = !_pinObscure),
-              child: Icon(
-                _pinObscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: AppColors.textTertiary, size: 17),
-            ),
-          ]),
-        ),
-        if (!_hasAppPin) ...[
-          const KoraSlabel('Confirm PIN'),
-          KoraField(
-            child: TextField(
-              controller: _pinConfCtrl,
-              obscureText: true,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              style: kNum(AppColors.textPrimary, size: 18).copyWith(letterSpacing: 8),
-              decoration: koraInputDecoration('CONFIRM PIN').copyWith(counterText: ''),
-              onChanged: (_) => setState(() => _pinError = null),
-            ),
-          ),
-        ],
+        const SizedBox(height: 18),
+        _PinDots(filled: _pinEntry.length),
         if (_pinError != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(22, 10, 22, 0),
+            padding: const EdgeInsets.fromLTRB(22, 12, 22, 0),
             child: Text(_pinError!.toUpperCase(),
+                textAlign: TextAlign.center,
                 style: kLabel(AppColors.negative, size: 9.5, tracking: 0.1)),
           ),
         const Spacer(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
-          child: KoraCta(label: 'Create Wallet', onTap: _createWallet, busy: _loading),
+        Numpad(
+          onDigit: _pinDigit,
+          onBackspace: _pinBackspace,
+          loading: _loading,
         ),
+        const SizedBox(height: 26),
+      ],
+    );
+  }
+}
+
+/// Six square dots that fill as the PIN is typed — the prototype's kdots, shared by the
+/// lock screen and every place a PIN is set.
+class _PinDots extends StatelessWidget {
+  const _PinDots({required this.filled});
+  final int filled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < 6; i++) ...[
+          if (i > 0) const SizedBox(width: 12),
+          AnimatedContainer(
+            duration: kControl,
+            curve: kEase,
+            width: 10, height: 10,
+            decoration: BoxDecoration(
+              color: i < filled ? AppColors.textPrimary : Colors.transparent,
+              border: Border.all(
+                  color: i < filled ? AppColors.textPrimary : AppColors.borderHi,
+                  width: 1),
+            ),
+          ),
+        ],
       ],
     );
   }

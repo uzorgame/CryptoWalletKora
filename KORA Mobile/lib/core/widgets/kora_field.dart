@@ -54,19 +54,28 @@ class _KoraFieldState extends State<KoraField> {
 }
 
 /// The text style inputs inside a [KoraField] share — mono, slightly spaced.
+/// Exactly the prototype's input: 12px mono at .02em.
 TextStyle koraInputStyle() =>
-    kMonoText(AppColors.textPrimary, size: 12.5).copyWith(letterSpacing: 0.3);
+    kMonoText(AppColors.textPrimary, size: 12).copyWith(letterSpacing: 0.24);
 
 /// Hint text for those inputs.
 TextStyle koraHintStyle() =>
-    kMonoText(AppColors.textTertiary, size: 12.5).copyWith(letterSpacing: 0.3);
+    kMonoText(AppColors.textTertiary, size: 12).copyWith(letterSpacing: 0.24);
 
 /// A bare [InputDecoration] so a TextField inside a [KoraField] brings no Material chrome of
 /// its own — the frame is the field's whole appearance.
-InputDecoration koraInputDecoration(String hint) => InputDecoration(
+///
+/// Every border state is named explicitly. `border:` alone is only a fallback: the global
+/// InputDecorationTheme's enabledBorder and focusedBorder outrank it, which is how every
+/// field in the app once wore a second box inside its own frame.
+InputDecoration koraInputDecoration(String hint) => const InputDecoration(
       isDense: true,
+      filled: false,
       border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      errorBorder: InputBorder.none,
+      focusedErrorBorder: InputBorder.none,
+      disabledBorder: InputBorder.none,
       contentPadding: EdgeInsets.zero,
-      hintText: hint,
-      hintStyle: koraHintStyle(),
-    );
+    ).copyWith(hintText: hint, hintStyle: koraHintStyle());

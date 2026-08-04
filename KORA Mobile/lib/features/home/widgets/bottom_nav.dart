@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:kora/features/receive/open_receive.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kora/core/state/providers/asset_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
-import 'package:kora/features/send/send_screen.dart';
-import 'package:kora/core/utils/page_transitions.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The home shell's bottom navigation bar — the desktop rail laid on its side: numbered,
-// tracked, iconless. Two entries are tabs; Send and Receive launch their flows directly,
-// exactly as before the redesign.
+// tracked, iconless. All four entries are real tabs now; the bar never leaves the screen
+// while the user moves between Wallet, Send, Receive and Settings.
 class BottomNav extends StatelessWidget {
   const BottomNav({super.key, required this.current, required this.onTap});
   final int current;
@@ -27,25 +22,15 @@ class BottomNav extends StatelessWidget {
         top: false,
         child: SizedBox(
           height: 54,
-          child: Consumer(
-            builder: (context, ref, _) {
-              final assets = ref.watch(assetsProvider);
-              return Row(children: [
-                _NavItem(no: '01', label: 'WALLET', active: current == 0,
-                    onTap: () { onTap(0); }),
-                _NavItem(no: '02', label: 'SEND', active: false,
-                    onTap: () {
-                      context.pushFade(SendScreen(assets: assets));
-                    }),
-                _NavItem(no: '03', label: 'RECEIVE', active: false,
-                    onTap: () {
-                      openReceivePicker(context, assets);
-                    }),
-                _NavItem(no: '04', label: 'SETTINGS', active: current == 1,
-                    onTap: () { onTap(1); }),
-              ]);
-            },
-          ),
+          child: Row(children: [
+            for (final (i, label) in const ['WALLET', 'SEND', 'RECEIVE', 'SETTINGS'].indexed)
+              _NavItem(
+                no: '0${i + 1}',
+                label: label,
+                active: current == i,
+                onTap: () => onTap(i),
+              ),
+          ]),
         ),
       ),
     );
