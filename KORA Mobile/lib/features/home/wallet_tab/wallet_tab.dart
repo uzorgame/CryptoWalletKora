@@ -95,8 +95,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
               child: Text('Sort assets',
-                  style: TextStyle(color: AppColors.textPrimary,
-                      fontSize: 16, fontWeight: FontWeight.w600)),
+                  style: kBody(AppColors.textPrimary, size: 16, weight: FontWeight.w600)),
             ),
             const SizedBox(height: 8),
             SortOption(
@@ -148,7 +147,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
       loading: () => Center(
           child: CircularProgressIndicator(color: AppColors.textPrimary, strokeWidth: 1.5)),
       error: (e, _) => Center(
-          child: Text('Error: $e', style: TextStyle(color: Colors.red))),
+          child: Text('Error: $e', style: kBody(Colors.red, size: 13))),
       data: (wallet) {
         final allAssets  = wallet?.assets ?? [];
         final assets     = allAssets.where((a) => a.isVisible).toList();

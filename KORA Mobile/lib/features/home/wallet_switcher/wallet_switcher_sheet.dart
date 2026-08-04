@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/models/wallet.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/widgets/pin_gate.dart';
@@ -70,9 +71,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('My Wallets',
-                      style: TextStyle(
-                          color: AppColors.textPrimary, fontSize: 17,
-                          fontWeight: FontWeight.w600)),
+                      style: kNum(AppColors.textPrimary, size: 17, weight: FontWeight.w600)),
                   allWallets.when(
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
@@ -93,9 +92,9 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                             const SizedBox(width: 4),
                             Text(
                               atLimit ? '${wallets.length}/$_kMaxWallets' : 'Add',
-                              style: TextStyle(
-                                  color: atLimit ? AppColors.textTertiary : AppColors.textPrimary,
-                                  fontSize: 13, fontWeight: FontWeight.w500),
+                              style: kLabel(
+                                  atLimit ? AppColors.textTertiary : AppColors.textPrimary,
+                                  size: 10, tracking: 0.12),
                             ),
                           ]),
                         ),
@@ -163,13 +162,10 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(w.name,
-                                    style: TextStyle(
-                                        color: AppColors.textPrimary,
-                                        fontSize: 15, fontWeight: FontWeight.w600)),
+                                    style: kBody(AppColors.textPrimary, size: 15, weight: FontWeight.w600)),
                                 const SizedBox(height: 2),
                                 Text(w.type.displayName,
-                                    style: TextStyle(
-                                        color: AppColors.textSecondary, fontSize: 12)),
+                                    style: kBody(AppColors.textSecondary, size: 12)),
                               ]),
                         ),
                         if (isActive)
@@ -181,9 +177,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                               borderRadius: BorderRadius.zero,
                             ),
                             child: Text('Active',
-                                style: TextStyle(
-                                    color: AppColors.textPrimary, fontSize: 11,
-                                    fontWeight: FontWeight.w600)),
+                                style: kBody(AppColors.textPrimary, size: 11, weight: FontWeight.w600)),
                           ),
                         // Rename button
                         AnimatedTap(
@@ -221,13 +215,12 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         title: Text('Rename Wallet',
-            style: TextStyle(
-                color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+            style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
         content: TextFormField(
           initialValue: currentName,
           autofocus: true,
           maxLength: 32,
-          style: TextStyle(color: AppColors.textPrimary),
+          style: kBody(AppColors.textPrimary, size: 13),
           onChanged: (v) => nameValue = v,
           onFieldSubmitted: (_) {
             confirmed = true;
@@ -235,10 +228,10 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
           },
           decoration: InputDecoration(
             hintText: 'Wallet name',
-            hintStyle: TextStyle(color: AppColors.textTertiary),
+            hintStyle: kBody(AppColors.textTertiary, size: 13),
             filled: true,
             fillColor: AppColors.surface,
-            counterStyle: TextStyle(color: AppColors.textTertiary),
+            counterStyle: kBody(AppColors.textTertiary, size: 13),
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.zero,
                 borderSide: BorderSide(color: AppColors.border)),
@@ -254,7 +247,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text('Cancel',
-                style: TextStyle(color: AppColors.textSecondary)),
+                style: kBody(AppColors.textSecondary, size: 13)),
           ),
           TextButton(
             onPressed: () {
@@ -262,8 +255,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
               Navigator.of(ctx).pop();
             },
             child: Text('Save',
-                style: TextStyle(
-                    color: AppColors.accent, fontWeight: FontWeight.w600)),
+                style: kBody(AppColors.accent, size: 13, weight: FontWeight.w600)),
           ),
         ],
       ),

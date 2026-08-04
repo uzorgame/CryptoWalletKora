@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The orders the asset list can be shown in, and the sheet row that picks one.
@@ -26,12 +27,9 @@ class SortOption extends StatelessWidget {
         leading: Icon(icon,
             color: selected ? AppColors.textPrimary : AppColors.textSecondary, size: 22),
         title: Text(label,
-            style: TextStyle(
-                color: AppColors.textPrimary,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                fontSize: 15)),
+            style: kBody(AppColors.textPrimary, size: 15)),
         subtitle: Text(subtitle,
-            style: TextStyle(color: AppColors.textTertiary, fontSize: 12)),
+            style: kBody(AppColors.textTertiary, size: 12)),
         trailing: selected
             ? Icon(Icons.check_rounded, color: AppColors.textPrimary, size: 20)
             : null,

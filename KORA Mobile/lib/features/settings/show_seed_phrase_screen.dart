@@ -144,10 +144,7 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
 
             // Instructions
             Text('How to keep your recovery phrase safe:',
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600)),
+                style: kBody(AppColors.textPrimary, size: 15, weight: FontWeight.w600)),
             const SizedBox(height: 12),
             _buildInstruction('1', 'Write it down on paper and store it in a safe place'),
             _buildInstruction('2', 'Never store it digitally (screenshots, cloud, etc.)'),
@@ -171,16 +168,12 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
             decoration: BoxDecoration(color: AppColors.surface),
             alignment: Alignment.center,
             child: Text(number,
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600)),
+                style: kBody(AppColors.textPrimary, size: 12, weight: FontWeight.w600)),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(text,
-                style: TextStyle(
-                    color: AppColors.textSecondary, fontSize: 14, height: 1.4)),
+                style: kBody(AppColors.textSecondary, size: 14).copyWith(height: 1.4)),
           ),
         ],
       ),

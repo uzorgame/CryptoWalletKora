@@ -170,7 +170,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
                   const SizedBox(height: 12),
                   Text(
                     _error!,
-                    style: TextStyle(color: AppColors.negative, fontSize: 12),
+                    style: kBody(AppColors.negative, size: 12),
                     textAlign: TextAlign.center,
                   ),
                 ] else

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 
@@ -38,23 +39,23 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
         builder: (ctx, setS) => AlertDialog(
           backgroundColor: AppColors.card,
           title: Text('Re-derive Addresses',
-              style: TextStyle(color: AppColors.textPrimary, fontSize: 16)),
+              style: kBody(AppColors.textPrimary, size: 16)),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             Text(
               'Enter your wallet PIN to re-derive correct addresses for LTC.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
+              style: kBody(AppColors.textSecondary, size: 13).copyWith(height: 1.5),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: pinCtrl,
               obscureText: obscure,
               keyboardType: TextInputType.number,
-              style: TextStyle(color: AppColors.textPrimary, letterSpacing: 4),
+              style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
               decoration: InputDecoration(
                 hintText: '• • • • • •',
-                hintStyle: TextStyle(color: AppColors.textTertiary),
+                hintStyle: kBody(AppColors.textTertiary, size: 13),
                 errorText: errMsg,
-                errorStyle: TextStyle(color: AppColors.negative, fontSize: 11),
+                errorStyle: kBody(AppColors.negative, size: 11),
                 filled: true, fillColor: AppColors.background,
                 border:        OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border)),
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border)),
@@ -70,7 +71,7 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+              child: Text('Cancel', style: kBody(AppColors.textSecondary, size: 13)),
             ),
             TextButton(
               onPressed: () async {
@@ -85,7 +86,7 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
                   setS(() => errMsg = 'Incorrect PIN');
                 }
               },
-              child: Text('Update', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+              child: Text('Update', style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
             ),
           ],
         ),
@@ -121,7 +122,7 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
         Expanded(
           child: Text(
             label,
-            style: TextStyle(color: AppColors.warning, fontSize: 12),
+            style: kBody(AppColors.warning, size: 12),
           ),
         ),
         const SizedBox(width: 6),
@@ -133,8 +134,7 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
               color: AppColors.warning.withValues(alpha: 0.15),
               borderRadius: BorderRadius.zero,
             ),
-            child: Text('Fix', style: TextStyle(color: AppColors.warning,
-                fontSize: 12, fontWeight: FontWeight.w600)),
+            child: Text('Fix', style: kBody(AppColors.warning, size: 12, weight: FontWeight.w600)),
           ),
         ),
         const SizedBox(width: 6),

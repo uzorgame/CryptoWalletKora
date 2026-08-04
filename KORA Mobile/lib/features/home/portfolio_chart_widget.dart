@@ -9,6 +9,7 @@ import 'package:kora/core/state/providers/portfolio_chart_provider.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 
 class PortfolioChartWidget extends ConsumerStatefulWidget {
   const PortfolioChartWidget({super.key});
@@ -127,20 +128,12 @@ class _PortfolioChartWidgetState extends ConsumerState<PortfolioChartWidget>
             children: [
               Text(
                 dateStr,
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
+                style: kBody(AppColors.textSecondary, size: 12, weight: FontWeight.w400),
               ),
               const SizedBox(width: 8),
               Text(
                 valueStr,
-                style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600),
               ),
             ],
           ),
@@ -358,11 +351,9 @@ class _PeriodSelector extends StatelessWidget {
             ),
             child: Text(
               p.label,
-              style: TextStyle(
-                color: isSelected ? AppColors.background : AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
+              style: kLabel(
+                  isSelected ? AppColors.background : AppColors.textTertiary,
+                  size: 9.5, tracking: 0.1),
             ),
           ),
         );

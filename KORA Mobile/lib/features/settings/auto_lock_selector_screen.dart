@@ -23,8 +23,7 @@ class AutoLockSelectorScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
             child: Text(
               'Lock app when returning from background after the selected time.',
-              style: TextStyle(
-                  color: AppColors.textSecondary, fontSize: 14, height: 1.4),
+              style: kBody(AppColors.textSecondary, size: 14).copyWith(height: 1.4),
             ),
           ),
           Expanded(

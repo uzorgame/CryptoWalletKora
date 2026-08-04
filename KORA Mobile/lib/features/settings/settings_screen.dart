@@ -127,14 +127,14 @@ class SettingsScreen extends ConsumerWidget {
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         title: Text('Remove Wallet',
-            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+            style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
         content: Text(
             'Make sure you have your recovery phrase before removing this wallet.',
-            style: TextStyle(color: AppColors.textSecondary, height: 1.5)),
+            style: kBody(AppColors.textSecondary, size: 13).copyWith(height: 1.5)),
         actions: [
           TextButton(
             onPressed: () { Navigator.of(context).pop(); },
-            child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Cancel', style: kBody(AppColors.textSecondary, size: 13)),
           ),
           TextButton(
             onPressed: () async {
@@ -155,7 +155,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: Text('Remove', style: TextStyle(color: AppColors.negative)),
+            child: Text('Remove', style: kBody(AppColors.negative, size: 13)),
           ),
         ],
       ),
@@ -199,21 +199,20 @@ class SettingsScreen extends ConsumerWidget {
           backgroundColor: AppColors.card,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
           title: Text('View Recovery Phrase',
-              style: TextStyle(color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w600, fontSize: 16)),
+              style: kBody(AppColors.textPrimary, size: 16, weight: FontWeight.w600)),
           content: TextField(
             controller: pinCtrl,
             obscureText: obscure,
             keyboardType: TextInputType.number,
             maxLength: 6,
             autofocus: true,
-            style: TextStyle(color: AppColors.textPrimary, letterSpacing: 4),
+            style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
             decoration: InputDecoration(
               labelText: 'PIN',
-              labelStyle: TextStyle(color: AppColors.textSecondary),
+              labelStyle: kBody(AppColors.textSecondary, size: 13),
               counterText: '',
               errorText: errMsg,
-              errorStyle: TextStyle(color: AppColors.negative, fontSize: 11),
+              errorStyle: kBody(AppColors.negative, size: 11),
               suffixIcon: IconButton(
                 icon: Icon(obscure
                     ? Icons.visibility_off_outlined
@@ -233,7 +232,7 @@ class SettingsScreen extends ConsumerWidget {
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
               child: Text('Cancel',
-                  style: TextStyle(color: AppColors.textSecondary)),
+                  style: kBody(AppColors.textSecondary, size: 13)),
             ),
             TextButton(
               onPressed: loading ? null : () async {
@@ -253,8 +252,7 @@ class SettingsScreen extends ConsumerWidget {
                 }
               },
               child: Text('Confirm',
-                  style: TextStyle(color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600)),
+                  style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
             ),
           ],
         ),
@@ -279,7 +277,7 @@ class SettingsScreen extends ConsumerWidget {
             backgroundColor: AppColors.card,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             title: Text('Change PIN',
-                style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -289,10 +287,10 @@ class SettingsScreen extends ConsumerWidget {
                   keyboardType: TextInputType.number,
                   maxLength: 6,
                   enabled: !isLoading,
-                  style: TextStyle(color: AppColors.textPrimary, letterSpacing: 4),
+                  style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
                   decoration: InputDecoration(
                     labelText: 'Current PIN',
-                    labelStyle: TextStyle(color: AppColors.textSecondary),
+                    labelStyle: kBody(AppColors.textSecondary, size: 13),
                     counterText: '',
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.separator),
@@ -310,10 +308,10 @@ class SettingsScreen extends ConsumerWidget {
                   keyboardType: TextInputType.number,
                   maxLength: 6,
                   enabled: !isLoading,
-                  style: TextStyle(color: AppColors.textPrimary, letterSpacing: 4),
+                  style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
                   decoration: InputDecoration(
                     labelText: 'New PIN',
-                    labelStyle: TextStyle(color: AppColors.textSecondary),
+                    labelStyle: kBody(AppColors.textSecondary, size: 13),
                     counterText: '',
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.separator),
@@ -331,10 +329,10 @@ class SettingsScreen extends ConsumerWidget {
                   keyboardType: TextInputType.number,
                   maxLength: 6,
                   enabled: !isLoading,
-                  style: TextStyle(color: AppColors.textPrimary, letterSpacing: 4),
+                  style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
                   decoration: InputDecoration(
                     labelText: 'Confirm New PIN',
-                    labelStyle: TextStyle(color: AppColors.textSecondary),
+                    labelStyle: kBody(AppColors.textSecondary, size: 13),
                     counterText: '',
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: AppColors.separator),
@@ -353,20 +351,20 @@ class SettingsScreen extends ConsumerWidget {
                             color: AppColors.textSecondary)),
                     SizedBox(width: 10),
                     Text('Changing PIN…',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        style: kBody(AppColors.textSecondary, size: 13)),
                   ]),
                 ],
                 if (errorMessage != null) ...[
                   SizedBox(height: 12),
                   Text(errorMessage!,
-                      style: TextStyle(color: AppColors.negative, fontSize: 13)),
+                      style: kBody(AppColors.negative, size: 13)),
                 ],
               ],
             ),
             actions: [
               TextButton(
                 onPressed: isLoading ? null : () => Navigator.of(context).pop(),
-                child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                child: Text('Cancel', style: kBody(AppColors.textSecondary, size: 13)),
               ),
               TextButton(
                 onPressed: isLoading ? null : () async {

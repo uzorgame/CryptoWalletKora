@@ -234,21 +234,21 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
         builder: (_) => AlertDialog(
           backgroundColor: AppColors.card,
           title: Text('Price tracking only',
-              style: TextStyle(color: AppColors.textPrimary, fontSize: 16)),
+              style: kBody(AppColors.textPrimary, size: 16)),
           content: Text(
             '${token.name} (${token.blockchain}) is not yet fully supported.\n\n'
             'Adding it will track the price, but the receive address will be a '
             'placeholder (ETH format) and cannot actually receive ${token.symbol}.',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
+            style: kBody(AppColors.textSecondary, size: 13).copyWith(height: 1.5),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+              child: Text('Cancel', style: kBody(AppColors.textSecondary, size: 13)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Add anyway', style: TextStyle(color: AppColors.accent)),
+              child: Text('Add anyway', style: kBody(AppColors.accent, size: 13)),
             ),
           ],
         ),

@@ -58,7 +58,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> with ThemeAwareMi
           onBack: () => Navigator.of(context).pop()),
       body: walletAsync.when(
         loading: () => Center(child: CircularProgressIndicator(color: AppColors.textPrimary, strokeWidth: 1.5)),
-        error: (e, _) => Center(child: Text('Error: $e', style: TextStyle(color: Colors.red))),
+        error: (e, _) => Center(child: Text('Error: $e', style: kBody(Colors.red, size: 13))),
         data: (wallet) {
           final assets  = wallet?.assets ?? [];
           if (_selected == null && assets.isNotEmpty) {

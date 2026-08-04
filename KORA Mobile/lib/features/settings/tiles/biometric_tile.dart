@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/services/biometric_service.dart';
 import 'package:kora/core/state/providers/settings_provider.dart' hide currencyProvider;
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/crypto/key_manager.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 
@@ -30,7 +31,7 @@ class BiometricTile extends ConsumerWidget {
           SizedBox(width: 12),
           Expanded(
             child: Text('Biometric Auth',
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w400)),
+                style: kBody(AppColors.textPrimary, size: 15, weight: FontWeight.w400)),
           ),
           Switch(
             value: enabled,
@@ -115,18 +116,17 @@ class BiometricTile extends ConsumerWidget {
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         title: Text('Confirm PIN',
-            style: TextStyle(color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600, fontSize: 16)),
+            style: kBody(AppColors.textPrimary, size: 16, weight: FontWeight.w600)),
         content: TextField(
           controller: ctrl,
           obscureText: true,
           keyboardType: TextInputType.number,
           maxLength: 6,
           autofocus: true,
-          style: TextStyle(color: AppColors.textPrimary, letterSpacing: 4),
+          style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
           decoration: InputDecoration(
             labelText: 'Enter your PIN',
-            labelStyle: TextStyle(color: AppColors.textSecondary),
+            labelStyle: kBody(AppColors.textSecondary, size: 13),
             counterText: '',
             enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: AppColors.separator)),
@@ -138,13 +138,12 @@ class BiometricTile extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(null),
             child: Text('Cancel',
-                style: TextStyle(color: AppColors.textSecondary)),
+                style: kBody(AppColors.textSecondary, size: 13)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
             child: Text('Confirm',
-                style: TextStyle(color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600)),
+                style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
           ),
         ],
       ),

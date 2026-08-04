@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/features/onboarding/create_wallet_screen.dart';
 import 'package:kora/features/onboarding/import_wallet_screen.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
@@ -33,9 +34,7 @@ class AddWalletSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               'Add Wallet',
-              style: TextStyle(
-                color: AppColors.textPrimary, fontSize: 17,
-                fontWeight: FontWeight.w600),
+              style: kNum(AppColors.textPrimary, size: 17, weight: FontWeight.w600),
             ),
           ),
           const SizedBox(height: 8),
@@ -43,7 +42,7 @@ class AddWalletSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               'Create a brand-new wallet or restore one from a recovery phrase.',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              style: kBody(AppColors.textSecondary, size: 14),
             ),
           ),
           const SizedBox(height: 24),
@@ -124,13 +123,10 @@ class _AddWalletOption extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 15, fontWeight: FontWeight.w600)),
+                    style: kBody(AppColors.textPrimary, size: 15, weight: FontWeight.w600)),
                 const SizedBox(height: 2),
                 Text(subtitle,
-                    style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12)),
+                    style: kBody(AppColors.textSecondary, size: 12)),
               ],
             ),
           ),

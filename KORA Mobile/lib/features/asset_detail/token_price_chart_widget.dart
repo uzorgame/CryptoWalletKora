@@ -6,6 +6,7 @@ import 'package:kora/core/services/price_chart_service.dart';
 import 'package:kora/core/state/providers/price_chart_provider.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 
 class TokenPriceChartWidget extends ConsumerStatefulWidget {
@@ -74,11 +75,7 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
                 const SizedBox(width: 6),
                 Text(
                   'Price History',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: kBody(AppColors.textSecondary, size: 13, weight: FontWeight.w500),
                 ),
                 const Spacer(),
                 AnimatedRotation(
@@ -181,16 +178,10 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(dateStr,
-                  style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400)),
+                  style: kBody(AppColors.textSecondary, size: 12, weight: FontWeight.w400)),
               const SizedBox(width: 8),
               Text(priceStr,
-                  style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600)),
+                  style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
             ],
           ),
         ),
@@ -325,7 +316,7 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
               color: AppColors.textTertiary, size: 32),
           const SizedBox(height: 8),
           Text('No price data available',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+              style: kBody(AppColors.textSecondary, size: 13)),
         ],
       ),
     );
@@ -369,13 +360,9 @@ class _PriceChartPeriodSelector extends StatelessWidget {
             ),
             child: Text(
               p.label,
-              style: TextStyle(
-                color: isSelected
-                    ? AppColors.background
-                    : AppColors.textSecondary,
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
+              style: kLabel(
+                  isSelected ? AppColors.background : AppColors.textTertiary,
+                  size: 9.5, tracking: 0.1),
             ),
           ),
         );

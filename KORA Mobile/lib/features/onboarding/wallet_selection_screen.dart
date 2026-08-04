@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/models/wallet.dart';
 import 'package:kora/core/repositories/wallet_repository.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
@@ -77,10 +78,7 @@ class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Choose a wallet to continue',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 15,
-                      ),
+                      style: kBody(AppColors.textSecondary, size: 15),
                     ),
                     const SizedBox(height: 24),
                     
@@ -90,10 +88,7 @@ class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
                           ? Center(
                               child: Text(
                                 'No wallets available',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 16,
-                                ),
+                                style: kBody(AppColors.textSecondary, size: 16),
                               ),
                             )
                           : ListView.separated(
@@ -216,19 +211,12 @@ class _WalletCard extends StatelessWidget {
                   children: [
                     Text(
                       wallet.name,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: kNum(AppColors.textPrimary, size: 17, weight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${wallet.assets.length} assets',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
+                      style: kBody(AppColors.textSecondary, size: 14),
                     ),
                   ],
                 ),

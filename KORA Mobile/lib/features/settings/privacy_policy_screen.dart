@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -34,7 +35,7 @@ class _PolicyContent extends StatelessWidget {
       children: [
         Text(
           'Effective March 2026  ·  Version 3.5.0',
-          style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
+          style: kBody(AppColors.textTertiary, size: 12),
         ),
         const SizedBox(height: 16),
         const _PolicySection(
@@ -127,11 +128,7 @@ class _PolicyContent extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'Copyright © 2024–2026 Kora. All Rights Reserved.',
-          style: TextStyle(
-            color: AppColors.textTertiary,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
+          style: kBody(AppColors.textTertiary, size: 12, weight: FontWeight.w500),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
@@ -154,20 +151,12 @@ class _PolicySection extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
+            style: kBody(AppColors.textPrimary, size: 15, weight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
           Text(
             body,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-              height: 1.55,
-            ),
+            style: kBody(AppColors.textSecondary, size: 14).copyWith(height: 1.55),
           ),
         ],
       ),
