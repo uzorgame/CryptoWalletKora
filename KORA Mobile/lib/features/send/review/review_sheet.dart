@@ -6,14 +6,16 @@ import 'package:kora/core/services/storage_service.dart';
 import 'package:kora/core/crypto/key_manager.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/input/numpad.dart';
 import 'package:kora/features/send/fee/models/fee_estimate.dart';
-import 'package:kora/features/send/widgets/send_numpad.dart';
 
 // The confirmation sheet: what is being sent, to whom, at what fee — and the PIN pad
-// that signs it.
+// that signs it. The pad is the library's one Numpad; the send flow's private twin folded
+// into it when the redesign unified the two.
 
 class ReviewSheet extends StatefulWidget {
-  const ReviewSheet({super.key, 
+  const ReviewSheet({super.key,
     required this.asset,
     required this.to,
     required this.amount,
@@ -145,108 +147,106 @@ class _ReviewSheetState extends State<ReviewSheet> {
       }
     }
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        left: 24, right: 24, top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+    // Square, on a hairline: the sheet arrives as a surface of the same language, not as a
+    // rounded Material card.
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(top: BorderSide(color: AppColors.borderHi, width: 1)),
       ),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        // Drag handle
-        Center(child: Container(
-          width: 36, height: 4,
-          decoration: BoxDecoration(
-            color: AppColors.border, borderRadius: BorderRadius.circular(2)),
-        )),
-        const SizedBox(height: 20),
-        Text('Review Transaction',
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 20),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 22, right: 22, top: 14,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 30,
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Center(child: Container(width: 24, height: 2, color: AppColors.textTertiary)),
+          const SizedBox(height: 18),
+          Text('CONFIRM TRANSACTION',
+              style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.18)),
+          const SizedBox(height: 18),
 
-        // ── Static transaction summary ────────────────────────────────────
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border, width: 0.5),
+          // ── Static transaction summary ────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(border: kHairline()),
+            child: Column(children: [
+              _ReviewRow('Asset',  '${a.symbol} · ${netLabel(a.blockchain)}'),
+              _ReviewRow('To',     short),
+              _ReviewRow('Amount', '${widget.amount} ${a.symbol}',
+                  last: feeText.isEmpty),
+              if (feeText.isNotEmpty)
+                _ReviewRow('Network Fee', feeText, last: true),
+            ]),
           ),
-          child: Column(children: [
-            _ReviewRow('Asset',  '${a.symbol}  ·  ${netLabel(a.blockchain)}'),
-            _ReviewRow('To',     short),
-            _ReviewRow('Amount', '${widget.amount} ${a.symbol}',
-                last: feeText.isEmpty),
-            if (feeText.isNotEmpty)
-              _ReviewRow('Network Fee', feeText, last: true),
-          ]),
-        ),
-        const SizedBox(height: 12),
-
-        // Warning
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppColors.warning.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.warning.withValues(alpha: 0.25), width: 0.5),
-          ),
-          child: Row(children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 16),
-            const SizedBox(width: 8),
-            Expanded(child: Text(
-              'Transactions are irreversible. Verify the address before confirming.',
-              style: TextStyle(color: AppColors.warning, fontSize: 11, height: 1.4),
-            )),
-          ]),
-        ),
-        const SizedBox(height: 24),
-
-        // ── Auth section ──────────────────────────────────────────────────
-        Text(
-          _biometricEnabled ? 'Confirm with biometrics or PIN' : 'Enter PIN to confirm',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-        ),
-        const SizedBox(height: 20),
-
-        // PIN dots
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (i) {
-            final filled = i < _pin.length;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              width: 14, height: 14,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: filled ? AppColors.textPrimary : Colors.transparent,
-                border: Border.all(
-                  color: filled ? AppColors.textPrimary : AppColors.textTertiary,
-                  width: 1.5,
-                ),
-              ),
-            );
-          }),
-        ),
-
-        // Error or spacer
-        if (_error != null) ...[
           const SizedBox(height: 12),
-          Text(_error!,
-              style: TextStyle(color: AppColors.negative, fontSize: 12),
-              textAlign: TextAlign.center),
-        ] else
-          const SizedBox(height: 28),
 
-        const SizedBox(height: 8),
+          // The warning bar: hairline box, two pixels of amber down the left.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(13, 10, 13, 10),
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(color: AppColors.warning, width: 2),
+                top: kHairlineSide(), right: kHairlineSide(), bottom: kHairlineSide(),
+              ),
+            ),
+            child: Text(
+              'TRANSACTIONS ARE IRREVERSIBLE. VERIFY THE ADDRESS BEFORE CONFIRMING.',
+              style: kLabel(AppColors.warning, size: 8.5, tracking: 0.08,
+                      weight: FontWeight.w400)
+                  .copyWith(height: 1.8),
+            ),
+          ),
+          const SizedBox(height: 22),
 
-        // PIN numpad
-        SendNumpad(
-          onDigit: _onDigit,
-          onBackspace: _onBackspace,
-          onBiometric: _biometricEnabled ? _tryBiometric : null,
-          loading: _loading,
-        ),
-      ]),
+          // ── Auth section ──────────────────────────────────────────────────
+          Text(
+            (_biometricEnabled ? 'Confirm with biometrics or PIN' : 'Enter PIN to confirm')
+                .toUpperCase(),
+            style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.14),
+          ),
+          const SizedBox(height: 18),
+
+          // PIN squares, as on the lock screen.
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(6, (i) {
+              final filled = i < _pin.length;
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                width: 10, height: 10,
+                decoration: BoxDecoration(
+                  color: filled ? AppColors.textPrimary : Colors.transparent,
+                  border: Border.all(
+                    color: filled ? AppColors.textPrimary : AppColors.borderHi,
+                    width: 1,
+                  ),
+                ),
+              );
+            }),
+          ),
+
+          // Error or spacer
+          if (_error != null) ...[
+            const SizedBox(height: 12),
+            Text(_error!.toUpperCase(),
+                style: kLabel(AppColors.negative, size: 9, tracking: 0.08),
+                textAlign: TextAlign.center),
+          ] else
+            const SizedBox(height: 24),
+
+          const SizedBox(height: 8),
+
+          Numpad(
+            onDigit: _onDigit,
+            onBackspace: _onBackspace,
+            onBiometric: _biometricEnabled ? _tryBiometric : null,
+            loading: _loading,
+          ),
+        ]),
+      ),
     );
   }
 }
@@ -257,14 +257,15 @@ class _ReviewRow extends StatelessWidget {
   final bool last;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(vertical: 11),
+    padding: const EdgeInsets.symmetric(vertical: 12),
     decoration: BoxDecoration(border: last ? null
-        : Border(bottom: BorderSide(color: AppColors.separator, width: 0.5))),
+        : Border(bottom: kHairlineSide())),
     child: Row(children: [
-      Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+      Text(label.toUpperCase(),
+          style: kMonoText(AppColors.textSecondary, size: 9.5)),
       const Spacer(),
       Flexible(child: Text(value, textAlign: TextAlign.right,
-          style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.w500))),
+          style: kMonoText(AppColors.textPrimary, size: 11, weight: FontWeight.w500))),
     ]),
   );
 }

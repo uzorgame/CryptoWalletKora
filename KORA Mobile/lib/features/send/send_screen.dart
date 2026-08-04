@@ -313,9 +313,7 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      backgroundColor: Colors.transparent,
       builder: (_) => ReviewSheet(
         asset: asset, to: to, amount: amtStr,
         feeEstimate: feeEstimate,
