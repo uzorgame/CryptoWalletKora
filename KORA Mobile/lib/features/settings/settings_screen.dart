@@ -88,7 +88,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             SettingsTile(
               icon: Icons.key_rounded,
-              label: 'Show Seed Phrase',
+              label: 'Show seed phrase',
               onTap: () { _showSeedPhrase(context, ref); },
             ),
             BiometricTile(),
@@ -100,12 +100,12 @@ class SettingsScreen extends ConsumerWidget {
             CurrencyTile(),
             SettingsTile(
               icon: Icons.book_outlined,
-              label: 'Address Book',
+              label: 'Address book',
               onTap: () { context.pushSlide(const AddressBookScreen()); },
             ),
             SettingsTile(
               icon: Icons.privacy_tip_outlined,
-              label: 'Privacy Policy',
+              label: 'Privacy policy',
               onTap: () { context.pushSlide(const PrivacyPolicyScreen()); },
             ),
             AboutTile(),
@@ -114,12 +114,12 @@ class SettingsScreen extends ConsumerWidget {
             SectionHeader('Wallet', color: AppColors.negative),
             SettingsTile(
               icon: Icons.add_circle_outline_rounded,
-              label: 'Add / Import Wallet',
+              label: 'Add / import wallet',
               onTap: () { context.pushSlide(const OnboardingScreen()); },
             ),
             SettingsTile(
               icon: Icons.logout_rounded,
-              label: 'Remove Wallet',
+              label: 'Remove wallet',
               labelColor: AppColors.negative,
               onTap: () { _confirmRemoveWallet(context, ref); },
             ),

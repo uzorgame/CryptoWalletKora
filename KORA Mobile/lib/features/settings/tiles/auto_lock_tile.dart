@@ -15,7 +15,7 @@ class AutoLockTile extends ConsumerWidget {
     final current = ref.watch(autoLockTimeoutProvider);
     return SettingsTile(
       icon: Icons.timer_outlined,
-      label: 'Auto-Lock',
+      label: 'Auto-lock',
       value: current.displayName,
       onTap: () { _showPicker(context, ref, current); },
     );

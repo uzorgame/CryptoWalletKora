@@ -20,8 +20,7 @@ class BiometricTile extends ConsumerWidget {
     return KoraRow(
       onTap: () => _toggle(context, ref, enabled),
       children: [
-        Text('BIOMETRIC UNLOCK',
-            style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
+        Text('Biometric unlock', style: kRowText(AppColors.textPrimary)),
         const Spacer(),
         KoraSwitch(
           value: enabled,

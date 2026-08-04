@@ -85,6 +85,30 @@ TextStyle kBody(Color color, {double size = 13, FontWeight weight = FontWeight.w
       height: 1.55,
     );
 
+/// The label on a row that is an instruction rather than a value — the settings list, the
+/// choices in a selector.
+///
+/// Everywhere else a row's leading text is a token the eye recognises: a ticker, a wallet's
+/// name, RECEIVED. Those are set in tracked monospace caps, and they should be. A settings
+/// label is a phrase that gets read instead — "Add / import wallet" — and uppercase throws
+/// away the silhouette of the word while a monospace face flattens the letter widths that
+/// silhouette is made of. So: the sans face, one step up in weight, tightened slightly.
+///
+/// The weight is what makes it look chosen. Regular sans beside a monospace value reads as
+/// a default; medium against the same value reads as two faces put together on purpose,
+/// which is the whole idea of the row.
+TextStyle kRowText(Color color, {double size = 14, FontWeight weight = FontWeight.w500}) {
+  final s = size * kTextScale;
+  return TextStyle(
+    fontFamily: kSans,
+    color: color,
+    fontSize: s,
+    fontWeight: weight,
+    height: 1.3,
+    letterSpacing: -0.01 * s,
+  );
+}
+
 // ─── Hairlines ──────────────────────────────────────────────────────────────────────────
 
 /// The 1px border every surface carries. A helper so nobody re-invents the width.
