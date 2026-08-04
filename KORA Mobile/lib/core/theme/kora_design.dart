@@ -49,11 +49,16 @@ TextStyle kLabel(Color color, {double size = 10, double tracking = 0.14, FontWei
 }
 
 /// Display numerals — balances, amounts. Tabular, slightly tightened, never bold beyond 700.
+///
+/// No fallback family. Space Grotesk carries the whole Latin set and every figure this
+/// wallet prints, so a fallback can never help here — it can only stand quietly behind the
+/// face and take over if anything about the registration is ever wrong, which is the one
+/// failure that would go unnoticed. Without it, a problem with the display face shows up as
+/// a problem instead of as slightly different letters.
 TextStyle kNum(Color color, {double size = 40, FontWeight weight = FontWeight.w500}) {
   final s = size * kTextScale;
   return TextStyle(
     fontFamily: kDisplay,
-    fontFamilyFallback: const [kSans],
     color: color,
     fontSize: s,
     fontWeight: weight,

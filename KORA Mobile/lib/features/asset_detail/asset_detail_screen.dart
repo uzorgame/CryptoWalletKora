@@ -233,7 +233,9 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
               Text('${asset.symbol} · ${asset.name.toUpperCase()}',
                   style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16)),
               const SizedBox(height: 8),
-              Text('${asset.formattedBalance} ${asset.symbol}',
+              // formattedBalance already ends in the symbol — appending it again is where
+              // "0 BTC BTC" came from.
+              Text(asset.formattedBalance,
                   style: kNum(AppColors.textPrimary, size: 34)),
               const SizedBox(height: 8),
               // The move says over what — a percentage with no period beside it is half a
