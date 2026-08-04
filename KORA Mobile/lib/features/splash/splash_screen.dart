@@ -6,7 +6,8 @@ import 'package:kora/core/services/lock_service.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/features/home/home_screen.dart';
 import 'package:kora/core/crypto/encryption.dart';
-import 'package:kora/core/widgets/chips/coin_icon.dart';
+import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/features/onboarding/onboarding_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -32,7 +33,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future<void>.delayed(const Duration(milliseconds: 80), () {
         if (!mounted) return;
-        preloadCoinIcons(context).ignore();
         ref.read(currentWalletProvider);
       });
     });
@@ -77,18 +77,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.black,
+    // One word in the wallet's own voice, on the wallet's own background — tracked
+    // uppercase in the display face, so the first thing the app shows already belongs to
+    // it. No mark here: the mark arrives on the screen that follows, and showing both in
+    // sequence read as two loading screens.
+    return Scaffold(
+      backgroundColor: AppColors.background,
       body: Center(
-        child: Text(
-          'KORA',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 48,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2.0,
-          ),
-        ),
+        child: Text('KORA',
+            style: kNum(AppColors.textPrimary, size: 34, weight: FontWeight.w600)
+                .copyWith(letterSpacing: 34 * 0.22)),
       ),
     );
   }

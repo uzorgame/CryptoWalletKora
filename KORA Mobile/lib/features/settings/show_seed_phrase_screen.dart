@@ -32,6 +32,7 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(context, 'Recovery Phrase',
+          backLabel: 'Settings',
           onBack: () => Navigator.of(context).pop()),
       body: SafeArea(
         child: Column(

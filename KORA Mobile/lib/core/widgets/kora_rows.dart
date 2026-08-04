@@ -230,6 +230,10 @@ class KoraWarn extends StatelessWidget {
 // ─── Small parts ────────────────────────────────────────────────────────────────────────
 
 /// A hairline square holding a letter — the avatar in the address book and wallet lists.
+///
+/// The prototype's `.kmark.kbox`: 36 by 36 with a 1px border, the letter set in the display
+/// face at 700 and 14px. Not a circle with a coloured fill; a square with a hairline, like
+/// everything else here.
 class KoraBox extends StatelessWidget {
   const KoraBox(this.letter, {super.key, this.size = 36, this.dim = false});
 
@@ -247,8 +251,10 @@ class KoraBox extends StatelessWidget {
       child: Text(letter.toUpperCase(),
           style: TextStyle(
             fontFamily: kDisplay,
+            fontFamilyFallback: const [kSans],
             fontWeight: FontWeight.w700,
-            fontSize: size * 0.36,
+            fontSize: size * (14 / 36) * kTextScale,
+            height: 1,
             color: dim ? AppColors.textTertiary : AppColors.textPrimary,
           )),
     );
@@ -267,28 +273,6 @@ class KoraTag extends StatelessWidget {
         child: Text(text.toUpperCase(),
             style: kLabel(AppColors.textTertiary, size: 8, tracking: 0.1,
                 weight: FontWeight.w400)),
-      );
-}
-
-/// The back link over a scrolling screen — `← WALLET`.
-class KoraBack extends StatelessWidget {
-  const KoraBack(this.label, {super.key, required this.onTap});
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => AnimatedTap(
-        onTap: onTap,
-        pressOpacity: 0.7,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text('←', style: kMonoText(AppColors.textTertiary, size: 11)),
-            const SizedBox(width: 8),
-            Text(label.toUpperCase(),
-                style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16)),
-          ]),
-        ),
       );
 }
 

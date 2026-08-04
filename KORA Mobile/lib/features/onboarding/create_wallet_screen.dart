@@ -60,15 +60,12 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
       if (_nameCtrl.text.trim().isEmpty) return;
       setState(() => _step = 1);
     } else if (_step == 1) {
-      setState(() { _step = 2; _confirmed = false; });
-    } else if (_step == 2) {
-      if (!_confirmed) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Please confirm you have saved your recovery phrase')));
-        return;
-      }
+      // The confirmation lives on the phrase screen now — you tick it while the words are
+      // in front of you, not on a page of its own after they are gone. A separate screen
+      // asking "did you write them down?" is a screen you learn to tap through.
+      if (!_confirmed) return;
       setState(() {
-        _step = 3;
+        _step = 2;
         _pinCtrl.clear();
         _pinConfCtrl.clear();
         _pinError = null;
@@ -169,11 +166,11 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
   Widget build(BuildContext context) {
     final title = _step == 0 ? 'Create Wallet'
         : _step == 1 ? 'Recovery Phrase'
-        : _step == 2 ? 'Confirm'
         : _hasAppPin ? 'Enter App PIN' : 'Set PIN';
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(context, title,
+          backLabel: 'Back',
           onBack: _step == 0
               ? () => Navigator.of(context).pop()
               : () => setState(() => _step--)),
@@ -194,7 +191,6 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
           ),
           child: _step == 0 ? _buildNameStep()
               : _step == 1 ? _buildPhraseStep()
-              : _step == 2 ? _buildConfirmStep()
               : _buildPinStep(),
         ),
       ),
@@ -262,52 +258,43 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
                   style: kLabel(AppColors.textSecondary, size: 9.5, tracking: 0.14)),
             ),
           ),
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
-          child: KoraCta(label: 'Continue', onTap: _next),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildConfirmStep() {
-    return Column(
-      key: const ValueKey(2),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // The prototype's kcheckrow: a bare square check and the sentence, no box around
-        // them — the check itself is the state.
-        Padding(
-          padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
-          child: AnimatedTap(
-            onTap: () => setState(() => _confirmed = !_confirmed),
-            pressScale: 0.99,
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              AnimatedContainer(
-                duration: kControl,
-                curve: kEase,
-                width: 18, height: 18,
-                decoration: BoxDecoration(
-                  color: _confirmed ? AppColors.textPrimary : Colors.transparent,
-                  border: Border.all(
-                      color: _confirmed ? AppColors.textPrimary : AppColors.borderHi,
-                      width: 1),
+        // The confirmation sits with the words it is about. The prototype's kcheckrow: a
+        // bare square check and the sentence, no box around them — the check is the state.
+        // It only appears once the phrase has been revealed; ticking "I saved it" over a
+        // blur would be a promise about something never seen.
+        if (_mnemonicRevealed)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
+            child: AnimatedTap(
+              onTap: () => setState(() => _confirmed = !_confirmed),
+              pressScale: 0.99,
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                AnimatedContainer(
+                  duration: kControl,
+                  curve: kEase,
+                  width: 18, height: 18,
+                  decoration: BoxDecoration(
+                    color: _confirmed ? AppColors.textPrimary : Colors.transparent,
+                    border: Border.all(
+                        color: _confirmed ? AppColors.textPrimary : AppColors.borderHi,
+                        width: 1),
+                  ),
+                  child: _confirmed
+                      ? Icon(Icons.check_rounded, color: AppColors.background, size: 13)
+                      : null,
                 ),
-                child: _confirmed
-                    ? Icon(Icons.check_rounded, color: AppColors.background, size: 13)
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Confirm that you have saved your recovery phrase securely.',
-                  style: kBody(AppColors.textPrimary, size: 13).copyWith(height: 1.55),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'I have securely saved my recovery phrase.',
+                    style: kBody(AppColors.textPrimary, size: 13),
+                  ),
                 ),
-              ),
-            ]),
+              ]),
+            ),
           ),
-        ),
+
         const Spacer(),
         Padding(
           padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),

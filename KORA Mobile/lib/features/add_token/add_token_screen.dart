@@ -82,6 +82,7 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(context, 'Add Token',
+          backLabel: 'Wallet',
           onBack: () => Navigator.of(context).pop()),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

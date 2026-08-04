@@ -154,7 +154,8 @@ class _ImportWalletScreenState extends ConsumerState<ImportWalletScreen> with Th
       appBar: koraAppBar(
         context,
         _step == 0 ? 'Import Wallet' : _hasAppPin ? 'Enter App PIN' : 'Set PIN',
-        onBack: _step == 0
+        backLabel: 'Back',
+          onBack: _step == 0
             ? () => Navigator.of(context).pop()
             : () => setState(() { _step = 0; _pinError = null; }),
       ),

@@ -121,7 +121,8 @@ class _AddressBookScreenState extends State<AddressBookScreen> with ThemeAwareMi
       appBar: koraAppBar(
         context,
         isPicker ? 'Select Address' : 'Address Book',
-        onBack: () => Navigator.of(context).pop(),
+        backLabel: 'Settings',
+          onBack: () => Navigator.of(context).pop(),
         actions: [
           IconButton(
             icon: Icon(Icons.add_rounded, size: 20, color: AppColors.textPrimary),

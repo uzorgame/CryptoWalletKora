@@ -72,17 +72,22 @@ class BalanceHeader extends ConsumerWidget {
           Text('TOTAL BALANCE',
               style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16)),
           const SizedBox(height: 8),
+          // Hidden or shown, the balance occupies exactly the same line — nothing below it
+          // moves when the eye closes.
           AnimatedTap(
             onTap: onToggleVisibility,
             pressScale: 0.97,
             pressOpacity: 0.85,
-            child: visible
-                ? Text(currency.formatTotal(totalUsd),
-                    style: kNum(AppColors.textPrimary, size: 40))
-                : Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    child: KoraMask(count: 6, size: 13),
-                  ),
+            child: SizedBox(
+              height: 40 * kTextScale * 1.1,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: visible
+                    ? Text(currency.formatTotal(totalUsd),
+                        style: kNum(AppColors.textPrimary, size: 40))
+                    : const KoraMask(count: 6, textSize: 40 * kTextScale),
+              ),
+            ),
           ),
           const SizedBox(height: 8),
           Text('$sign${change24h.abs().toStringAsFixed(2)}% · 24H',

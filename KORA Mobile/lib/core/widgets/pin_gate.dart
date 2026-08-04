@@ -15,8 +15,20 @@ Future<bool> askAppPin(
   BuildContext context, {
   required String title,
   required String explanation,
+}) async =>
+    (await askAppPinValue(context, title: title, explanation: explanation)) != null;
+
+/// The same gate, returning the PIN that was verified rather than only whether it was.
+///
+/// Only for the callers that must hand the PIN onward — enabling biometric unlock stores it
+/// so a fingerprint can decrypt the seed later. Everything else should use [askAppPin] and
+/// never hold the digits at all.
+Future<String?> askAppPinValue(
+  BuildContext context, {
+  required String title,
+  required String explanation,
 }) async {
-  final ok = await showModalBottomSheet<bool>(
+  return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
     isDismissible: false,
@@ -24,7 +36,6 @@ Future<bool> askAppPin(
     backgroundColor: Colors.transparent,
     builder: (_) => _PinGateSheet(title: title, explanation: explanation),
   );
-  return ok ?? false;
 }
 
 class _PinGateSheet extends StatefulWidget {
@@ -38,6 +49,7 @@ class _PinGateSheet extends StatefulWidget {
 }
 
 class _PinGateSheetState extends State<_PinGateSheet> {
+  // Popped as the sheet's result once verified — see askAppPinValue.
   String _pin = '';
   bool _busy = false;
   String? _error;
@@ -48,7 +60,7 @@ class _PinGateSheetState extends State<_PinGateSheet> {
     if (!mounted) return;
     if (ok) {
       HapticFeedback.lightImpact();
-      Navigator.of(context).pop(true);
+      Navigator.of(context).pop(_pin);
     } else {
       HapticFeedback.mediumImpact();
       setState(() {
@@ -129,7 +141,7 @@ class _PinGateSheetState extends State<_PinGateSheet> {
           Numpad(onDigit: _onDigit, onBackspace: _onBackspace, loading: _busy),
           const SizedBox(height: 12),
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(false),
+            onTap: () => Navigator.of(context).pop(),
             child: Text('CANCEL',
                 style: kLabel(AppColors.textSecondary, size: 9.5, tracking: 0.16)),
           ),

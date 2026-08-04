@@ -40,6 +40,7 @@ class _ReceivePickerScreenState extends State<ReceivePickerScreen> with ThemeAwa
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(context, 'Receive',
+          backLabel: 'Wallet',
           onBack: widget.embedded
               ? widget.onExit
               : () => Navigator.of(context).pop()),

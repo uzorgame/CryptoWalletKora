@@ -58,28 +58,39 @@ class AssetTile extends StatelessWidget {
               ]),
             ]),
           ),
+          // Each hidden figure keeps the exact line box of the figure it replaces, so the
+          // whole list stays still when balances are hidden.
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            if (visible)
-              Row(crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(_formatAmount(asset.balanceAsDouble),
-                        style: kNum(AppColors.textPrimary, size: 13.5)),
-                    const SizedBox(width: 5),
-                    Text(asset.symbol,
-                        style: kBody(AppColors.textSecondary, size: 10)),
-                  ])
-            else
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 4),
-                child: KoraMask(count: 4, size: 6),
+            SizedBox(
+              height: 13.5 * kTextScale * 1.35,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: visible
+                    ? Row(crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_formatAmount(asset.balanceAsDouble),
+                              style: kNum(AppColors.textPrimary, size: 13.5)),
+                          const SizedBox(width: 5),
+                          Text(asset.symbol,
+                              style: kBody(AppColors.textSecondary, size: 10)),
+                        ])
+                    : const KoraMask(count: 4, textSize: 13.5 * kTextScale),
               ),
+            ),
             const SizedBox(height: 5),
-            if (visible)
-              Text(currency.formatPrice(asset.balanceInUsd),
-                  style: kMonoText(AppColors.textSecondary, size: 10))
-            else
-              KoraMask(count: 4, size: 5, color: AppColors.textSecondary),
+            SizedBox(
+              height: 10 * kTextScale * 1.35,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: visible
+                    ? Text(currency.formatPrice(asset.balanceInUsd),
+                        style: kMonoText(AppColors.textSecondary, size: 10))
+                    : KoraMask(count: 4, textSize: 10 * kTextScale,
+                        color: AppColors.textSecondary),
+              ),
+            ),
           ]),
         ]),
       ),

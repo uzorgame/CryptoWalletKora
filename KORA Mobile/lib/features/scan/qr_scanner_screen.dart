@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 
 /// Full-screen QR scanner. Returns the scanned string via Navigator.pop.
 class QrScannerScreen extends StatefulWidget {
@@ -52,16 +53,33 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      // The camera fills the screen, so this bar is drawn in white on the picture rather
+      // than in theme colours — but it is the same bar: named way back at the left, tracked
+      // title in the middle, one control at the right.
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
+        automaticallyImplyLeading: false,
+        leadingWidth: 140,
+        leading: AnimatedTap(
+          onTap: () => Navigator.of(context).pop(),
+          pressOpacity: 0.6,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Text('←', style: kMonoText(Colors.white, size: 13)),
+              const SizedBox(width: 8),
+              Text('BACK',
+                  style: kLabel(Colors.white, size: 10.5, tracking: 0.16)),
+            ]),
+          ),
+        ),
         title: Text('SCAN QR CODE',
             style: kLabel(Colors.white, size: 11, tracking: 0.18)),
-        iconTheme: const IconThemeData(color: Colors.white, size: 18),
         actions: [
           IconButton(
-            icon: const Icon(Icons.flash_on_rounded, size: 19),
+            icon: const Icon(Icons.flash_on_rounded, size: 19, color: Colors.white),
             onPressed: () => _ctrl.toggleTorch(),
             tooltip: 'Toggle flash',
           ),

@@ -537,7 +537,8 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: koraAppBar(context, 'Send',
-            onBack: widget.embedded
+            backLabel: 'Wallet',
+          onBack: widget.embedded
                 ? widget.onExit
                 : () => Navigator.of(context).pop()),
         body: Center(
@@ -565,7 +566,8 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
       appBar: koraAppBar(
         context,
         'Send',
-        onBack: widget.embedded
+        backLabel: 'Wallet',
+          onBack: widget.embedded
             ? widget.onExit
             : () => Navigator.of(context).pop(),
       ),

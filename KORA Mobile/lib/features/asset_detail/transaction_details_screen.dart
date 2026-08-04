@@ -65,6 +65,7 @@ class TransactionDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(context, 'Transaction Details',
+          backLabel: 'Transactions',
           onBack: () => Navigator.of(context).pop()),
       body: ListView(
         padding: EdgeInsets.zero,

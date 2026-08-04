@@ -15,6 +15,7 @@ class AutoLockSelectorScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(context, 'Auto-Lock',
+          backLabel: 'Settings',
           onBack: () => Navigator.of(context).pop()),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

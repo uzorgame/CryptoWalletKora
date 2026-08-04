@@ -197,30 +197,38 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
       if (newPending.isNotEmpty) setState(() { _txRecords = cached; });
     });
 
+    // No app bar here, as in the prototype: the way back is a link over the content, and
+    // the holding itself is the heading. A title bar repeating the symbol above a 32px
+    // symbol would be the same word twice.
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: koraAppBar(
-        context,
-        asset.symbol,
-        onBack: () { Navigator.of(context).pop(); },
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh_rounded, size: 18, color: AppColors.textSecondary),
-            onPressed: () { _loadHistory(force: true); },
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
         onRefresh: () => _loadHistory(force: true),
-        color: AppColors.accent,
-        backgroundColor: AppColors.card,
+        color: AppColors.textPrimary,
+        backgroundColor: AppColors.surface,
         child: ListView(padding: EdgeInsets.zero, children: [
+
+          Row(children: [
+            KoraBackLink(label: 'Wallet', onTap: () { Navigator.of(context).pop(); }),
+            const Spacer(),
+            AnimatedTap(
+              onTap: () { _loadHistory(force: true); },
+              pressScale: 0.85,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 20, 12),
+                child: Icon(Icons.refresh_rounded,
+                    size: 17, color: AppColors.textSecondary),
+              ),
+            ),
+          ]),
 
           // ── Header card ───────────────────────────────────────────────────
           // The holding leads from the left, as it does on the desktop coin page: what is
           // held, what it is worth, how it moved and what one unit costs — in that order.
           Padding(
-            padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
+            padding: const EdgeInsets.fromLTRB(22, 8, 22, 0),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('${asset.symbol} · ${asset.name.toUpperCase()}',
                   style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16)),
@@ -315,6 +323,7 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
 
           const SizedBox(height: 40),
         ]),
+        ),
       ),
     );
   }

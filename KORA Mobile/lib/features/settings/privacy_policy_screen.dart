@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -12,10 +13,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
       listenable: ThemeNotifier.instance,
       builder: (_, __) => Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: AppColors.background,
-          title: const Text('Privacy Policy'),
-        ),
+        appBar: koraAppBar(context, 'Privacy Policy',
+            backLabel: 'Settings',
+            onBack: () => Navigator.of(context).pop()),
         body: const SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(20, 12, 20, 40),
           child: _PolicyContent(),

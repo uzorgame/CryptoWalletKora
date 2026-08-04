@@ -56,6 +56,7 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> with ThemeAwareMi
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(context, 'Receive',
+          backLabel: 'Receive',
           onBack: () => Navigator.of(context).pop()),
       body: walletAsync.when(
         loading: () => Center(child: CircularProgressIndicator(color: AppColors.textPrimary, strokeWidth: 1.5)),

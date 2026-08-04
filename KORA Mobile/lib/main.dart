@@ -21,6 +21,28 @@ void main() {
   runApp(const ProviderScope(child: KoraApp()));
 }
 
+/// How this application scrolls: to the end of its content, and not one pixel further.
+///
+/// Android's default overscroll stretches the whole list when a drag continues past the
+/// edge. In a language built on straight hairlines and square corners, rubber-banding the
+/// entire screen is the one moment the surface stops being a surface — and it happens on
+/// every idle drag of a list that has nowhere left to go. Clamping physics stop the scroll
+/// at the boundary, and dropping the overscroll indicator removes both the stretch and the
+/// glow behind it. Pull-to-refresh is unaffected: it listens for the overscroll notification
+/// itself, which clamping physics still emit.
+class KoraScrollBehavior extends MaterialScrollBehavior {
+  const KoraScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(BuildContext context, Widget child,
+          ScrollableDetails details) =>
+      child;
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) =>
+      const ClampingScrollPhysics();
+}
+
 class KoraApp extends ConsumerWidget {
   const KoraApp({super.key});
 
@@ -38,6 +60,7 @@ class KoraApp extends ConsumerWidget {
           themeMode: ThemeNotifier.instance.mode,
           // Disable built-in Material animation — our overlay handles the transition
           themeAnimationDuration: Duration.zero,
+          scrollBehavior: const KoraScrollBehavior(),
           home: const SplashScreen(),
           builder: (context, child) {
             return Consumer(

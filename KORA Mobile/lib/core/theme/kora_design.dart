@@ -18,6 +18,16 @@ const String kSans = 'Inter';
 const Curve kEase = Cubic(0.16, 1, 0.3, 1);
 const Duration kControl = Duration(milliseconds: 180);
 
+// ─── Text scale ─────────────────────────────────────────────────────────────────────────
+
+/// Every size in this file passes through here.
+///
+/// The prototype was drawn in a browser at a desk; on a phone held at arm's length the same
+/// numbers sit a little small, so the whole scale is lifted 5% at the one place that decides
+/// it. Proportions are untouched — a label is still a label beside its heading — and no call
+/// site had to change to get the larger setting.
+const double kTextScale = 1.05;
+
 // ─── Text styles ────────────────────────────────────────────────────────────────────────
 
 /// A tracked uppercase monospace label — section headings, field labels, buttons.
@@ -25,29 +35,33 @@ const Duration kControl = Duration(milliseconds: 180);
 /// [tracking] is a fraction of the size, exactly as on the desktop, so the same value reads
 /// the same at any scale. Callers pass text already uppercased where the design wants it;
 /// the style does not force case because addresses and hashes go through here too.
-TextStyle kLabel(Color color, {double size = 10, double tracking = 0.14, FontWeight weight = FontWeight.w500}) =>
-    TextStyle(
-      fontFamily: kMono,
-      fontFamilyFallback: const [kSans],
-      color: color,
-      fontSize: size,
-      fontWeight: weight,
-      height: 1.2,
-      letterSpacing: size * tracking,
-    );
+TextStyle kLabel(Color color, {double size = 10, double tracking = 0.14, FontWeight weight = FontWeight.w500}) {
+  final s = size * kTextScale;
+  return TextStyle(
+    fontFamily: kMono,
+    fontFamilyFallback: const [kSans],
+    color: color,
+    fontSize: s,
+    fontWeight: weight,
+    height: 1.2,
+    letterSpacing: s * tracking,
+  );
+}
 
 /// Display numerals — balances, amounts. Tabular, slightly tightened, never bold beyond 700.
-TextStyle kNum(Color color, {double size = 40, FontWeight weight = FontWeight.w500}) =>
-    TextStyle(
-      fontFamily: kDisplay,
-      fontFamilyFallback: const [kSans],
-      color: color,
-      fontSize: size,
-      fontWeight: weight,
-      height: 1.1,
-      letterSpacing: -0.02 * size,
-      fontFeatures: const [FontFeature.tabularFigures()],
-    );
+TextStyle kNum(Color color, {double size = 40, FontWeight weight = FontWeight.w500}) {
+  final s = size * kTextScale;
+  return TextStyle(
+    fontFamily: kDisplay,
+    fontFamilyFallback: const [kSans],
+    color: color,
+    fontSize: s,
+    fontWeight: weight,
+    height: 1.1,
+    letterSpacing: -0.02 * s,
+    fontFeatures: const [FontFeature.tabularFigures()],
+  );
+}
 
 /// Plain monospace for figures inside rows — prices, quantities, hashes.
 TextStyle kMonoText(Color color, {double size = 10, FontWeight weight = FontWeight.w400}) =>
@@ -55,7 +69,7 @@ TextStyle kMonoText(Color color, {double size = 10, FontWeight weight = FontWeig
       fontFamily: kMono,
       fontFamilyFallback: const [kSans],
       color: color,
-      fontSize: size,
+      fontSize: size * kTextScale,
       fontWeight: weight,
       height: 1.35,
       fontFeatures: const [FontFeature.tabularFigures()],
@@ -66,7 +80,7 @@ TextStyle kBody(Color color, {double size = 13, FontWeight weight = FontWeight.w
     TextStyle(
       fontFamily: kSans,
       color: color,
-      fontSize: size,
+      fontSize: size * kTextScale,
       fontWeight: weight,
       height: 1.55,
     );

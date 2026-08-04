@@ -15,6 +15,7 @@ class CurrencySelectorScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: koraAppBar(context, 'Select Currency',
+          backLabel: 'Settings',
           onBack: () => Navigator.of(context).pop()),
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

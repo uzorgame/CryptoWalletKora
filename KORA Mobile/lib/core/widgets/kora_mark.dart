@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
 
 /// The wallet's monogram — the launcher icon's exact geometry, drawn live so it inverts with
 /// the theme: the tile takes the ink colour, the K takes the background. Black becomes white,
 /// white becomes black, the same rule the site's icon follows.
+///
+/// It subscribes to the theme itself rather than trusting whoever placed it to rebuild. The
+/// mark appears on screens that have no other reason to redraw when the theme flips — the
+/// lock screen, onboarding — and a monogram left in yesterday's colours is the one element
+/// that makes an inverted app look broken.
 ///
 /// [radius] is zero by default — inside the app the language is square. The launcher tile's
 /// rounding belongs to the launcher.
@@ -14,12 +20,15 @@ class KoraMark extends StatelessWidget {
   final double radius;
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-        size: Size.square(size),
-        painter: _MarkPainter(
-          tile: AppColors.textPrimary,
-          glyph: AppColors.background,
-          radius: radius,
+  Widget build(BuildContext context) => ListenableBuilder(
+        listenable: ThemeNotifier.instance,
+        builder: (_, __) => CustomPaint(
+          size: Size.square(size),
+          painter: _MarkPainter(
+            tile: AppColors.textPrimary,
+            glyph: AppColors.background,
+            radius: radius,
+          ),
         ),
       );
 }
