@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/chips/coin_icon.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/features/send/widgets/net_chip.dart';
 
 // The coin icon, name and network of the asset being sent.
@@ -11,21 +11,25 @@ class AssetBadge extends StatelessWidget {
   final Asset asset;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    decoration: BoxDecoration(color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border, width: 0.5)),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+    decoration: BoxDecoration(color: AppColors.surface, border: kHairline()),
     child: Row(children: [
-      CoinIcon(symbol: asset.symbol, iconUrl: asset.iconUrl, size: 36),
-      const SizedBox(width: 12),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(asset.symbol,
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 2),
-        NetChip(asset.blockchain),
+        Row(crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(asset.symbol,
+                  style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
+              const SizedBox(width: 7),
+              Flexible(child: Text(asset.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: kBody(AppColors.textSecondary, size: 11))),
+            ]),
+        const SizedBox(height: 5),
+        Text('BALANCE ' + asset.formattedBalance.toUpperCase(),
+            style: kMonoText(AppColors.textSecondary, size: 9.5)),
       ])),
-      Text(asset.formattedBalance,
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+      NetChip(asset.blockchain),
     ]),
   );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kora/features/send/chain_labels.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 
 // The small network tag beside an asset's name.
 
@@ -9,9 +10,9 @@ class NetChip extends StatelessWidget {
   final String blockchain;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5)),
-    child: Text(netLabel(blockchain),
-        style: TextStyle(color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.w600)),
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+    decoration: BoxDecoration(border: kHairline()),
+    child: Text(netLabel(blockchain).toUpperCase(),
+        style: kLabel(AppColors.textTertiary, size: 8, tracking: 0.1)),
   );
 }
