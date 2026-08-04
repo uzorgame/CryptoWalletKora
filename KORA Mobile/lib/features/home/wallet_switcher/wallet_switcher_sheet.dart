@@ -5,6 +5,7 @@ import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
+import 'package:kora/core/widgets/pin_gate.dart';
 import 'package:kora/features/home/wallet_switcher/add_wallet_sheet.dart';
 
 // The sheet listing every wallet on this device, for switching between them.
@@ -119,8 +120,17 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                   final w = wallets[i];
                   final isActive = w.id == currentWallet?.id;
                   return AnimatedTap(
+                    // Switching wallets asks for the app PIN. A wallet is a set of keys;
+                    // moving between them with one stray tap — in a pocket, in somebody
+                    // else's hands — is not a thing this application should allow.
                     onTap: isActive ? null : () async {
-                      Navigator.pop(context);
+                      final ok = await askAppPin(
+                        context,
+                        title: 'Switch wallet',
+                        explanation: 'Enter your app PIN to switch to ${w.name}.',
+                      );
+                      if (!ok || !context.mounted) return;
+                      if (context.mounted) Navigator.pop(context);
                       await ref.read(currentWalletProvider.notifier).switchWallet(w.id);
                     },
                     pressScale: 0.97,

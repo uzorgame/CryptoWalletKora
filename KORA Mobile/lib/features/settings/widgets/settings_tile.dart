@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 
-// One row of the settings list: icon, title, value and where tapping it leads.
+// One row of the settings list: title, value and where tapping it leads.
+//
+// A hairline table row like every other list in the wallet. The icon is gone — a column of
+// small pictograms is decoration, and the label already says what the row is. [icon] and
+// [iconColor] stay in the signature so no caller had to change.
 
 class SettingsTile extends StatelessWidget {
   const SettingsTile({
@@ -19,28 +24,21 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AnimatedTap(
     onTap: onTap,
-    pressScale: 0.97,
+    pressScale: 0.98,
+    pressOpacity: 0.85,
     child: Container(
-      margin: EdgeInsets.only(bottom: 2),
-      padding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.separator, width: 0.5),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+      decoration: BoxDecoration(border: Border(bottom: kHairlineSide())),
       child: Row(children: [
-        Icon(icon, color: iconColor ?? AppColors.textSecondary, size: 20),
-        SizedBox(width: 12),
         Expanded(
           child: Text(label,
-              style: TextStyle(
-                  color: labelColor ?? AppColors.textPrimary,
-                  fontSize: 15, fontWeight: FontWeight.w400)),
+              style: kBody(labelColor ?? AppColors.textPrimary, size: 13.5)),
         ),
         if (value != null)
-          Text(value!, style: TextStyle(color: AppColors.textSecondary, fontSize: 14))
+          Text(value!.toUpperCase(),
+              style: kMonoText(AppColors.textSecondary, size: 10))
         else
-          Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 20),
+          Text('›', style: kMonoText(AppColors.textTertiary, size: 13)),
       ]),
     ),
   );

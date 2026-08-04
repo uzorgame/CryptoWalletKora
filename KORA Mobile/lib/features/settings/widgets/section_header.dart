@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 
-// The heading above each settings section.
+// The heading above each settings section — tracked, tertiary, with the air the wallet's
+// other section headings carry.
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader(this.title, {super.key, this.color});
@@ -10,10 +12,8 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.only(bottom: 8),
-    child: Text(title,
-        style: TextStyle(
-            color: color ?? AppColors.textSecondary,
-            fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.3)),
+    padding: const EdgeInsets.fromLTRB(22, 24, 22, 10),
+    child: Text(title.toUpperCase(),
+        style: kLabel(color ?? AppColors.textTertiary, size: 9.5, tracking: 0.16)),
   );
 }

@@ -5,6 +5,11 @@ import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/state/providers/settings_provider.dart' hide currencyProvider;
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
+import 'package:kora/core/widgets/kora_mark.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
+import 'package:kora/features/home/wallet_switcher/wallet_switcher_sheet.dart';
 import 'package:kora/core/crypto/key_manager.dart';
 import 'package:kora/core/repositories/wallet_repository.dart';
 import 'package:kora/features/onboarding/onboarding_screen.dart';
@@ -32,45 +37,38 @@ class SettingsScreen extends ConsumerWidget {
       listenable: ThemeNotifier.instance,
       builder: (_, __) => Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text('Settings'),
-        automaticallyImplyLeading: false,
-      ),
+      appBar: koraAppBar(context, 'Settings'),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.zero,
           children: [
-            // Wallet info card
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border, width: 0.5),
+            // The open wallet, and the way to another one: the same switcher the home
+            // header opens, so the current wallet is changed from either place — and, either
+            // way, only behind the app PIN.
+            AnimatedTap(
+              onTap: () => showModalBottomSheet<void>(
+                context: context,
+                backgroundColor: Colors.transparent,
+                isScrollControlled: true,
+                builder: (_) => const WalletSwitcherSheet(),
               ),
-              child: Row(children: [
-                Container(
-                  width: 48, height: 48,
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle, color: AppColors.textPrimary),
-                  child: Icon(Icons.account_balance_wallet_rounded,
-                      color: AppColors.background, size: 24),
-                ),
-                SizedBox(width: 14),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(wallet?.name ?? 'No Wallet',
-                        style: TextStyle(
-                            color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
-                    SizedBox(height: 2),
-                    Text(wallet != null ? 'Seed Phrase Wallet' : 'Create or import a wallet',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                  ]),
-                ),
-              ]),
+              pressScale: 0.98,
+              pressOpacity: 0.85,
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(22, 14, 22, 0),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                decoration: BoxDecoration(color: AppColors.surface, border: kHairline()),
+                child: Row(children: [
+                  const KoraMark(size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text((wallet?.name ?? 'No Wallet').toUpperCase(),
+                        style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.14)),
+                  ),
+                  Text('▾', style: kLabel(AppColors.textSecondary, size: 9)),
+                ]),
+              ),
             ),
-            SizedBox(height: 24),
 
             // Security section
             SectionHeader('Security'),
