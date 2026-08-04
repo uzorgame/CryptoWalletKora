@@ -132,7 +132,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/crypto_icons/
 
   fonts:
     - family: Inter
