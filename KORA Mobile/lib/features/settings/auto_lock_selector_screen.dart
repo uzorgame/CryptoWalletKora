@@ -45,7 +45,7 @@ class AutoLockSelectorScreen extends ConsumerWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
                     color: AppColors.card,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.zero,
                     border: Border.all(
                       color: isSelected
                           ? AppColors.textPrimary.withValues(alpha: 0.3)

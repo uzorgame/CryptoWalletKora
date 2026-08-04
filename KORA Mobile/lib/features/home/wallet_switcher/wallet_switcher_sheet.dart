@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kora/core/widgets/kora_mark.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/models/wallet.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
@@ -48,7 +49,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.zero,
       ),
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
@@ -60,7 +61,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
             Container(
               width: 36, height: 4,
               decoration: BoxDecoration(
-                  color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+                  color: AppColors.border, borderRadius: BorderRadius.zero),
             ),
             const SizedBox(height: 20),
             Padding(
@@ -83,7 +84,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: atLimit ? AppColors.cardElevated : AppColors.surface,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.zero,
                           ),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
                             Icon(Icons.add_rounded,
@@ -141,7 +142,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                         color: isActive
                             ? AppColors.cardElevated
                             : AppColors.surface,
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.zero,
                         border: Border.all(
                           color: isActive
                               ? AppColors.textPrimary.withValues(alpha: 0.3)
@@ -150,14 +151,11 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                         ),
                       ),
                       child: Row(children: [
-                        Container(
-                          width: 40, height: 40,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isActive ? AppColors.textPrimary : AppColors.cardElevated),
-                          child: Icon(Icons.account_balance_wallet_rounded,
-                              color: isActive ? AppColors.background : AppColors.textSecondary,
-                              size: 20),
+                        // The same mark the home header carries, dimmed on the wallets
+                        // that are not open.
+                        Opacity(
+                          opacity: isActive ? 1 : 0.45,
+                          child: const KoraMark(size: 34),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -180,7 +178,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: AppColors.textPrimary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.zero,
                             ),
                             child: Text('Active',
                                 style: TextStyle(
@@ -194,8 +192,8 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
                             width: 32, height: 32,
                             decoration: BoxDecoration(
                               color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.border, width: 0.5),
+                              borderRadius: BorderRadius.zero,
+                              border: Border.all(color: AppColors.border, width: 1),
                             ),
                             child: Icon(Icons.edit_rounded,
                                 color: AppColors.textTertiary, size: 15),
@@ -221,7 +219,7 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         title: Text('Rename Wallet',
             style: TextStyle(
                 color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
@@ -242,13 +240,13 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
             fillColor: AppColors.surface,
             counterStyle: TextStyle(color: AppColors.textTertiary),
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.zero,
                 borderSide: BorderSide(color: AppColors.border)),
             enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.zero,
                 borderSide: BorderSide(color: AppColors.border)),
             focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.zero,
                 borderSide: BorderSide(color: AppColors.accent, width: 1.5)),
           ),
         ),

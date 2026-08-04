@@ -98,7 +98,6 @@ class CoinIcon extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
           image: DecorationImage(image: img, fit: BoxFit.cover),
         ),
       );
@@ -107,7 +106,6 @@ class CoinIcon extends StatelessWidget {
         width: size,
         height: size,
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
           color: color.withValues(alpha: 0.15),
         ),
         child: Center(

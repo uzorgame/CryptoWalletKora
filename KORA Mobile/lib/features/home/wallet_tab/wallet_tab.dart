@@ -81,7 +81,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
       context: context,
       backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+          borderRadius: BorderRadius.zero),
       builder: (sheetCtx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -90,7 +90,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
             Container(width: 36, height: 4,
                 decoration: BoxDecoration(
                     color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2))),
+                    borderRadius: BorderRadius.zero)),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),

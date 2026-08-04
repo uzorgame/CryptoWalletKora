@@ -125,7 +125,7 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         title: Text('Remove Wallet',
             style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
         content: Text(
@@ -197,7 +197,7 @@ class SettingsScreen extends ConsumerWidget {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
           backgroundColor: AppColors.card,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
           title: Text('View Recovery Phrase',
               style: TextStyle(color: AppColors.textPrimary,
                   fontWeight: FontWeight.w600, fontSize: 16)),
@@ -277,7 +277,7 @@ class SettingsScreen extends ConsumerWidget {
           canPop: !isLoading,
           child: AlertDialog(
             backgroundColor: AppColors.card,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             title: Text('Change PIN',
                 style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
             content: Column(

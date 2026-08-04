@@ -46,8 +46,8 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -167,8 +167,8 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border, width: 0.5),
+            borderRadius: BorderRadius.zero,
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: [
               BoxShadow(
                 color: AppColors.textPrimary.withValues(alpha: 0.08),
@@ -365,7 +365,7 @@ class _PriceChartPeriodSelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               color: isSelected ? AppColors.textPrimary : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.zero,
             ),
             child: Text(
               p.label,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 
 // The fold-out block of facts about the asset, under the chart.
@@ -23,36 +24,24 @@ class CollapsibleDetails extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 0.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 14,
-              spreadRadius: 0,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
+        decoration: BoxDecoration(border: kHairline()),
         child: Column(children: [
           // Header row — always visible
           AnimatedTap(
             onTap: onToggle,
             pressScale: 0.98,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               child: Row(children: [
-                Text('Details',
-                    style: TextStyle(
-                        color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
+                Text('DETAILS',
+                    style: kLabel(AppColors.textPrimary, size: 10.5, tracking: 0.16)),
                 const Spacer(),
                 AnimatedRotation(
                   turns: expanded ? 0.5 : 0,
-                  duration: const Duration(milliseconds: 250),
+                  duration: kControl,
+                  curve: kEase,
                   child: Icon(Icons.expand_more_rounded,
-                      color: AppColors.textSecondary, size: 20),
+                      color: AppColors.textTertiary, size: 18),
                 ),
               ]),
             ),
@@ -103,21 +92,26 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.symmetric(horizontal: 14),
     child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.separator, width: 0.5))),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(border: Border(top: kHairlineSide())),
       child: Row(children: [
-        Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+        Text(label.toUpperCase(),
+            style: kMonoText(AppColors.textSecondary, size: 9.5)),
         const Spacer(),
-        Text(value, style: TextStyle(
-            color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w500)),
+        Flexible(
+          child: Text(value,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: kMonoText(AppColors.textPrimary, size: 11,
+                  weight: FontWeight.w500)),
+        ),
         if (onCopy != null) ...[
           const SizedBox(width: 8),
           AnimatedTap(
             onTap: onCopy,
-            child: Icon(Icons.copy_rounded, color: AppColors.textTertiary, size: 15),
+            child: Icon(Icons.copy_rounded, color: AppColors.textTertiary, size: 13),
           ),
         ],
       ]),

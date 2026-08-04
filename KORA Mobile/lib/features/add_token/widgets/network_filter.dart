@@ -49,7 +49,7 @@ class NetworkChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
         decoration: BoxDecoration(
           color: selected ? AppColors.cardElevated : AppColors.card,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.zero,
           border: Border.all(
             color: selected ? AppColors.textPrimary.withValues(alpha: 0.3) : AppColors.border,
             width: selected ? 1.5 : 0.5,

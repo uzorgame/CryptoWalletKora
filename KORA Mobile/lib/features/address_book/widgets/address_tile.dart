@@ -3,6 +3,7 @@ import 'package:kora/features/address_book/chains.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/services/address_book_service.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 
 // One saved address: name, chain and the address itself, with copy and delete.
 
@@ -28,15 +29,15 @@ class AddressTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5),
+
+          border: Border.all(color: AppColors.border, width: 1),
         ),
         child: Row(children: [
           Container(
             width: 40, height: 40,
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
+
             ),
             child: Center(
               child: Text(
@@ -62,7 +63,7 @@ class AddressTile extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(4),
+
                 ),
                 child: Text(chainLabel(entry.blockchain),
                     style: TextStyle(color: AppColors.textTertiary, fontSize: 10)),

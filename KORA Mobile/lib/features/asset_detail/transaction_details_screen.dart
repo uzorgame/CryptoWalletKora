@@ -6,6 +6,9 @@ import 'package:kora/core/config/api_config.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/services/tx_history_service.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
+import 'package:kora/core/widgets/kora_button.dart';
 
 // ─── Explorer URL per blockchain ─── delegated to APIConfig ─────────────────
 
@@ -61,77 +64,37 @@ class TransactionDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: const Text('Transaction Details'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: koraAppBar(context, 'Transaction Details',
+          onBack: () => Navigator.of(context).pop()),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 22),
         children: [
 
           // ── Status header ──────────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Column(children: [
-              Container(
-                width: 64, height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color.withValues(alpha: 0.12),
-                ),
-                child: Icon(
-                  isSelf
-                      ? Icons.sync_rounded
-                      : isIn
-                          ? Icons.arrow_downward_rounded
-                          : Icons.arrow_upward_rounded,
-                  color: color, size: 32,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(amtStr,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                  )),
-              const SizedBox(height: 6),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: (tx.confirmed ? AppColors.positive : Colors.orange)
-                      .withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
+          // What happened, in what state, and for how much — left-led, as the coin page is.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 22, 0, 22),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Text(label.toUpperCase(), style: kLabel(color, size: 10.5, tracking: 0.14)),
+                Text('  ·  ', style: kLabel(AppColors.textTertiary, size: 10.5)),
+                if (!tx.confirmed) ...[
+                  SizedBox(
+                    width: 9, height: 9,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 1.2, color: AppColors.warning),
                   ),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    if (!tx.confirmed) ...[
-                      SizedBox(
-                        width: 10, height: 10,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 1.5, color: Colors.orange),
-                      ),
-                      const SizedBox(width: 5),
-                    ],
-                    Text(
-                      tx.confirmed ? 'Confirmed' : 'Processing',
-                      style: TextStyle(
-                        color: tx.confirmed ? AppColors.positive : Colors.orange,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ]),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  tx.confirmed ? 'CONFIRMED' : 'PROCESSING',
+                  style: kLabel(
+                      tx.confirmed ? AppColors.textTertiary : AppColors.warning,
+                      size: 10.5, tracking: 0.14),
                 ),
-                const SizedBox(width: 8),
-                Text(label,
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
               ]),
+              const SizedBox(height: 10),
+              Text(amtStr, style: kNum(color, size: 30)),
             ]),
           ),
 
@@ -192,15 +155,9 @@ class TransactionDetailsScreen extends StatelessWidget {
 
           // ── Explorer button ────────────────────────────────────────────────
           if (url.isNotEmpty)
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textPrimary,
-                side: BorderSide(color: AppColors.border, width: 0.5),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-              ),
-              onPressed: () async {
+            KoraGhost(
+              label: 'View in Explorer',
+              onTap: () async {
                 final uri = Uri.parse(url);
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -208,9 +165,6 @@ class TransactionDetailsScreen extends StatelessWidget {
                   _copy(context, url, 'Explorer link');
                 }
               },
-              icon: const Icon(Icons.open_in_new_rounded, size: 16),
-              label: const Text('View in Explorer',
-                  style: TextStyle(fontWeight: FontWeight.w500)),
             ),
 
           const SizedBox(height: 32),
@@ -243,11 +197,8 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 0.5),
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(border: kHairline()),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: children,
@@ -275,25 +226,21 @@ class _DetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final row = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 96,
-            child: Text(label,
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            width: 92,
+            child: Text(label.toUpperCase(),
+                style: kMonoText(AppColors.textSecondary, size: 9.5)),
           ),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                fontFamily: mono ? 'monospace' : null,
-              ),
+              style: kMonoText(AppColors.textPrimary, size: 11,
+                  weight: FontWeight.w500),
             ),
           ),
           if (onCopy != null) ...[
@@ -301,7 +248,7 @@ class _DetailRow extends StatelessWidget {
             GestureDetector(
               onTap: onCopy,
               child: Icon(Icons.copy_rounded,
-                  size: 14, color: AppColors.textTertiary),
+                  size: 13, color: AppColors.textTertiary),
             ),
           ],
         ],
@@ -313,7 +260,7 @@ class _DetailRow extends StatelessWidget {
       children: [
         row,
         if (!last)
-          Divider(height: 0, thickness: 0.5, color: AppColors.border),
+          Divider(height: 0, thickness: 1, color: AppColors.border),
       ],
     );
   }

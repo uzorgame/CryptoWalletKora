@@ -33,7 +33,7 @@ class CurrencySelectorScreen extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 4),
             decoration: BoxDecoration(
               color: AppColors.card,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.zero,
               border: Border.all(
                 color: isSelected ? AppColors.textPrimary.withValues(alpha: 0.3) : AppColors.border,
                 width: isSelected ? 1.0 : 0.5,

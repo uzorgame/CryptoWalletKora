@@ -45,7 +45,7 @@ class TokenRow extends StatelessWidget {
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.zero,
                       ),
                       child: Text(
                         networkLabel(token.blockchain),
@@ -66,7 +66,6 @@ class TokenRow extends StatelessWidget {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
                 color: isAdded
                     ? AppColors.negative.withValues(alpha: 0.12)
                     : Colors.transparent,

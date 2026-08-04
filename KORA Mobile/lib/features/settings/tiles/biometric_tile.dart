@@ -22,8 +22,8 @@ class BiometricTile extends ConsumerWidget {
         padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.separator, width: 0.5),
+          borderRadius: BorderRadius.zero,
+          border: Border.all(color: AppColors.separator, width: 1),
         ),
         child: Row(children: [
           Icon(Icons.fingerprint_rounded, color: AppColors.textSecondary, size: 20),
@@ -113,7 +113,7 @@ class BiometricTile extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         title: Text('Confirm PIN',
             style: TextStyle(color: AppColors.textPrimary,
                 fontWeight: FontWeight.w600, fontSize: 16)),

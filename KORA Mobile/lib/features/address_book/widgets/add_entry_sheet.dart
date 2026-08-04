@@ -50,7 +50,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> with ThemeAwareMixin {
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Center(child: Container(
             width: 36, height: 4,
-            decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+            decoration: BoxDecoration(color: AppColors.border, borderRadius: BorderRadius.zero),
           )),
           const SizedBox(height: 20),
           Text('Add Address', style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
@@ -64,8 +64,8 @@ class _AddEntrySheetState extends State<AddEntrySheet> with ThemeAwareMixin {
           Container(
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border, width: 0.5),
+              borderRadius: BorderRadius.zero,
+              border: Border.all(color: AppColors.border, width: 1),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
@@ -92,7 +92,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> with ThemeAwareMixin {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.textPrimary, foregroundColor: AppColors.background,
               minimumSize: const Size(double.infinity, 52),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
             ),
             child: Text('Save Address', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
           ),
@@ -112,9 +112,9 @@ class _AddEntrySheetState extends State<AddEntrySheet> with ThemeAwareMixin {
       hintStyle: TextStyle(color: AppColors.textTertiary),
       filled: true,
       fillColor: AppColors.surface,
-      border:        OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.border)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.border)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.textSecondary, width: 1.5)),
+      border:        OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.textSecondary, width: 1.5)),
     ),
   );
 }

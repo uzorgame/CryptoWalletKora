@@ -42,7 +42,7 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.negative.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(color: AppColors.negative.withValues(alpha: 0.3), width: 1),
               ),
               child: Row(
@@ -80,8 +80,8 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppColors.card,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border, width: 0.5),
+                borderRadius: BorderRadius.zero,
+                border: Border.all(color: AppColors.border, width: 1),
               ),
               child: Column(
                 children: [
@@ -103,7 +103,7 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 32, vertical: 12),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                                borderRadius: BorderRadius.zero),
                           ),
                           child: Text('Reveal Phrase',
                               style: TextStyle(
@@ -128,9 +128,9 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
                               horizontal: 8, vertical: 10),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.zero,
                             border: Border.all(
-                                color: AppColors.border, width: 0.5),
+                                color: AppColors.border, width: 1),
                           ),
                           child: Row(
                             children: [
@@ -180,8 +180,8 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
                     foregroundColor: AppColors.textPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: AppColors.border, width: 0.5),
+                      borderRadius: BorderRadius.zero,
+                      side: BorderSide(color: AppColors.border, width: 1),
                     ),
                   ),
                 ),
@@ -216,10 +216,7 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
           Container(
             width: 24,
             height: 24,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: AppColors.surface),
             alignment: Alignment.center,
             child: Text(number,
                 style: TextStyle(

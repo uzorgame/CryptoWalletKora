@@ -56,9 +56,9 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
                 errorText: errMsg,
                 errorStyle: TextStyle(color: AppColors.negative, fontSize: 11),
                 filled: true, fillColor: AppColors.background,
-                border:        OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.border)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.border)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: AppColors.textSecondary)),
+                border:        OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.textSecondary)),
                 suffixIcon: IconButton(
                   icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                       color: AppColors.textTertiary, size: 18),
@@ -112,8 +112,8 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.warning.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 0.5),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(children: [
         Icon(Icons.update_rounded, color: AppColors.warning, size: 16),
@@ -131,7 +131,7 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.warning.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.zero,
             ),
             child: Text('Fix', style: TextStyle(color: AppColors.warning,
                 fontSize: 12, fontWeight: FontWeight.w600)),

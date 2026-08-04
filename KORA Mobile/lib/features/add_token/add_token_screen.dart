@@ -144,7 +144,7 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.zero,
                   borderSide: BorderSide.none,
                 ),
               ),

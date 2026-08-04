@@ -40,7 +40,7 @@ class _AddressBookScreenState extends State<AddressBookScreen> with ThemeAwareMi
       isScrollControlled: true,
       backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          borderRadius: BorderRadius.zero),
       builder: (_) => AddEntrySheet(
         defaultBlockchain: widget.filterBlockchain,
       ),
@@ -128,7 +128,7 @@ class _EmptyState extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.textPrimary,
           foregroundColor: AppColors.background,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         ),
       ),
     ]),

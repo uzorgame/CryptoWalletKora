@@ -112,8 +112,8 @@ class _PortfolioChartWidgetState extends ConsumerState<PortfolioChartWidget>
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.border, width: 0.5),
+            borderRadius: BorderRadius.zero,
+            border: Border.all(color: AppColors.border, width: 1),
             boxShadow: [
               BoxShadow(
                 color: AppColors.textPrimary.withValues(alpha: 0.08),
@@ -354,7 +354,7 @@ class _PeriodSelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
             decoration: BoxDecoration(
               color: isSelected ? AppColors.textPrimary : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.zero,
             ),
             child: Text(
               p.label,

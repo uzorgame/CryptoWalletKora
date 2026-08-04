@@ -123,7 +123,7 @@ class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
                         foregroundColor: AppColors.background,
                         minimumSize: const Size(double.infinity, 56),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.zero,
                         ),
                         textStyle: const TextStyle(
                           fontSize: 16,
@@ -147,7 +147,7 @@ class _WalletSelectionScreenState extends ConsumerState<WalletSelectionScreen> {
                         minimumSize: const Size(double.infinity, 56),
                         side: BorderSide(color: AppColors.border),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.zero,
                         ),
                         textStyle: const TextStyle(
                           fontSize: 16,
@@ -183,13 +183,13 @@ class _WalletCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.zero,
         ),
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.border, width: 1),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.zero,
           ),
           child: Row(
             children: [
@@ -199,7 +199,7 @@ class _WalletCard extends StatelessWidget {
                 height: 48,
                 decoration: BoxDecoration(
                   color: AppColors.accent.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.zero,
                 ),
                 child: Icon(
                   Icons.account_balance_wallet_rounded,

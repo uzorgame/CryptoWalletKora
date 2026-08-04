@@ -14,7 +14,7 @@ class AddWalletSheet extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.zero,
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + MediaQuery.of(context).padding.bottom,
@@ -26,7 +26,7 @@ class AddWalletSheet extends StatelessWidget {
           Container(
             width: 36, height: 4,
             decoration: BoxDecoration(
-              color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+              color: AppColors.border, borderRadius: BorderRadius.zero),
           ),
           const SizedBox(height: 24),
           Padding(
@@ -106,15 +106,15 @@ class _AddWalletOption extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5),
+          borderRadius: BorderRadius.zero,
+          border: Border.all(color: AppColors.border, width: 1),
         ),
         child: Row(children: [
           Container(
             width: 44, height: 44,
             decoration: BoxDecoration(
               color: AppColors.cardElevated,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.zero,
             ),
             child: Icon(icon, color: AppColors.textPrimary, size: 22),
           ),
