@@ -17,7 +17,9 @@ import 'package:kora/features/onboarding/wallet_selection_screen.dart';
 import 'package:kora/features/settings/show_seed_phrase_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
 import 'package:kora/features/settings/privacy_policy_screen.dart';
+import 'package:kora/core/widgets/pin_gate.dart';
 import 'package:kora/features/address_book/address_book_screen.dart';
+import 'package:kora/features/settings/widgets/change_pin_sheet.dart';
 import 'package:kora/features/settings/widgets/section_header.dart';
 import 'package:kora/features/settings/widgets/settings_tile.dart';
 import 'package:kora/features/settings/tiles/appearance_tile.dart';
@@ -27,7 +29,11 @@ import 'package:kora/features/settings/tiles/currency_tile.dart';
 import 'package:kora/features/settings/tiles/about_tile.dart';
 
 class SettingsScreen extends ConsumerWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, this.onExit});
+
+  /// Living as tab 04, the header still offers the named way back the rest of the app has —
+  /// it returns to the wallet rather than popping a route.
+  final VoidCallback? onExit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +44,9 @@ class SettingsScreen extends ConsumerWidget {
       listenable: ThemeNotifier.instance,
       builder: (_, __) => Scaffold(
       backgroundColor: AppColors.background,
-      appBar: koraAppBar(context, 'Settings'),
+      appBar: koraAppBar(context, 'Settings',
+          backLabel: 'Wallet',
+          onBack: onExit ?? () => Navigator.of(context).maybePop()),
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -126,17 +134,21 @@ class SettingsScreen extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        title: Text('Remove Wallet',
-            style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(
+            side: BorderSide(color: AppColors.borderHi, width: 1),
+            borderRadius: BorderRadius.zero),
+        title: Text('REMOVE WALLET',
+            style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.16)),
         content: Text(
-            'Make sure you have your recovery phrase before removing this wallet.',
-            style: kBody(AppColors.textSecondary, size: 13).copyWith(height: 1.5)),
+            'Make sure you have your recovery phrase before removing this wallet. '
+            'Without it the funds cannot be recovered by anyone.',
+            style: kBody(AppColors.textSecondary, size: 13)),
         actions: [
           TextButton(
             onPressed: () { Navigator.of(context).pop(); },
-            child: Text('Cancel', style: kBody(AppColors.textSecondary, size: 13)),
+            child: Text('CANCEL',
+                style: kLabel(AppColors.textSecondary, size: 9.5, tracking: 0.16)),
           ),
           TextButton(
             onPressed: () async {
@@ -157,7 +169,8 @@ class SettingsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: Text('Remove', style: kBody(AppColors.negative, size: 13)),
+            child: Text('REMOVE',
+                style: kLabel(AppColors.negative, size: 9.5, tracking: 0.16)),
           ),
         ],
       ),
@@ -187,235 +200,26 @@ class SettingsScreen extends ConsumerWidget {
       // If no stored PIN (legacy), fall through to PIN dialog
     }
 
-    // Show PIN dialog that stays open on wrong PIN
-    final pinCtrl = TextEditingController();
-    String? errMsg;
-    bool    obscure = true;
-    bool    loading = false;
-
+    // The wallet's own gate, not a Material dialog with a floating label.
     if (!context.mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          backgroundColor: AppColors.card,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-          title: Text('View Recovery Phrase',
-              style: kBody(AppColors.textPrimary, size: 16, weight: FontWeight.w600)),
-          content: TextField(
-            controller: pinCtrl,
-            obscureText: obscure,
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            autofocus: true,
-            style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
-            decoration: InputDecoration(
-              labelText: 'PIN',
-              labelStyle: kBody(AppColors.textSecondary, size: 13),
-              counterText: '',
-              errorText: errMsg,
-              errorStyle: kBody(AppColors.negative, size: 11),
-              suffixIcon: IconButton(
-                icon: Icon(obscure
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
-                    color: AppColors.textTertiary, size: 18),
-                onPressed: () => setS(() => obscure = !obscure),
-              ),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.separator)),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.textPrimary)),
-              errorBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: AppColors.negative)),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('Cancel',
-                  style: kBody(AppColors.textSecondary, size: 13)),
-            ),
-            TextButton(
-              onPressed: loading ? null : () async {
-                final pin = pinCtrl.text.trim();
-                if (pin.isEmpty) return;
-                setS(() { loading = true; errMsg = null; });
-                final seed = await KeyManager.getSeedPhrase(
-                    pin, walletId: wallet.id);
-                if (!ctx.mounted) return;
-                if (seed != null) {
-                  Navigator.of(ctx).pop();
-                  if (context.mounted) {
-                    context.pushFade(ShowSeedPhraseScreen(seedPhrase: seed));
-                  }
-                } else {
-                  setS(() { loading = false; errMsg = 'Incorrect PIN'; });
-                }
-              },
-              child: Text('Confirm',
-                  style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
-            ),
-          ],
-        ),
-      ),
+    final pin = await askAppPinValue(
+      context,
+      title: 'Recovery phrase',
+      explanation: 'Enter your app PIN to reveal the words for this wallet.',
     );
+    if (pin == null || !context.mounted) return;
+    final seed = await KeyManager.getSeedPhrase(pin, walletId: wallet.id);
+    if (seed == null || !context.mounted) return;
+    context.pushFade(ShowSeedPhraseScreen(seedPhrase: seed));
   }
 
-  void _showChangePinDialog(BuildContext context, WidgetRef ref) {
-    final oldPinController = TextEditingController();
-    final newPinController = TextEditingController();
-    final confirmPinController = TextEditingController();
-    String? errorMessage;
-    bool isLoading = false;
-
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => PopScope(
-          canPop: !isLoading,
-          child: AlertDialog(
-            backgroundColor: AppColors.card,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-            title: Text('Change PIN',
-                style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: oldPinController,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  enabled: !isLoading,
-                  style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
-                  decoration: InputDecoration(
-                    labelText: 'Current PIN',
-                    labelStyle: kBody(AppColors.textSecondary, size: 13),
-                    counterText: '',
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.separator),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.accent),
-                    ),
-                  ),
-                  onChanged: (_) => setState(() => errorMessage = null),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: newPinController,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  enabled: !isLoading,
-                  style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
-                  decoration: InputDecoration(
-                    labelText: 'New PIN',
-                    labelStyle: kBody(AppColors.textSecondary, size: 13),
-                    counterText: '',
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.separator),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.accent),
-                    ),
-                  ),
-                  onChanged: (_) => setState(() => errorMessage = null),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: confirmPinController,
-                  obscureText: true,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  enabled: !isLoading,
-                  style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
-                  decoration: InputDecoration(
-                    labelText: 'Confirm New PIN',
-                    labelStyle: kBody(AppColors.textSecondary, size: 13),
-                    counterText: '',
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.separator),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.accent),
-                    ),
-                  ),
-                  onChanged: (_) => setState(() => errorMessage = null),
-                ),
-                if (isLoading) ...[
-                  SizedBox(height: 16),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    SizedBox(width: 16, height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2,
-                            color: AppColors.textSecondary)),
-                    SizedBox(width: 10),
-                    Text('Changing PIN…',
-                        style: kBody(AppColors.textSecondary, size: 13)),
-                  ]),
-                ],
-                if (errorMessage != null) ...[
-                  SizedBox(height: 12),
-                  Text(errorMessage!,
-                      style: kBody(AppColors.negative, size: 13)),
-                ],
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: isLoading ? null : () => Navigator.of(context).pop(),
-                child: Text('Cancel', style: kBody(AppColors.textSecondary, size: 13)),
-              ),
-              TextButton(
-                onPressed: isLoading ? null : () async {
-                  final oldPin = oldPinController.text;
-                  final newPin = newPinController.text;
-                  final confirmPin = confirmPinController.text;
-
-                  if (oldPin.length != 6) {
-                    setState(() => errorMessage = 'Current PIN must be 6 digits');
-                    return;
-                  }
-                  if (newPin.length != 6) {
-                    setState(() => errorMessage = 'New PIN must be 6 digits');
-                    return;
-                  }
-                  if (newPin != confirmPin) {
-                    setState(() => errorMessage = 'New PINs do not match');
-                    return;
-                  }
-                  if (oldPin == newPin) {
-                    setState(() => errorMessage = 'New PIN must be different');
-                    return;
-                  }
-
-                  setState(() => isLoading = true);
-
-                  final walletsAsync = await ref.read(allWalletsProvider.future);
-                  final walletIds = walletsAsync.map((w) => w.id).toList();
-
-                  final success = await KeyManager.changePin(oldPin, newPin, walletIds: walletIds);
-
-                  if (context.mounted) {
-                    final messenger = ScaffoldMessenger.of(context);
-                    Navigator.of(context).pop();
-                    messenger.showSnackBar(SnackBar(
-                      content: Text(success
-                          ? 'PIN changed successfully'
-                          : 'Failed to change PIN. Check your current PIN.'),
-                    ));
-                  }
-                },
-                child: Text('Change', style: TextStyle(color: isLoading
-                    ? AppColors.textTertiary : AppColors.accent)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  Future<void> _showChangePinDialog(BuildContext context, WidgetRef ref) async {
+    final changed = await showChangePinSheet(context, ref);
+    if (changed && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PIN changed')),
+      );
+    }
   }
 }
 

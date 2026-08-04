@@ -47,7 +47,7 @@ class WalletTab extends ConsumerStatefulWidget {
 }
 
 class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
-  SortMode _sortMode = SortMode.popularity;
+  SortMode _sortMode = SortMode.totalValue;
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
       if (saved != null && mounted) {
         final mode = SortMode.values.firstWhere(
           (m) => m.name == saved,
-          orElse: () => SortMode.popularity,
+          orElse: () => SortMode.totalValue,
         );
         if (mode != _sortMode) setState(() => _sortMode = mode);
       }
@@ -208,7 +208,7 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
                       onTap: () { _showSortSheet(); },
                       child: Text('${sorted.length} POSITIONS · SORT',
                           style: kLabel(
-                              _sortMode != SortMode.popularity
+                              _sortMode != SortMode.totalValue
                                   ? AppColors.textPrimary
                                   : AppColors.textTertiary,
                               size: 9.5, tracking: 0.1)),

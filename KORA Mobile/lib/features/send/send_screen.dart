@@ -623,39 +623,57 @@ class _SendScreenState extends ConsumerState<SendScreen> with ThemeAwareMixin {
                   const KoraSlabel('Amount'),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(22, 4, 22, 0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            amountText.isEmpty ? '0' : amountText,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: kNum(
-                                amountText.isEmpty
-                                    ? AppColors.textTertiary
-                                    : AppColors.textPrimary,
-                                size: 34),
+                    // A fixed line for the figure, and MAX centred against it. Baseline
+                    // alignment moved the button every time the number changed length —
+                    // a control that shifts under the thumb it is waiting for.
+                    child: SizedBox(
+                      height: 34 * kTextScale * 1.1,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // A crypto amount is not a price: the last digits are the
+                          // difference between sending everything and leaving dust behind,
+                          // so the figure shrinks to fit rather than ending in an ellipsis.
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    amountText.isEmpty ? '0' : amountText,
+                                    maxLines: 1,
+                                    style: kNum(
+                                        amountText.isEmpty
+                                            ? AppColors.textTertiary
+                                            : AppColors.textPrimary,
+                                        size: 34),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(asset.symbol,
+                                      style: kMonoText(
+                                          AppColors.textTertiary, size: 12)),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(asset.symbol,
-                            style: kMonoText(AppColors.textTertiary, size: 12)),
-                        const Spacer(),
-                        AnimatedTap(
-                          onTap: _applyMax,
-                          pressScale: 0.92,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(border: kHairline()),
-                            child: Text('MAX',
-                                style: kLabel(AppColors.textSecondary,
-                                    size: 10, tracking: 0.14)),
+                          const SizedBox(width: 12),
+                          AnimatedTap(
+                            onTap: _applyMax,
+                            pressScale: 0.92,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(border: kHairline()),
+                              child: Text('MAX',
+                                  style: kLabel(AppColors.textSecondary,
+                                      size: 10, tracking: 0.14)),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   Padding(

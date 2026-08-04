@@ -64,7 +64,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with ThemeAwareMixin {
               embedded: true,
               onExit: () => _goTab(0),
             ),
-            const SettingsScreen(),
+            SettingsScreen(onExit: () => _goTab(0)),
           ],
         ),
         bottomNavigationBar: BottomNav(current: _tab, onTap: (i) => _goTab(i)),

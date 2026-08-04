@@ -56,25 +56,33 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
         children: [
           SizedBox(
             height: 110,
-            child: chartAsync.when(
-              loading: () => _buildSkeleton(),
-              error: (_, __) => _buildSkeleton(),
-              data: (points) {
-                if (points.isEmpty) return _buildEmpty();
-                return Stack(
-                  children: [
-                    _buildChart(points),
-                    if (_touchedIndex != null && _touchedIndex! < points.length)
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: _buildTooltip(points[_touchedIndex!]),
-                      ),
-                  ],
-                );
-              },
-            ),
+            child: Stack(children: [
+              // The baseline the prototype rules under the plot — the line has ground to
+              // stand on rather than floating in the box.
+              Positioned(
+                left: 0, right: 0, bottom: 10,
+                child: Container(height: 1, color: AppColors.border),
+              ),
+              chartAsync.when(
+                loading: () => _buildSkeleton(),
+                error: (_, __) => _buildSkeleton(),
+                data: (points) {
+                  if (points.isEmpty) return _buildEmpty();
+                  return Stack(
+                    children: [
+                      _buildChart(points),
+                      if (_touchedIndex != null && _touchedIndex! < points.length)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: _buildTooltip(points[_touchedIndex!]),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ]),
           ),
           const SizedBox(height: 12),
           // The ranges sit on their own hairline across the box's full width — each one a
@@ -102,27 +110,18 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
         opacity: _touchedIndex != null ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 120),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.zero,
-            border: Border.all(color: AppColors.border, width: 1),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.textPrimary.withValues(alpha: 0.08),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            color: AppColors.background,
+            border: Border.all(color: AppColors.borderHi, width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(dateStr,
-                  style: kBody(AppColors.textSecondary, size: 12, weight: FontWeight.w400)),
+              Text(dateStr.toUpperCase(),
+                  style: kMonoText(AppColors.textTertiary, size: 9.5)),
               const SizedBox(width: 8),
-              Text(priceStr,
-                  style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
+              Text(priceStr, style: kNum(AppColors.textPrimary, size: 12)),
             ],
           ),
         ),
@@ -220,25 +219,19 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
               },
             ),
             lineBarsData: [
+              // The prototype's line and nothing else: one stroke at 1.5, no curve fitted
+              // through the data and no gradient wash beneath it. A filled area under a
+              // price is decoration that quietly doubles the ink on a page whose whole
+              // argument is that ink means something.
               LineChartBarData(
                 spots: visibleSpots,
-                isCurved: true,
-                curveSmoothness: 0.35,
+                isCurved: false,
                 color: chartColor,
-                barWidth: 2,
+                barWidth: 1.5,
                 isStrokeCapRound: true,
+                isStrokeJoinRound: true,
                 dotData: const FlDotData(show: false),
-                belowBarData: BarAreaData(
-                  show: true,
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      chartColor.withValues(alpha: 0.25),
-                      chartColor.withValues(alpha: 0.0),
-                    ],
-                  ),
-                ),
+                belowBarData: BarAreaData(show: false),
               ),
             ],
           ),

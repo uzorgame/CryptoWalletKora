@@ -21,10 +21,19 @@ class KoraSlabel extends StatelessWidget {
 /// sign, in a form of several fields, of where the next keystroke lands. Animated over
 /// [kControl] so focus arrives rather than snaps.
 class KoraField extends StatefulWidget {
-  const KoraField({super.key, required this.child, this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 13)});
+  const KoraField({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+    this.margin = const EdgeInsets.symmetric(horizontal: 22),
+  });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
+
+  /// The screen's own gutter by default; zero where the field is already inside something
+  /// that has its own padding, such as a dialog.
+  final EdgeInsetsGeometry margin;
 
   @override
   State<KoraField> createState() => _KoraFieldState();
@@ -40,7 +49,7 @@ class _KoraFieldState extends State<KoraField> {
       child: AnimatedContainer(
         duration: kControl,
         curve: kEase,
-        margin: const EdgeInsets.symmetric(horizontal: 22),
+        margin: widget.margin,
         padding: widget.padding,
         decoration: BoxDecoration(
           color: AppColors.surface,

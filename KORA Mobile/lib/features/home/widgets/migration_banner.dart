@@ -6,8 +6,14 @@ import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
+import 'package:kora/core/widgets/pin_gate.dart';
 
 // The banner shown while the wallet's stored addresses still need migrating.
+//
+// The amber-edged bar every caution in this wallet wears, and the wallet's own PIN gate
+// behind it — not a Material dialog with an obscured text field, which was the last form of
+// its kind in the app.
 
 class MigrationBanner extends ConsumerStatefulWidget {
   const MigrationBanner({super.key, required this.assets});
@@ -29,118 +35,66 @@ class _MigrationBannerState extends ConsumerState<MigrationBanner> with ThemeAwa
 
   bool _needsMigration() => _needsAddressFix() || ref.watch(needsMigrationPinProvider);
 
-  void _showPinDialog() {
-    final pinCtrl  = TextEditingController();
-    String? errMsg;
-    bool    obscure = true;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          backgroundColor: AppColors.card,
-          title: Text('Re-derive Addresses',
-              style: kBody(AppColors.textPrimary, size: 16)),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(
-              'Enter your wallet PIN to re-derive correct addresses for LTC.',
-              style: kBody(AppColors.textSecondary, size: 13).copyWith(height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: pinCtrl,
-              obscureText: obscure,
-              keyboardType: TextInputType.number,
-              style: kBody(AppColors.textPrimary, size: 13).copyWith(letterSpacing: 4),
-              decoration: InputDecoration(
-                hintText: '• • • • • •',
-                hintStyle: kBody(AppColors.textTertiary, size: 13),
-                errorText: errMsg,
-                errorStyle: kBody(AppColors.negative, size: 11),
-                filled: true, fillColor: AppColors.background,
-                border:        OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.border)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.zero, borderSide: BorderSide(color: AppColors.textSecondary)),
-                suffixIcon: IconButton(
-                  icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: AppColors.textTertiary, size: 18),
-                  onPressed: () => setS(() => obscure = !obscure),
-                ),
-              ),
-            ),
-          ]),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('Cancel', style: kBody(AppColors.textSecondary, size: 13)),
-            ),
-            TextButton(
-              onPressed: () async {
-                final pin = pinCtrl.text.trim();
-                final ok  = await ref.read(currentWalletProvider.notifier)
-                    .refreshWalletAddresses(pin);
-                if (!ctx.mounted) return;
-                if (ok) {
-                  Navigator.of(ctx).pop();
-                  if (mounted) setState(() => _dismissed = true);
-                } else {
-                  setS(() => errMsg = 'Incorrect PIN');
-                }
-              },
-              child: Text('Update', style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
-            ),
-          ],
-        ),
-      ),
+  Future<void> _askAndFix() async {
+    final pin = await askAppPinValue(
+      context,
+      title: 'Update addresses',
+      explanation: 'Enter your app PIN so this wallet can re-derive its addresses.',
     );
+    if (pin == null || !mounted) return;
+    final ok = await ref.read(currentWalletProvider.notifier)
+        .refreshWalletAddresses(pin);
+    if (!mounted) return;
+    if (ok) {
+      setState(() => _dismissed = true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not update addresses')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final needsFullMigration = ref.watch(needsMigrationPinProvider);
-    // Auto-show PIN dialog once when full migration requires the real PIN
+    // Ask once, unprompted, when the wallet cannot finish setting itself up without the PIN.
     if (needsFullMigration && !_autoDialogShown) {
       _autoDialogShown = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _showPinDialog();
+        if (mounted) _askAndFix();
       });
     }
     if (_dismissed || !_needsMigration()) return const SizedBox.shrink();
     final label = needsFullMigration
         ? 'Wallet initialisation requires your PIN.'
         : 'LTC addresses need to be updated.';
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.zero,
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1),
-      ),
-      child: Row(children: [
-        Icon(Icons.update_rounded, color: AppColors.warning, size: 16),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            label,
-            style: kBody(AppColors.warning, size: 12),
-          ),
-        ),
-        const SizedBox(width: 6),
-        AnimatedTap(
-          onTap: _showPinDialog,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.zero,
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 14, 0, 0),
+      child: Stack(children: [
+        KoraWarn(label, margin: const EdgeInsets.symmetric(horizontal: 22)),
+        Positioned(
+          right: 22, top: 0, bottom: 0,
+          child: Row(children: [
+            AnimatedTap(
+              onTap: _askAndFix,
+              pressOpacity: 0.7,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text('FIX',
+                    style: kLabel(AppColors.warning, size: 9.5, tracking: 0.16)),
+              ),
             ),
-            child: Text('Fix', style: kBody(AppColors.warning, size: 12, weight: FontWeight.w600)),
-          ),
-        ),
-        const SizedBox(width: 6),
-        AnimatedTap(
-          onTap: () => setState(() => _dismissed = true),
-          child: Icon(Icons.close_rounded, color: AppColors.textTertiary, size: 16),
+            AnimatedTap(
+              onTap: () => setState(() => _dismissed = true),
+              pressScale: 0.85,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4, right: 2),
+                child: Icon(Icons.close_rounded,
+                    color: AppColors.textTertiary, size: 15),
+              ),
+            ),
+          ]),
         ),
       ]),
     );

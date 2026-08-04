@@ -232,20 +232,23 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('${asset.symbol} · ${asset.name.toUpperCase()}',
                   style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16)),
-              const SizedBox(height: 10),
-              Text(asset.formattedBalance,
-                  style: kNum(AppColors.textPrimary, size: 32)),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
+              Text('${asset.formattedBalance} ${asset.symbol}',
+                  style: kNum(AppColors.textPrimary, size: 34)),
+              const SizedBox(height: 8),
+              // The move says over what — a percentage with no period beside it is half a
+              // fact, and this is the one line on the page that reports a change.
               Row(crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Text(asset.formattedPriceChange,
-                        style: kMonoText(
-                            isUp ? AppColors.positive : AppColors.negative, size: 11)),
-                    const SizedBox(width: 12),
+                    Text('${asset.formattedPriceChange} · 24H',
+                        style: kLabel(
+                            isUp ? AppColors.positive : AppColors.negative,
+                            size: 11, tracking: 0.08, weight: FontWeight.w400)),
+                    const SizedBox(width: 14),
                     Text(currency.formatAmount(asset.balanceInUsd),
                         style: kMonoText(AppColors.textSecondary, size: 11)),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Flexible(
                       child: Text(
                           '${currency.formatPrice(asset.priceUsd)} / ${asset.symbol}',

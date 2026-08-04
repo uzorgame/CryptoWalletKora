@@ -7,6 +7,7 @@ import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
+import 'package:kora/core/widgets/kora_field.dart';
 import 'package:kora/core/widgets/kora_rows.dart';
 import 'package:kora/core/widgets/pin_gate.dart';
 import 'package:kora/features/home/wallet_switcher/add_wallet_sheet.dart';
@@ -179,50 +180,42 @@ class _WalletSwitcherSheetState extends ConsumerState<WalletSwitcherSheet> with 
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.card,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        title: Text('Rename Wallet',
-            style: kBody(AppColors.textPrimary, size: 13, weight: FontWeight.w600)),
-        content: TextFormField(
-          initialValue: currentName,
-          autofocus: true,
-          maxLength: 32,
-          style: kBody(AppColors.textPrimary, size: 13),
-          onChanged: (v) => nameValue = v,
-          onFieldSubmitted: (_) {
-            confirmed = true;
-            Navigator.of(ctx).pop();
-          },
-          decoration: InputDecoration(
-            hintText: 'Wallet name',
-            hintStyle: kBody(AppColors.textTertiary, size: 13),
-            filled: true,
-            fillColor: AppColors.surface,
-            counterStyle: kBody(AppColors.textTertiary, size: 13),
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.zero,
-                borderSide: BorderSide(color: AppColors.border)),
-            enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.zero,
-                borderSide: BorderSide(color: AppColors.border)),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.zero,
-                borderSide: BorderSide(color: AppColors.accent, width: 1.5)),
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(
+            side: BorderSide(color: AppColors.borderHi, width: 1),
+            borderRadius: BorderRadius.zero),
+        contentPadding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+        title: Text('RENAME WALLET',
+            style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.16)),
+        content: KoraField(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          margin: EdgeInsets.zero,
+          child: TextFormField(
+            initialValue: currentName,
+            autofocus: true,
+            maxLength: 32,
+            style: koraInputStyle(),
+            onChanged: (v) => nameValue = v,
+            onFieldSubmitted: (_) {
+              confirmed = true;
+              Navigator.of(ctx).pop();
+            },
+            decoration: koraInputDecoration('WALLET NAME').copyWith(counterText: ''),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Cancel',
-                style: kBody(AppColors.textSecondary, size: 13)),
+            child: Text('CANCEL',
+                style: kLabel(AppColors.textSecondary, size: 9.5, tracking: 0.16)),
           ),
           TextButton(
             onPressed: () {
               confirmed = true;
               Navigator.of(ctx).pop();
             },
-            child: Text('Save',
-                style: kBody(AppColors.accent, size: 13, weight: FontWeight.w600)),
+            child: Text('SAVE',
+                style: kLabel(AppColors.textPrimary, size: 9.5, tracking: 0.16)),
           ),
         ],
       ),
