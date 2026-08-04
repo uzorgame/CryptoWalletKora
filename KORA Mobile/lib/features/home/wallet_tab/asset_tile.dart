@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/state/providers/currency_provider.dart';
-import 'package:kora/core/widgets/chips/coin_icon.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
+import 'package:kora/core/widgets/kora_mask.dart';
 
-// One asset in the wallet tab's list.
-
+// One asset in the wallet tab's list — a hairline table row, not a card.
+//
+// The symbol leads in tracked mono with the full name grey beside it; the catalog's names
+// already carry the network where it matters ("Tether (Tron)"), which is why no separate
+// network chip survives here. The 24h move sits with the price, coloured by direction, the
+// way the desktop table prints it.
 class AssetTile extends StatelessWidget {
   const AssetTile({super.key, required this.asset, required this.visible,
       required this.currency, required this.onTap});
@@ -17,58 +22,66 @@ class AssetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isUp = asset.priceChange24h >= 0;
+    final sign = isUp ? '+' : '−';
+
     return AnimatedTap(
       onTap: onTap,
-      pressScale: 0.97,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border, width: 0.5),
-          ),
-          child: Row(children: [
-            CoinIcon(symbol: asset.symbol, iconUrl: asset.iconUrl, size: 40),
-            const SizedBox(width: 12),
-            // Symbol + network badge on same row, price per unit below
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  Text(asset.symbol,
-                      style: TextStyle(
-                          color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(4),
+      pressScale: 0.98,
+      pressOpacity: 0.85,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+        decoration: BoxDecoration(border: Border(bottom: kHairlineSide())),
+        child: Row(children: [
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(asset.symbol,
+                        style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
+                    const SizedBox(width: 7),
+                    Flexible(
+                      child: Text(asset.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: kBody(AppColors.textSecondary, size: 11)),
                     ),
-                    child: Text(_networkLabel(asset.blockchain),
-                        style: TextStyle(
-                            color: AppColors.textTertiary, fontSize: 10, fontWeight: FontWeight.w500)),
-                  ),
-                ]),
-                const SizedBox(height: 3),
-                Text(visible ? currency.formatPrice(asset.priceUsd) : '••••',
-                    style: TextStyle(
-                        color: AppColors.textSecondary, fontSize: 12)),
+                  ]),
+              const SizedBox(height: 5),
+              Row(children: [
+                Text(currency.formatPrice(asset.priceUsd),
+                    style: kMonoText(AppColors.textSecondary, size: 10)),
+                Text(' · ', style: kMonoText(AppColors.textTertiary, size: 10)),
+                Text('$sign${asset.priceChange24h.abs().toStringAsFixed(2)}%',
+                    style: kMonoText(
+                        isUp ? AppColors.positive : AppColors.negative, size: 10)),
               ]),
-            ),
-            // Balance quantity + total value
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text(visible ? _formatAmount(asset.balanceAsDouble) : '••••',
-                  style: TextStyle(
-                      color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 3),
-              Text(visible ? currency.formatPrice(asset.balanceInUsd) : '••••',
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12)),
             ]),
+          ),
+          Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            if (visible)
+              Row(crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(_formatAmount(asset.balanceAsDouble),
+                        style: kNum(AppColors.textPrimary, size: 13.5)),
+                    const SizedBox(width: 5),
+                    Text(asset.symbol,
+                        style: kBody(AppColors.textSecondary, size: 10)),
+                  ])
+            else
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 4),
+                child: KoraMask(count: 4, size: 6),
+              ),
+            const SizedBox(height: 5),
+            if (visible)
+              Text(currency.formatPrice(asset.balanceInUsd),
+                  style: kMonoText(AppColors.textSecondary, size: 10))
+            else
+              KoraMask(count: 4, size: 5, color: AppColors.textSecondary),
           ]),
-        ),
+        ]),
       ),
     );
   }
@@ -80,19 +93,5 @@ class AssetTile extends StatelessWidget {
     if (value >= 1000) return value.toStringAsFixed(2);
     final s = value.toStringAsFixed(6);
     return s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
-  }
-
-  String _networkLabel(String blockchain) {
-    const labels = <String, String>{
-      'bitcoin':          'Bitcoin',
-      'ethereum':         'Ethereum',
-      'solana':           'Solana',
-      'bsc':              'BNB Smart Chain',
-      'tron':             'Tron',
-      'litecoin':         'Litecoin',
-      'bitcoin_cash':     'Bitcoin Cash',
-      'ethereum_classic': 'ETC',
-    };
-    return labels[blockchain] ?? blockchain;
   }
 }

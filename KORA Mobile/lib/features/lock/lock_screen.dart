@@ -7,6 +7,8 @@ import 'package:kora/core/services/biometric_service.dart';
 import 'package:kora/core/services/lock_service.dart';
 import 'package:kora/core/services/storage_service.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_mark.dart';
 import 'package:kora/core/widgets/input/numpad.dart';
 
 class LockScreen extends ConsumerStatefulWidget {
@@ -136,48 +138,29 @@ class _LockScreenState extends ConsumerState<LockScreen>
             child: Column(
               children: [
                 const Spacer(flex: 2),
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: AppColors.textPrimary,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Icon(Icons.account_balance_wallet_rounded,
-                      color: AppColors.background, size: 36),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Kora',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.8,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Enter PIN to unlock',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                ),
+                const KoraMark(size: 64),
+                const SizedBox(height: 26),
+                Text('ENTER PIN',
+                    style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.2)),
+                const SizedBox(height: 8),
+                Text('UNLOCK YOUR WALLET',
+                    style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.14)),
                 const Spacer(flex: 2),
-                // PIN dots
+                // PIN squares — this application has no circles in it.
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(6, (i) {
                     final filled = i < _pin.length;
                     return AnimatedContainer(
                       duration: const Duration(milliseconds: 120),
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      width: 14,
-                      height: 14,
+                      margin: const EdgeInsets.symmetric(horizontal: 6),
+                      width: 10,
+                      height: 10,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
                         color: filled ? AppColors.textPrimary : Colors.transparent,
                         border: Border.all(
-                          color: filled ? AppColors.textPrimary : AppColors.textTertiary,
-                          width: 1.5,
+                          color: filled ? AppColors.textPrimary : AppColors.borderHi,
+                          width: 1,
                         ),
                       ),
                     );

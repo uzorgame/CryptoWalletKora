@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 
-// The PIN pad. Digits, backspace, and an optional biometric slot — the lock screen's
-// keyboard, kept in the library so the send flow's twin can fold into it when the redesign
-// unifies them.
-
+// The PIN pad — a hairline grid whose one-pixel gaps are the border colour showing through,
+// the same construction as every joined control in this language. Digits set in the display
+// face. The API is untouched: digits, backspace, an optional biometric slot, and a loading
+// flag that deadens the keys while a verification is in flight.
 class Numpad extends StatelessWidget {
   const Numpad({
     super.key,
@@ -22,96 +23,76 @@ class Numpad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildRow(['1', '2', '3']),
-        const SizedBox(height: 12),
-        _buildRow(['4', '5', '6']),
-        const SizedBox(height: 12),
-        _buildRow(['7', '8', '9']),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            SizedBox(
-              width: 72, height: 72,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 22),
+      decoration: BoxDecoration(color: AppColors.border, border: kHairline()),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _row(['1', '2', '3']),
+          const SizedBox(height: 1),
+          _row(['4', '5', '6']),
+          const SizedBox(height: 1),
+          _row(['7', '8', '9']),
+          const SizedBox(height: 1),
+          Row(children: [
+            Expanded(
               child: onBiometric != null
-                  ? _NumBtn(
+                  ? _Key(
                       onTap: loading ? null : onBiometric,
                       child: Icon(Icons.fingerprint_rounded,
-                          color: AppColors.textSecondary, size: 28),
+                          color: AppColors.textSecondary, size: 22),
                     )
-                  : const SizedBox.shrink(),
+                  : const _Key(onTap: null, child: SizedBox.shrink()),
             ),
-            _NumBtn(
-              label: '0',
-              onTap: loading ? null : () => onDigit('0'),
-            ),
-            SizedBox(
-              width: 72, height: 72,
-              child: _NumBtn(
-                onTap: loading ? null : onBackspace,
-                child: loading
-                    ? SizedBox(
-                        width: 18, height: 18,
-                        child: CircularProgressIndicator(
-                            color: AppColors.textPrimary, strokeWidth: 2))
-                    : Icon(Icons.backspace_outlined,
-                        color: AppColors.textSecondary, size: 22),
+            const SizedBox(width: 1),
+            Expanded(
+              child: _Key(
+                onTap: loading ? null : () => onDigit('0'),
+                child: Text('0', style: kNum(AppColors.textPrimary, size: 19)),
               ),
             ),
-          ],
-        ),
-      ],
+            const SizedBox(width: 1),
+            Expanded(
+              child: _Key(
+                onTap: loading ? null : onBackspace,
+                child: Icon(Icons.backspace_outlined,
+                    color: AppColors.textPrimary, size: 19),
+              ),
+            ),
+          ]),
+        ],
+      ),
     );
   }
 
-  Widget _buildRow(List<String> digits) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: digits
-          .map((d) => _NumBtn(
-                label: d,
-                onTap: loading ? null : () => onDigit(d),
-              ))
-          .toList(),
-    );
-  }
+  Widget _row(List<String> digits) => Row(children: [
+        for (final (i, d) in digits.indexed) ...[
+          if (i > 0) const SizedBox(width: 1),
+          Expanded(
+            child: _Key(
+              onTap: loading ? null : () => onDigit(d),
+              child: Text(d, style: kNum(AppColors.textPrimary, size: 19)),
+            ),
+          ),
+        ],
+      ]);
 }
 
-class _NumBtn extends StatelessWidget {
-  const _NumBtn({this.label, this.child, this.onTap});
-  final String? label;
-  final Widget? child;
+class _Key extends StatelessWidget {
+  const _Key({required this.onTap, required this.child});
   final VoidCallback? onTap;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedTap(
-      onTap: onTap,
-      pressScale: 0.88,
-      pressOpacity: 0.65,
-      child: Container(
-        width: 72,
-        height: 72,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.surface,
-        ),
-        child: Center(
-          child: label != null
-              ? Text(
-                  label!,
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w400,
-                  ),
-                )
-              : child,
-        ),
-      ),
+    final key = Container(
+      height: 54,
+      color: AppColors.background,
+      alignment: Alignment.center,
+      child: child,
     );
+    if (onTap == null) return key;
+    return AnimatedTap(onTap: onTap, pressScale: 0.94, pressOpacity: 0.75, child: key);
   }
 }

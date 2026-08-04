@@ -5,6 +5,7 @@ import 'package:kora/core/state/providers/currency_provider.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/features/add_token/add_token_screen.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/features/asset_detail/asset_detail_screen.dart';
 import 'package:kora/core/constants/token_catalog.dart';
@@ -179,51 +180,30 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
             SliverToBoxAdapter(child: MigrationBanner(assets: assets)),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 16, 8),
+                padding: const EdgeInsets.fromLTRB(22, 24, 22, 10),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Expanded(
-                      child: Text('Assets',
-                          style: Theme.of(context).textTheme.headlineSmall),
-                    ),
-                    // Sort button
+                    Text('ASSETS',
+                        style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.18)),
+                    const Spacer(),
+                    // The aside is the sort control; when a sort other than the default is
+                    // active it brightens, which is the whole of its active state.
                     AnimatedTap(
                       onTap: () { _showSortSheet(); },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: _sortMode != SortMode.popularity
-                            ? AppColors.cardElevated
-                            : AppColors.card,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: _sortMode != SortMode.popularity
-                                  ? AppColors.textPrimary.withValues(alpha: 0.3)
-                                  : AppColors.border,
-                              width: _sortMode != SortMode.popularity ? 1.0 : 0.5),
-                        ),
-                        child: Icon(Icons.sort_rounded,
-                            color: _sortMode != SortMode.popularity
-                                ? AppColors.textPrimary
-                                : AppColors.textSecondary,
-                            size: 18),
-                      ),
+                      child: Text('${sorted.length} POSITIONS · SORT',
+                          style: kLabel(
+                              _sortMode != SortMode.popularity
+                                  ? AppColors.textPrimary
+                                  : AppColors.textTertiary,
+                              size: 9.5, tracking: 0.1)),
                     ),
-                    const SizedBox(width: 8),
-                    // Add token button
+                    const SizedBox(width: 14),
                     AnimatedTap(
                       onTap: () { context.pushSlide(const AddTokenScreen()); },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: AppColors.border, width: 0.5),
-                        ),
-                        child: Icon(Icons.add_rounded,
-                            color: AppColors.textSecondary, size: 18),
-                      ),
+                      child: Text('+ ADD',
+                          style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.1)),
                     ),
                   ],
                 ),
