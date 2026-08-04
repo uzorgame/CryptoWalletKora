@@ -8,7 +8,8 @@ import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/chips/coin_icon.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
 
 class ReceiveScreen extends ConsumerStatefulWidget {
   const ReceiveScreen({super.key, this.preselectedAsset});
@@ -53,14 +54,8 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> with ThemeAwareMi
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text('Receive'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: koraAppBar(context, 'Receive',
+          onBack: () => Navigator.of(context).pop()),
       body: walletAsync.when(
         loading: () => Center(child: CircularProgressIndicator(color: AppColors.textPrimary, strokeWidth: 1.5)),
         error: (e, _) => Center(child: Text('Error: $e', style: TextStyle(color: Colors.red))),
@@ -84,52 +79,56 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> with ThemeAwareMi
               : _uniqueBlockchainAssets(assets);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              // Asset tabs — only shown when not locked to a specific asset
+              // The chips join into one segment, the chosen asset inverted — the same
+              // control the fee tiers use.
               if (!locked && tabs.length > 1)
-                SizedBox(
-                  height: 36,
-                  child: ListView.separated(
+                Container(
+                  margin: const EdgeInsets.fromLTRB(22, 14, 22, 0),
+                  decoration: BoxDecoration(color: AppColors.border, border: kHairline()),
+                  child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    itemCount: tabs.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (_, i) {
-                      final a   = tabs[i];
-                      final sel = (a.id == _selected?.id);
-                      return AnimatedTap(
-                        onTap: () => setState(() => _selected = a),
-                        pressScale: 0.92,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: sel ? AppColors.textPrimary : AppColors.surface,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: sel ? AppColors.textPrimary : AppColors.border, width: 0.5),
+                    child: IntrinsicHeight(
+                      child: Row(children: [
+                        for (final (i, a) in tabs.indexed) ...[
+                          if (i > 0) const SizedBox(width: 1),
+                          AnimatedTap(
+                            onTap: () => setState(() => _selected = a),
+                            pressScale: 0.95,
+                            child: AnimatedContainer(
+                              duration: kControl,
+                              curve: kEase,
+                              constraints: const BoxConstraints(minWidth: 58),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              color: a.id == _selected?.id
+                                  ? AppColors.textPrimary
+                                  : AppColors.background,
+                              alignment: Alignment.center,
+                              child: Text(a.symbol,
+                                  style: kLabel(
+                                    a.id == _selected?.id
+                                        ? AppColors.background
+                                        : AppColors.textTertiary,
+                                    size: 9.5, tracking: 0.1)),
+                            ),
                           ),
-                          child: Text(a.symbol,
-                              style: TextStyle(
-                                  color: sel ? AppColors.background : AppColors.textSecondary,
-                                  fontSize: 13, fontWeight: FontWeight.w600)),
-                        ),
-                      );
-                    },
+                        ],
+                      ]),
+                    ),
                   ),
                 ),
-              const SizedBox(height: 32),
 
-              // QR Code + Asset Info with smooth transition
+              // The QR and what it is, swapped together on the house curve.
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                switchInCurve: Curves.easeOut,
-                switchOutCurve: Curves.easeIn,
+                duration: const Duration(milliseconds: 240),
+                switchInCurve: kEase,
+                switchOutCurve: kEase,
                 transitionBuilder: (child, animation) {
                   return FadeTransition(
                     opacity: animation,
                     child: SlideTransition(
                       position: Tween<Offset>(
-                        begin: const Offset(0, 0.02),
+                        begin: const Offset(0, 0.012),
                         end: Offset.zero,
                       ).animate(animation),
                       child: child,
@@ -140,158 +139,130 @@ class _ReceiveScreenState extends ConsumerState<ReceiveScreen> with ThemeAwareMi
                   key: ValueKey(_selected?.id ?? 'empty'),
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // QR Code
-                    if (address.isNotEmpty)
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: QrImageView(
-                            data: address,
-                            version: QrVersions.auto,
-                            size: 200,
-                            backgroundColor: Colors.white,
-                            eyeStyle: QrEyeStyle(
-                                eyeShape: QrEyeShape.square, color: Colors.black),
-                            dataModuleStyle: QrDataModuleStyle(
-                                dataModuleShape: QrDataModuleShape.square,
-                                color: Colors.black),
-                          ),
+                    // The asset and its network in one line: what to send, and where.
+                    // Never one without the other — an address is only correct on its chain.
+                    if (_selected != null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
+                        child: Text(
+                          '${_selected!.symbol} · ${_networkLabel(_selected!.blockchain).toUpperCase()} NETWORK',
+                          textAlign: TextAlign.center,
+                          style: kLabel(AppColors.textPrimary, size: 10.5, tracking: 0.16),
                         ),
                       ),
-                    const SizedBox(height: 20),
-
-                    // Coin + network info card
-                    if (_selected != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border, width: 0.5),
-                        ),
-                        child: Row(children: [
-                          CoinIcon(
-                            symbol: _selected!.symbol,
-                            iconUrl: _selected!.iconUrl,
-                            size: 44,
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _selected!.symbol,
-                                  style: TextStyle(
-                                      color: AppColors.textPrimary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700),
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  _networkLabel(_selected!.blockchain),
-                                  style: TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 12),
-                                ),
-                              ],
+                    if (address.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: kHairline(),
+                            ),
+                            child: QrImageView(
+                              data: address,
+                              version: QrVersions.auto,
+                              size: 200,
+                              backgroundColor: Colors.white,
+                              eyeStyle: QrEyeStyle(
+                                  eyeShape: QrEyeShape.square, color: Colors.black),
+                              dataModuleStyle: QrDataModuleStyle(
+                                  dataModuleShape: QrDataModuleShape.square,
+                                  color: Colors.black),
                             ),
                           ),
-                        ]),
+                        ),
                       ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
 
-              // Address display
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.border, width: 0.5),
-                ),
-                child: Column(children: [
-                  Text(
-                    address,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: AppColors.textPrimary, fontSize: 13,
-                        fontWeight: FontWeight.w500, letterSpacing: 0.3, height: 1.5),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 16),
-
-              // Copy button
-              FilledButton.icon(
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: address));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Address copied to clipboard')));
-                },
-                icon: Icon(Icons.copy_rounded, size: 18),
-                label: Text('Copy Address'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.textPrimary,
-                  foregroundColor: AppColors.background,
-                  minimumSize: Size(double.infinity, 52),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  textStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              // The address itself, in mono — the one string that must be transcribed exactly.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(34, 18, 34, 0),
+                child: Text(
+                  address,
+                  textAlign: TextAlign.center,
+                  style: kMonoText(AppColors.textSecondary, size: 10.5).copyWith(height: 1.8),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
-              // Critical: ETH-fallback address for unsupported chain
-              if (_selected != null && _isEthFallback(_selected!))
-                Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.negative.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.negative.withValues(alpha: 0.4), width: 0.5),
-                  ),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Icon(Icons.error_outline_rounded, color: AppColors.negative, size: 18),
-                    const SizedBox(width: 10),
+              // Copy and Share as one joined group, Copy suggested.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: Container(
+                  decoration: BoxDecoration(color: AppColors.border, border: kHairline()),
+                  child: Row(children: [
                     Expanded(
-                      child: Text(
-                        '⚠ ${_selected!.blockchain.toUpperCase()} is not yet fully supported. '
-                        'The address below is a placeholder in ETH format and '
-                        'CANNOT actually receive ${_selected!.symbol}. '
-                        'Do NOT share this address for receiving funds.',
-                        style: TextStyle(
-                            color: AppColors.negative, fontSize: 12, height: 1.5),
+                      child: AnimatedTap(
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(text: address));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Address copied to clipboard')));
+                        },
+                        pressScale: 0.96,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          color: AppColors.textPrimary,
+                          alignment: Alignment.center,
+                          child: Text('COPY ADDRESS',
+                              style: kLabel(AppColors.background, size: 10.5, tracking: 0.16)),
+                        ),
                       ),
                     ),
                   ]),
                 ),
+              ),
+              const SizedBox(height: 20),
 
-              // Normal warning
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 0.5),
-                ),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 18),
-                  const SizedBox(width: 10),
-                  Expanded(
+              // Critical: ETH-fallback address for unsupported chain
+              if (_selected != null && _isEthFallback(_selected!))
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 0, 22, 12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(13, 11, 13, 11),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        left: BorderSide(color: AppColors.negative, width: 2),
+                        top: kHairlineSide(), right: kHairlineSide(), bottom: kHairlineSide(),
+                      ),
+                    ),
                     child: Text(
-                      'Only send ${_selected?.symbol ?? 'assets'} to this address. Sending other assets may result in permanent loss.',
-                      style: TextStyle(
-                          color: AppColors.warning, fontSize: 12, height: 1.5),
+                      '${_selected!.blockchain.toUpperCase()} IS NOT YET FULLY SUPPORTED. '
+                      'THE ADDRESS ABOVE IS A PLACEHOLDER IN ETH FORMAT AND '
+                      'CANNOT ACTUALLY RECEIVE ${_selected!.symbol}. '
+                      'DO NOT SHARE THIS ADDRESS FOR RECEIVING FUNDS.',
+                      style: kLabel(AppColors.negative, size: 8.5, tracking: 0.08,
+                              weight: FontWeight.w400)
+                          .copyWith(height: 1.8),
                     ),
                   ),
-                ]),
+                ),
+
+              // Normal warning — names the asset and the network it lives on.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 26),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(13, 11, 13, 11),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(color: AppColors.warning, width: 2),
+                      top: kHairlineSide(), right: kHairlineSide(), bottom: kHairlineSide(),
+                    ),
+                  ),
+                  child: Text(
+                    'SEND ONLY ${_selected?.symbol ?? 'ASSETS'} ON THE '
+                    '${_networkLabel(_selected?.blockchain ?? '').toUpperCase()} NETWORK. '
+                    'OTHER ASSETS MAY BE LOST PERMANENTLY.',
+                    style: kLabel(AppColors.warning, size: 8.5, tracking: 0.08,
+                            weight: FontWeight.w400)
+                        .copyWith(height: 1.8),
+                  ),
+                ),
               ),
             ]),
           );

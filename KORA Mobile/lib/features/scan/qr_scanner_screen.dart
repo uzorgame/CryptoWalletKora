@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:kora/core/theme/kora_design.dart';
 
 /// Full-screen QR scanner. Returns the scanned string via Navigator.pop.
 class QrScannerScreen extends StatefulWidget {
@@ -53,11 +54,14 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: const Text('Scan QR Code', style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+        centerTitle: true,
+        title: Text('SCAN QR CODE',
+            style: kLabel(Colors.white, size: 11, tracking: 0.18)),
+        iconTheme: const IconThemeData(color: Colors.white, size: 18),
         actions: [
           IconButton(
-            icon: const Icon(Icons.flash_on_rounded),
+            icon: const Icon(Icons.flash_on_rounded, size: 19),
             onPressed: () => _ctrl.toggleTorch(),
             tooltip: 'Toggle flash',
           ),
@@ -75,16 +79,9 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
           bottom: 60,
           left: 0, right: 0,
           child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Text(
-                'Align QR code within the frame',
-                style: TextStyle(color: Colors.white, fontSize: 13),
-              ),
+            child: Text(
+              'ALIGN QR CODE WITHIN THE FRAME',
+              style: kLabel(Colors.white70, size: 9.5, tracking: 0.16),
             ),
           ),
         ),
@@ -117,19 +114,21 @@ class _OverlayPainter extends CustomPainter {
       Path.combine(
         PathOperation.difference,
         Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
-        Path()..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(16))),
+        Path()..addRect(rect),
       ),
       dimPaint,
     );
 
     // Corner brackets
-    const cLen = 28.0;
-    const cW   = 3.5;
+    // Square brackets, butt-capped: the finder has no rounded corner anywhere else in
+    // this application either.
+    const cLen = 40.0;
+    const cW   = 1.5;
     final cPaint = Paint()
       ..color = Colors.white
       ..strokeWidth = cW
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.butt;
     final r = rect;
 
     // Top-left
