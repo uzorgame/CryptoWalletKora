@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
 
 /// A hidden figure: a run of small squares where the number was.
@@ -26,22 +27,35 @@ class KoraMask extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ink = color ?? AppColors.textPrimary;
     final box = textSize * 0.42;
-    return SizedBox(
-      // The line height display numerals carry (kNum uses 1.1); reserving it keeps every
-      // element under a hidden balance exactly where it was.
-      height: textSize * 1.1,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          for (var i = 0; i < count; i++) ...[
-            if (i > 0) SizedBox(width: box * 0.55),
-            Container(width: box, height: box, color: ink),
-          ],
-        ],
-      ),
+    // Subscribes to the theme itself.
+    //
+    // A mask is placed as a `const` widget wherever the count and size are fixed, which is
+    // most places — and a const widget is never rebuilt, so it kept whatever ink it was
+    // first painted with. Switch to the light theme with balances hidden and the squares
+    // stayed the dark theme's near-white, which on a white page is barely there. Reading
+    // AppColors inside a ListenableBuilder makes the colour follow the theme no matter how
+    // the widget above it was constructed.
+    return ListenableBuilder(
+      listenable: ThemeNotifier.instance,
+      builder: (_, __) {
+        final ink = color ?? AppColors.textPrimary;
+        return SizedBox(
+          // The line height display numerals carry (kNum uses 1.1); reserving it keeps
+          // every element under a hidden balance exactly where it was.
+          height: textSize * 1.1,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              for (var i = 0; i < count; i++) ...[
+                if (i > 0) SizedBox(width: box * 0.55),
+                Container(width: box, height: box, color: ink),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }
