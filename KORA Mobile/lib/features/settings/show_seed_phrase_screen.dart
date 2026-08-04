@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
+import 'package:kora/core/widgets/kora_button.dart';
 
 class ShowSeedPhraseScreen extends ConsumerStatefulWidget {
   const ShowSeedPhraseScreen({super.key, required this.seedPhrase});
@@ -22,66 +25,45 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text('Recovery Phrase',
-            style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w600)),
-      ),
+      appBar: koraAppBar(context, 'Recovery Phrase',
+          onBack: () => Navigator.of(context).pop()),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(22, 18, 22, 22),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Warning banner
             Container(
-              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(13, 11, 13, 11),
               decoration: BoxDecoration(
-                color: AppColors.negative.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.zero,
-                border: Border.all(color: AppColors.negative.withValues(alpha: 0.3), width: 1),
+                border: Border(
+                  left: BorderSide(color: AppColors.negative, width: 2),
+                  top: kHairlineSide(), right: kHairlineSide(), bottom: kHairlineSide(),
+                ),
               ),
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.warning_rounded, color: AppColors.negative, size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Never share your recovery phrase',
-                            style: TextStyle(
-                                color: AppColors.negative,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Anyone with your recovery phrase can access your wallet and steal your funds. Never share it with anyone.',
-                          style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 13,
-                              height: 1.4),
-                        ),
-                      ],
-                    ),
+                  Text('NEVER SHARE YOUR RECOVERY PHRASE',
+                      style: kLabel(AppColors.negative, size: 9.5, tracking: 0.12)),
+                  const SizedBox(height: 6),
+                  Text(
+                    'ANYONE WITH YOUR RECOVERY PHRASE CAN ACCESS YOUR WALLET AND STEAL YOUR FUNDS.',
+                    style: kLabel(AppColors.textTertiary, size: 8.5, tracking: 0.08,
+                            weight: FontWeight.w400)
+                        .copyWith(height: 1.8),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Seed phrase display
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(_isRevealed ? 0 : 26),
               decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.zero,
-                border: Border.all(color: AppColors.border, width: 1),
+                border: _isRevealed ? null : kHairline(),
               ),
               child: Column(
                 children: [
@@ -89,69 +71,53 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
                     Column(
                       children: [
                         Icon(Icons.visibility_off_rounded,
-                            color: AppColors.textSecondary, size: 48),
-                        const SizedBox(height: 16),
-                        Text('Tap to reveal your recovery phrase',
-                            style: TextStyle(
-                                color: AppColors.textSecondary, fontSize: 14)),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () => setState(() => _isRevealed = true),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.textPrimary,
-                            foregroundColor: AppColors.background,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 32, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.zero),
-                          ),
-                          child: Text('Reveal Phrase',
-                              style: TextStyle(
-                                  fontSize: 15, fontWeight: FontWeight.w600)),
+                            color: AppColors.textTertiary, size: 22),
+                        const SizedBox(height: 14),
+                        Text('TAP TO REVEAL YOUR RECOVERY PHRASE',
+                            textAlign: TextAlign.center,
+                            style: kLabel(AppColors.textTertiary, size: 9.5,
+                                tracking: 0.14)),
+                        const SizedBox(height: 18),
+                        KoraCta(
+                          label: 'Reveal Phrase',
+                          onTap: () => setState(() => _isRevealed = true),
                         ),
                       ],
                     )
                   else
-                    GridView.builder(
+                    Container(
+                      decoration:
+                          BoxDecoration(color: AppColors.border, border: kHairline()),
+                      child: GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
-                        childAspectRatio: 2.5,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
+                        childAspectRatio: 2.9,
+                        crossAxisSpacing: 1,
+                        mainAxisSpacing: 1,
                       ),
                       itemCount: words.length,
                       itemBuilder: (context, index) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.zero,
-                            border: Border.all(
-                                color: AppColors.border, width: 1),
-                          ),
+                          color: AppColors.background,
+                          padding: const EdgeInsets.symmetric(horizontal: 9),
                           child: Row(
                             children: [
-                              Text('${index + 1}.',
-                                  style: TextStyle(
-                                      color: AppColors.textTertiary,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(width: 4),
+                              Text((index + 1).toString().padLeft(2, '0'),
+                                  style: kMonoText(AppColors.textTertiary, size: 8.5)),
+                              const SizedBox(width: 7),
                               Expanded(
                                 child: Text(words[index],
-                                    style: TextStyle(
-                                        color: AppColors.textPrimary,
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500),
+                                    style: kMonoText(AppColors.textPrimary, size: 10.5,
+                                        weight: FontWeight.w500),
                                     overflow: TextOverflow.ellipsis),
                               ),
                             ],
                           ),
                         );
                       },
+                    ),
                     ),
                 ],
               ),
@@ -160,31 +126,17 @@ class _ShowSeedPhraseScreenState extends ConsumerState<ShowSeedPhraseScreen> wit
             if (_isRevealed) ...[
               const SizedBox(height: 20),
               // Copy button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: widget.seedPhrase));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Recovery phrase copied to clipboard'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  icon: Icon(Icons.copy_rounded, size: 18),
-                  label: Text('Copy to Clipboard',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.card,
-                    foregroundColor: AppColors.textPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                      side: BorderSide(color: AppColors.border, width: 1),
+              KoraGhost(
+                label: 'Copy to Clipboard',
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: widget.seedPhrase));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Recovery phrase copied to clipboard'),
+                      duration: const Duration(seconds: 2),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ],
 
