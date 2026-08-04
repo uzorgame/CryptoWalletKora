@@ -4,6 +4,9 @@ import 'package:kora/core/constants/token_catalog.dart';
 import 'package:kora/core/state/providers/wallet_provider.dart';
 import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
+import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_app_bar.dart';
+import 'package:kora/core/widgets/kora_field.dart';
 import 'package:kora/features/add_token/widgets/network_filter.dart';
 import 'package:kora/features/add_token/widgets/token_row.dart';
 
@@ -77,24 +80,18 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        title: Text('Add Token'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: koraAppBar(context, 'Add Token',
+          onBack: () => Navigator.of(context).pop()),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Network filter ─────────────────────────────────────────────────
           SizedBox(
-            height: 46,
+            height: 42,
             child: ListView.builder(
               controller: _networkScrollCtrl,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.fromLTRB(22, 12, 22, 0),
               itemCount: networks.length,
               itemBuilder: (_, i) {
                 final net = networks[i];
@@ -119,14 +116,14 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
             child: TextField(
               controller: _searchCtrl,
-              style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
+              style: koraInputStyle(),
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
-                hintText: _selectedNetwork == null
-                    ? 'Search token / name…'
-                    : 'Search in ${networkLabel(_selectedNetwork!)}…',
-                hintStyle:
-                    TextStyle(color: AppColors.textTertiary),
+                hintText: (_selectedNetwork == null
+                        ? 'Search token / name'
+                        : 'Search in ${networkLabel(_selectedNetwork!)}')
+                    .toUpperCase(),
+                hintStyle: koraHintStyle(),
                 prefixIcon: Icon(Icons.search_rounded,
                     color: AppColors.textTertiary, size: 20),
                 suffixIcon: _query.isNotEmpty
@@ -155,9 +152,8 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
             child: Text(
-              '${filtered.length} token${filtered.length == 1 ? '' : 's'}',
-              style: TextStyle(
-                  color: AppColors.textSecondary, fontSize: 13),
+              '${filtered.length} TOKEN${filtered.length == 1 ? '' : 'S'}',
+              style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16),
             ),
           ),
 
@@ -168,9 +164,8 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
             child: Builder(builder: (_) {
               if (filtered.isEmpty) {
                 return Center(
-                  child: Text('No tokens found',
-                      style: TextStyle(
-                          color: AppColors.textSecondary, fontSize: 15)),
+                  child: Text('NO TOKENS FOUND',
+                      style: kLabel(AppColors.textTertiary, size: 10, tracking: 0.14)),
                 );
               }
 
@@ -203,15 +198,10 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
                   final item = items[i];
                   if (item is String) {
                     return Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+                      padding: const EdgeInsets.fromLTRB(22, 20, 22, 8),
                       child: Text(
-                        item,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
+                        item.toUpperCase(),
+                        style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16),
                       ),
                     );
                   }

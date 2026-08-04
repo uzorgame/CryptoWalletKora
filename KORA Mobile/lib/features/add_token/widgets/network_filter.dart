@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/theme/app_theme.dart';
-import 'package:kora/core/widgets/chips/coin_icon.dart';
+import 'package:kora/core/theme/kora_design.dart';
 
 // The network filter strip: which chains can be filtered by, and the chip that picks one.
 
@@ -44,34 +44,22 @@ class NetworkChip extends StatelessWidget {
       onTap: onTap,
       pressScale: 0.9,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+        duration: kControl,
+        curve: kEase,
+        margin: const EdgeInsets.only(right: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AppColors.cardElevated : AppColors.card,
-          borderRadius: BorderRadius.zero,
-          border: Border.all(
-            color: selected ? AppColors.textPrimary.withValues(alpha: 0.3) : AppColors.border,
-            width: selected ? 1.5 : 0.5,
-          ),
+          color: selected ? AppColors.textPrimary : AppColors.background,
+          border: kHairline(),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (option.iconSymbol.isNotEmpty) ...[
-              CoinIcon(symbol: option.iconSymbol, size: 18),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              option.label,
-              style: TextStyle(
-                color: selected ? AppColors.textPrimary : AppColors.textSecondary,
-                fontSize: 13,
-                fontWeight:
-                    selected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
+        child: Text(
+          option.label.toUpperCase(),
+          style: kLabel(
+            selected ? AppColors.background : AppColors.textTertiary,
+            size: 9.5,
+            tracking: 0.1,
+          ),
         ),
       ),
     );
