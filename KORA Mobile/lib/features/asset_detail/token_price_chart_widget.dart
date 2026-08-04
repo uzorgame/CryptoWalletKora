@@ -24,7 +24,6 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
   late Animation<double> _anim;
   int? _touchedIndex;
   PriceChartPeriod _selectedPeriod = PriceChartPeriod.oneMonth;
-  bool _isExpanded = false;
 
   @override
   void initState() {
@@ -32,6 +31,9 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
     _animCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 800));
     _anim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic);
+    // The chart is simply there — the prototype has no header to open, because a price a
+    // user came to look at should not need a tap to appear.
+    _animCtrl.forward();
   }
 
   @override
@@ -42,114 +44,53 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.zero,
-        border: Border.all(color: AppColors.border, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14,
-            spreadRadius: 0,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row (always visible, tappable)
-          GestureDetector(
-            onTap: () {
-              setState(() => _isExpanded = !_isExpanded);
-              if (_isExpanded) _animCtrl.forward(from: 0);
-            },
-            behavior: HitTestBehavior.opaque,
-            child: Row(
-              children: [
-                Icon(Icons.show_chart_rounded,
-                    color: AppColors.textSecondary, size: 16),
-                const SizedBox(width: 6),
-                Text(
-                  'Price History',
-                  style: kBody(AppColors.textSecondary, size: 13, weight: FontWeight.w500),
-                ),
-                const Spacer(),
-                AnimatedRotation(
-                  turns: _isExpanded ? 0.5 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.textSecondary,
-                    size: 20,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Expandable chart content
-          AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: _isExpanded
-                ? _buildExpandedContent()
-                : const SizedBox.shrink(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildExpandedContent() {
     final chartAsync = ref.watch(
         tokenPriceChartProvider((widget.symbol, _selectedPeriod)));
 
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-
-        // Chart body
-        SizedBox(
-          height: 140,
-          child: chartAsync.when(
-            loading: () => _buildSkeleton(),
-            error: (_, __) => _buildSkeleton(),
-            data: (points) {
-              if (points.isEmpty) return _buildEmpty();
-              return Stack(
-                children: [
-                  _buildChart(points),
-                  if (_touchedIndex != null && _touchedIndex! < points.length)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: _buildTooltip(points[_touchedIndex!]),
-                    ),
-                ],
-              );
+    return Container(
+      margin: const EdgeInsets.fromLTRB(22, 16, 22, 0),
+      padding: const EdgeInsets.only(top: 14),
+      decoration: BoxDecoration(border: kHairline()),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 110,
+            child: chartAsync.when(
+              loading: () => _buildSkeleton(),
+              error: (_, __) => _buildSkeleton(),
+              data: (points) {
+                if (points.isEmpty) return _buildEmpty();
+                return Stack(
+                  children: [
+                    _buildChart(points),
+                    if (_touchedIndex != null && _touchedIndex! < points.length)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: _buildTooltip(points[_touchedIndex!]),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          // The ranges sit on their own hairline across the box's full width — each one a
+          // cell, the chosen one wearing a hair of ink above it.
+          _PriceChartPeriodSelector(
+            selected: _selectedPeriod,
+            onSelect: (p) {
+              setState(() {
+                _selectedPeriod = p;
+                _touchedIndex = null;
+              });
+              _animCtrl.forward(from: 0);
             },
           ),
-        ),
-        const SizedBox(height: 12),
-
-        // Period selector
-        _PriceChartPeriodSelector(
-          selected: _selectedPeriod,
-          onSelect: (p) {
-            setState(() {
-              _selectedPeriod = p;
-              _touchedIndex = null;
-            });
-            _animCtrl.forward(from: 0);
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -307,28 +248,15 @@ class _TokenPriceChartWidgetState extends ConsumerState<TokenPriceChartWidget>
     );
   }
 
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.show_chart_rounded,
-              color: AppColors.textTertiary, size: 32),
-          const SizedBox(height: 8),
-          Text('No price data available',
-              style: kBody(AppColors.textSecondary, size: 13)),
-        ],
-      ),
-    );
-  }
+  Widget _buildEmpty() => Center(
+        child: Text('NO PRICE DATA',
+            style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.14)),
+      );
 
   Widget _buildSkeleton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: CustomPaint(
-        size: const Size(double.infinity, 140),
-        painter: _SkeletonPainter(AppColors.surface),
-      ),
+    return CustomPaint(
+      size: const Size(double.infinity, 110),
+      painter: _SkeletonPainter(AppColors.surface),
     );
   }
 }
@@ -343,30 +271,44 @@ class _PriceChartPeriodSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: PriceChartPeriod.values.map((p) {
-        final isSelected = p == selected;
-        return AnimatedTap(
-          onTap: () => onSelect(p),
-          pressScale: 0.88,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.textPrimary : Colors.transparent,
-              borderRadius: BorderRadius.zero,
+    return Container(
+      decoration: BoxDecoration(border: Border(top: kHairlineSide())),
+      child: Row(
+        children: PriceChartPeriod.values.map((p) {
+          final isSelected = p == selected;
+          return Expanded(
+            child: AnimatedTap(
+              onTap: () => onSelect(p),
+              pressScale: 0.94,
+              pressOpacity: 0.7,
+              child: Stack(children: [
+                // The active range is marked by a hair of ink on the divider it sits under,
+                // the same mark the bottom bar gives the open tab.
+                if (isSelected)
+                  Positioned(
+                    top: 0, left: 0, right: 0,
+                    child: Center(
+                      child: FractionallySizedBox(
+                        widthFactor: 0.4,
+                        child: Container(height: 1, color: AppColors.textPrimary),
+                      ),
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  alignment: Alignment.center,
+                  child: Text(
+                    p.label.toUpperCase(),
+                    style: kLabel(
+                        isSelected ? AppColors.textPrimary : AppColors.textTertiary,
+                        size: 9.5, tracking: 0.12),
+                  ),
+                ),
+              ]),
             ),
-            child: Text(
-              p.label,
-              style: kLabel(
-                  isSelected ? AppColors.background : AppColors.textTertiary,
-                  size: 9.5, tracking: 0.1),
-            ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 }

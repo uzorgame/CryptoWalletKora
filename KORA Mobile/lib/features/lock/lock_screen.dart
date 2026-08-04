@@ -9,6 +9,7 @@ import 'package:kora/core/services/storage_service.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_mark.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/widgets/input/numpad.dart';
 
 class LockScreen extends ConsumerStatefulWidget {
@@ -133,59 +134,63 @@ class _LockScreenState extends ConsumerState<LockScreen>
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              children: [
-                const Spacer(flex: 2),
-                const KoraMark(size: 64),
-                const SizedBox(height: 26),
-                Text('ENTER PIN',
-                    style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.2)),
-                const SizedBox(height: 8),
-                Text('UNLOCK YOUR WALLET',
-                    style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.14)),
-                const Spacer(flex: 2),
-                // PIN squares — this application has no circles in it.
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(6, (i) {
-                    final filled = i < _pin.length;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 120),
-                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: filled ? AppColors.textPrimary : Colors.transparent,
-                        border: Border.all(
-                          color: filled ? AppColors.textPrimary : AppColors.borderHi,
-                          width: 1,
-                        ),
+          // The prototype's lock: mark, prompt, dots, the way past biometrics — then all the
+          // air, with the keypad at the bottom where a thumb already is.
+          child: Column(
+            children: [
+              const SizedBox(height: 88),
+              const KoraMark(size: 64),
+              const SizedBox(height: 26),
+              Text('ENTER PIN',
+                  style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.2)),
+              const SizedBox(height: 8),
+              Text('UNLOCK YOUR WALLET',
+                  style: kLabel(AppColors.textTertiary, size: 10, tracking: 0.14)),
+              const SizedBox(height: 18),
+              // PIN squares — this application has no circles in it.
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(6, (i) {
+                  final filled = i < _pin.length;
+                  return AnimatedContainer(
+                    duration: kControl,
+                    curve: kEase,
+                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: filled ? AppColors.textPrimary : Colors.transparent,
+                      border: Border.all(
+                        color: filled ? AppColors.textPrimary : AppColors.borderHi,
+                        width: 1,
                       ),
-                    );
-                  }),
-                ),
-                if (_error != null) ...[  
-                  const SizedBox(height: 12),
-                  Text(
-                    _error!,
-                    style: kBody(AppColors.negative, size: 12),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 18),
+              if (_error != null)
+                Text(_error!.toUpperCase(),
                     textAlign: TextAlign.center,
-                  ),
-                ] else
-                  const SizedBox(height: 12 + 16), // keep layout stable
-                const Spacer(flex: 2),
-                // Numpad
-                Numpad(
-                  onDigit: _onDigit,
-                  onBackspace: _onBackspace,
-                  onBiometric: _biometricEnabled ? _tryBiometric : null,
-                  loading: _loading,
-                ),
-                const SizedBox(height: 32),
-              ],
-            ),
+                    style: kLabel(AppColors.negative, size: 9.5, tracking: 0.1))
+              else if (_biometricEnabled)
+                AnimatedTap(
+                  onTap: _loading ? null : _tryBiometric,
+                  pressOpacity: 0.7,
+                  child: Text('USE BIOMETRICS',
+                      style: kLabel(AppColors.textSecondary, size: 10, tracking: 0.14)),
+                )
+              else
+                const SizedBox(height: 12),
+              const Spacer(),
+              Numpad(
+                onDigit: _onDigit,
+                onBackspace: _onBackspace,
+                onBiometric: _biometricEnabled ? _tryBiometric : null,
+                loading: _loading,
+              ),
+              const SizedBox(height: 26),
+            ],
           ),
         ),
       ),

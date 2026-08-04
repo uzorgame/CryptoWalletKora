@@ -17,6 +17,7 @@ import 'package:kora/features/onboarding/wallet_selection_screen.dart';
 import 'package:kora/features/settings/show_seed_phrase_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
 import 'package:kora/features/settings/privacy_policy_screen.dart';
+import 'package:kora/features/address_book/address_book_screen.dart';
 import 'package:kora/features/settings/widgets/section_header.dart';
 import 'package:kora/features/settings/widgets/settings_tile.dart';
 import 'package:kora/features/settings/tiles/appearance_tile.dart';
@@ -70,50 +71,51 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
 
-            // Security section
+            // Security — the prototype's order: PIN, phrase, biometrics, auto-lock.
             SectionHeader('Security'),
             SettingsTile(
               icon: Icons.lock_outline_rounded,
               label: 'Change PIN',
               onTap: () { _showChangePinDialog(context, ref); },
             ),
-            BiometricTile(),
-            AutoLockTile(),
             SettingsTile(
               icon: Icons.key_rounded,
               label: 'Show Seed Phrase',
               onTap: () { _showSeedPhrase(context, ref); },
             ),
-            SizedBox(height: 20),
+            BiometricTile(),
+            AutoLockTile(),
 
-            // General section
+            // General
             SectionHeader('General'),
             AppearanceTile(),
             CurrencyTile(),
+            SettingsTile(
+              icon: Icons.book_outlined,
+              label: 'Address Book',
+              onTap: () { context.pushSlide(const AddressBookScreen()); },
+            ),
             SettingsTile(
               icon: Icons.privacy_tip_outlined,
               label: 'Privacy Policy',
               onTap: () { context.pushSlide(const PrivacyPolicyScreen()); },
             ),
             AboutTile(),
-            SizedBox(height: 20),
 
-            // Danger zone
+            // The group that can lose a wallet is headed in the negative colour.
             SectionHeader('Wallet', color: AppColors.negative),
             SettingsTile(
               icon: Icons.add_circle_outline_rounded,
               label: 'Add / Import Wallet',
-              iconColor: AppColors.accent,
               onTap: () { context.pushSlide(const OnboardingScreen()); },
             ),
             SettingsTile(
               icon: Icons.logout_rounded,
               label: 'Remove Wallet',
-              iconColor: AppColors.negative,
               labelColor: AppColors.negative,
               onTap: () { _confirmRemoveWallet(context, ref); },
             ),
-            SizedBox(height: 40),
+            SizedBox(height: 34),
           ],
         ),
       ),

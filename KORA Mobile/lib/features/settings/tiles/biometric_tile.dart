@@ -5,7 +5,7 @@ import 'package:kora/core/state/providers/settings_provider.dart' hide currencyP
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/crypto/key_manager.dart';
-import 'package:kora/core/widgets/input/animated_tap.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 
 // The biometric unlock toggle, with the availability checks behind it.
 
@@ -15,35 +15,26 @@ class BiometricTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final enabled = ref.watch(biometricEnabledProvider);
-    return AnimatedTap(
+    // The prototype's row: the state is a word, not a pill. ON in the positive ink, OFF in
+    // tertiary — the same two-state readout the desktop wallet uses, and the only control
+    // in this app that is not a hairline or a piece of text.
+    return KoraRow(
       onTap: () => _toggle(context, ref, enabled),
-      pressScale: 0.97,
-      child: Container(
-        margin: EdgeInsets.only(bottom: 2),
-        padding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.zero,
-          border: Border.all(color: AppColors.separator, width: 1),
+      children: [
+        Text('Biometric Unlock', style: kBody(AppColors.textPrimary, size: 13.5)),
+        const Spacer(),
+        AnimatedSwitcher(
+          duration: kControl,
+          switchInCurve: kEase,
+          child: Text(
+            enabled ? 'ON' : 'OFF',
+            key: ValueKey(enabled),
+            style: kMonoText(
+                enabled ? AppColors.positive : AppColors.textTertiary,
+                size: 10, weight: FontWeight.w500),
+          ),
         ),
-        child: Row(children: [
-          Icon(Icons.fingerprint_rounded, color: AppColors.textSecondary, size: 20),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text('Biometric Auth',
-                style: kBody(AppColors.textPrimary, size: 15, weight: FontWeight.w400)),
-          ),
-          Switch(
-            value: enabled,
-            onChanged: (v) => _toggle(context, ref, !v),
-            activeThumbColor: AppColors.background,
-            activeTrackColor: AppColors.textPrimary,
-            inactiveThumbColor: AppColors.textTertiary,
-            inactiveTrackColor: AppColors.separator,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ]),
-      ),
+      ],
     );
   }
 

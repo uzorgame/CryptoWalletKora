@@ -8,7 +8,7 @@ import 'package:kora/core/services/tx_history_service.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_app_bar.dart';
-import 'package:kora/core/widgets/kora_button.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 
 // ─── Explorer URL per blockchain ─── delegated to APIConfig ─────────────────
 
@@ -67,17 +67,18 @@ class TransactionDetailsScreen extends StatelessWidget {
       appBar: koraAppBar(context, 'Transaction Details',
           onBack: () => Navigator.of(context).pop()),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 22),
+        padding: EdgeInsets.zero,
         children: [
 
           // ── Status header ──────────────────────────────────────────────────
-          // What happened, in what state, and for how much — left-led, as the coin page is.
+          // What happened, in what state, for how much and when — left-led, as the coin page
+          // is, with the state coloured by direction.
           Padding(
-            padding: const EdgeInsets.fromLTRB(0, 22, 0, 22),
+            padding: const EdgeInsets.fromLTRB(22, 20, 22, 0),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(label.toUpperCase(), style: kLabel(color, size: 10.5, tracking: 0.14)),
-                Text('  ·  ', style: kLabel(AppColors.textTertiary, size: 10.5)),
+                Text(label.toUpperCase(), style: kLabel(color, size: 9.5, tracking: 0.16)),
+                Text(' · ', style: kLabel(AppColors.textTertiary, size: 9.5)),
                 if (!tx.confirmed) ...[
                   SizedBox(
                     width: 9, height: 9,
@@ -89,74 +90,40 @@ class TransactionDetailsScreen extends StatelessWidget {
                 Text(
                   tx.confirmed ? 'CONFIRMED' : 'PROCESSING',
                   style: kLabel(
-                      tx.confirmed ? AppColors.textTertiary : AppColors.warning,
-                      size: 10.5, tracking: 0.14),
+                      tx.confirmed ? color : AppColors.warning,
+                      size: 9.5, tracking: 0.16),
                 ),
               ]),
-              const SizedBox(height: 10),
-              Text(amtStr, style: kNum(color, size: 30)),
+              const SizedBox(height: 8),
+              Text(amtStr, style: kNum(AppColors.textPrimary, size: 30)),
+              const SizedBox(height: 6),
+              Text(dateStr.toUpperCase(),
+                  style: kMonoText(AppColors.textTertiary, size: 10)),
             ]),
           ),
 
-          // ── Details card ───────────────────────────────────────────────────
-          _Card(children: [
-            _DetailRow(
-              label: tx.confirmed ? 'Confirmed' : 'Submitted',
-              value: dateStr,
-            ),
-            _DetailRow(
-              label: 'Network',
-              value: _networkName(tx.blockchain),
-            ),
-            _DetailRow(
-              label: 'Asset',
-              value: '${tx.symbol}  ·  ${asset.name}',
-            ),
-            if (feeStr != null)
-              _DetailRow(
-                label: 'Network Fee',
-                value: feeStr,
-              ),
-          ]),
+          // ── Details ────────────────────────────────────────────────────────
+          const KoraSection('Details'),
+          KoraDataRow('Status', tx.confirmed ? 'CONFIRMED' : 'PROCESSING',
+              valueColor: tx.confirmed ? AppColors.positive : AppColors.warning,
+              topLine: true),
+          KoraDataRow('Network', _networkName(tx.blockchain).toUpperCase()),
+          KoraDataRow('Asset', tx.symbol),
+          if (tx.from.isNotEmpty)
+            KoraDataRow('From', tx.shortFrom,
+                copyable: true, onTap: () => _copy(context, tx.from, 'From address')),
+          if (tx.to.isNotEmpty)
+            KoraDataRow('To', tx.shortTo,
+                copyable: true, onTap: () => _copy(context, tx.to, 'To address')),
+          if (feeStr != null) KoraDataRow('Network fee', feeStr),
+          KoraDataRow('TX hash', tx.shortHash,
+              copyable: true, onTap: () => _copy(context, tx.hash, 'TX hash')),
 
-          const SizedBox(height: 12),
-
-          // ── Addresses card ─────────────────────────────────────────────────
-          _Card(children: [
-            if (tx.from.isNotEmpty)
-              _DetailRow(
-                label: 'From',
-                value: tx.shortFrom,
-                fullValue: tx.from,
-                onCopy: tx.from.isNotEmpty
-                    ? () => _copy(context, tx.from, 'From address')
-                    : null,
-              ),
-            if (tx.to.isNotEmpty)
-              _DetailRow(
-                label: 'To',
-                value: tx.shortTo,
-                fullValue: tx.to,
-                onCopy: tx.to.isNotEmpty
-                    ? () => _copy(context, tx.to, 'To address')
-                    : null,
-              ),
-            _DetailRow(
-              label: 'TX Hash',
-              value: tx.shortHash,
-              fullValue: tx.hash,
-              mono: true,
-              onCopy: () => _copy(context, tx.hash, 'TX hash'),
-              last: true,
-            ),
-          ]),
-
-          const SizedBox(height: 20),
-
-          // ── Explorer button ────────────────────────────────────────────────
-          if (url.isNotEmpty)
-            KoraGhost(
-              label: 'View in Explorer',
+          // ── Explorer ───────────────────────────────────────────────────────
+          if (url.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            KoraLink(
+              'View in explorer ↗',
               onTap: () async {
                 final uri = Uri.parse(url);
                 if (await canLaunchUrl(uri)) {
@@ -166,8 +133,9 @@ class TransactionDetailsScreen extends StatelessWidget {
                 }
               },
             ),
+          ],
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -187,81 +155,4 @@ class TransactionDetailsScreen extends StatelessWidget {
     'ethereum_classic': 'Ethereum Classic',
     'bitcoin_cash': 'Bitcoin Cash',
   }[b] ?? b;
-}
-
-// ─── Reusable widgets ─────────────────────────────────────────────────────────
-
-class _Card extends StatelessWidget {
-  const _Card({required this.children});
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(border: kHairline()),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: children,
-        ),
-      );
-}
-
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({
-    required this.label,
-    required this.value,
-    this.fullValue,
-    this.mono    = false,
-    this.last    = false,
-    this.onCopy,
-  });
-
-  final String  label;
-  final String  value;
-  final String? fullValue;
-  final bool    mono;
-  final bool    last;
-  final VoidCallback? onCopy;
-
-  @override
-  Widget build(BuildContext context) {
-    final row = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 92,
-            child: Text(label.toUpperCase(),
-                style: kMonoText(AppColors.textSecondary, size: 9.5)),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: kMonoText(AppColors.textPrimary, size: 11,
-                  weight: FontWeight.w500),
-            ),
-          ),
-          if (onCopy != null) ...[
-            const SizedBox(width: 10),
-            GestureDetector(
-              onTap: onCopy,
-              child: Icon(Icons.copy_rounded,
-                  size: 13, color: AppColors.textTertiary),
-            ),
-          ],
-        ],
-      ),
-    );
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        row,
-        if (!last)
-          Divider(height: 0, thickness: 1, color: AppColors.border),
-      ],
-    );
-  }
 }

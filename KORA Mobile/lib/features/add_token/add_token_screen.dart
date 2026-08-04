@@ -7,6 +7,7 @@ import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_app_bar.dart';
 import 'package:kora/core/widgets/kora_field.dart';
+import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/features/add_token/widgets/network_filter.dart';
 import 'package:kora/features/add_token/widgets/token_row.dart';
 
@@ -85,13 +86,45 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Search bar ─────────────────────────────────────────────────────
+          // The prototype's order: search first, then the networks it can be narrowed to.
+          const SizedBox(height: 14),
+          KoraField(
+            child: Row(children: [
+              Icon(Icons.search_rounded, color: AppColors.textTertiary, size: 16),
+              const SizedBox(width: 9),
+              Expanded(
+                child: TextField(
+                  controller: _searchCtrl,
+                  style: koraInputStyle(),
+                  onChanged: (v) => setState(() => _query = v),
+                  decoration: koraInputDecoration(
+                    (_selectedNetwork == null
+                            ? 'Search name or paste contract'
+                            : 'Search in ${networkLabel(_selectedNetwork!)}')
+                        .toUpperCase(),
+                  ),
+                ),
+              ),
+              if (_query.isNotEmpty)
+                AnimatedTap(
+                  onTap: () {
+                    _searchCtrl.clear();
+                    setState(() => _query = '');
+                  },
+                  child: Icon(Icons.close_rounded,
+                      color: AppColors.textTertiary, size: 16),
+                ),
+            ]),
+          ),
+
           // ── Network filter ─────────────────────────────────────────────────
           SizedBox(
-            height: 42,
+            height: 50,
             child: ListView.builder(
               controller: _networkScrollCtrl,
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(22, 12, 22, 0),
+              padding: const EdgeInsets.fromLTRB(22, 14, 22, 0),
               itemCount: networks.length,
               itemBuilder: (_, i) {
                 final net = networks[i];
@@ -109,55 +142,7 @@ class _AddTokenScreenState extends ConsumerState<AddTokenScreen> with ThemeAware
             ),
           ),
 
-          const SizedBox(height: 4),
-
-          // ── Search bar ─────────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-            child: TextField(
-              controller: _searchCtrl,
-              style: koraInputStyle(),
-              onChanged: (v) => setState(() => _query = v),
-              decoration: InputDecoration(
-                hintText: (_selectedNetwork == null
-                        ? 'Search token / name'
-                        : 'Search in ${networkLabel(_selectedNetwork!)}')
-                    .toUpperCase(),
-                hintStyle: koraHintStyle(),
-                prefixIcon: Icon(Icons.search_rounded,
-                    color: AppColors.textTertiary, size: 20),
-                suffixIcon: _query.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.close_rounded,
-                            color: AppColors.textTertiary, size: 18),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _query = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppColors.card,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.zero,
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-
-          // ── Count hint ────────────────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
-            child: Text(
-              '${filtered.length} TOKEN${filtered.length == 1 ? '' : 'S'}',
-              style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.16),
-            ),
-          ),
-
-          const SizedBox(height: 4),
+          const SizedBox(height: 12),
 
           // ── Token list (selected first, then rest) ──────────────────────
           Expanded(

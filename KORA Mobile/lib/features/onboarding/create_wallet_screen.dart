@@ -12,6 +12,7 @@ import 'package:kora/core/widgets/kora_app_bar.dart';
 import 'package:kora/core/widgets/kora_button.dart';
 import 'package:kora/core/widgets/kora_field.dart';
 import 'package:kora/core/widgets/input/numpad.dart';
+import 'package:kora/core/widgets/word_grid.dart';
 import 'package:kora/features/home/home_screen.dart';
 
 class CreateWalletScreen extends ConsumerStatefulWidget {
@@ -239,62 +240,13 @@ class _CreateWalletScreenState extends ConsumerState<CreateWalletScreen> with Th
             style: kBody(AppColors.textSecondary),
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 22),
-          child: AnimatedTap(
-            onTap: () => setState(() => _mnemonicRevealed = !_mnemonicRevealed),
-            pressScale: 0.99,
-            child: Stack(children: [
-              // The word grid: cells separated by one-pixel gaps of the border colour — the
-              // same construction as the numpad, because it is the same language.
-              Container(
-                decoration: BoxDecoration(color: AppColors.border, border: kHairline()),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3, childAspectRatio: 2.9,
-                    crossAxisSpacing: 1, mainAxisSpacing: 1,
-                  ),
-                  itemCount: 12,
-                  itemBuilder: (_, i) => Container(
-                    color: AppColors.background,
-                    padding: const EdgeInsets.symmetric(horizontal: 9),
-                    child: Row(children: [
-                      Text((i + 1).toString().padLeft(2, '0'),
-                          style: kMonoText(AppColors.textTertiary, size: 8.5)),
-                      const SizedBox(width: 7),
-                      Expanded(child: Text(
-                        _mnemonicRevealed ? _words[i] : '····',
-                        overflow: TextOverflow.ellipsis,
-                        style: kMonoText(
-                            _mnemonicRevealed
-                                ? AppColors.textPrimary
-                                : AppColors.textTertiary,
-                            size: 10.5, weight: FontWeight.w500),
-                      )),
-                    ]),
-                  ),
-                ),
-              ),
-              if (!_mnemonicRevealed)
-                Positioned.fill(
-                  child: Container(
-                    color: AppColors.background.withValues(alpha: 0.82),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.visibility_outlined,
-                            color: AppColors.textPrimary, size: 22),
-                        const SizedBox(height: 10),
-                        Text('TAP TO REVEAL',
-                            style: kLabel(AppColors.textPrimary, size: 10, tracking: 0.16)),
-                      ],
-                    ),
-                  ),
-                ),
-            ]),
+          child: WordGrid(
+            words: _words,
+            revealed: _mnemonicRevealed,
+            onReveal: () => setState(() => _mnemonicRevealed = true),
           ),
         ),
         const SizedBox(height: 16),

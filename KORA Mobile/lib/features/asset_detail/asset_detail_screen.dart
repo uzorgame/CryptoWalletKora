@@ -14,6 +14,7 @@ import 'package:kora/core/services/theme_notifier.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_app_bar.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 import 'package:kora/features/receive/receive_screen.dart';
 import 'package:kora/features/send/send_screen.dart';
 import 'package:kora/core/utils/page_transitions.dart';
@@ -266,9 +267,7 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
             ),
           ),
 
-          const SizedBox(height: 20),
-
-          // ── Collapsible Details ───────────────────────────────────────────
+          // ── Details ───────────────────────────────────────────────────────
           CollapsibleDetails(
             asset: asset,
             expanded: _detailsExpanded,
@@ -279,26 +278,20 @@ class _AssetDetailScreenState extends ConsumerState<AssetDetailScreen> with Them
             },
           ),
 
-          const SizedBox(height: 8),
-
           // ── Transactions ──────────────────────────────────────────────────
           if (_hasHistory(asset.blockchain)) ...[
-            Padding(
-              padding: EdgeInsets.fromLTRB(20, 12, 20, 8),
-              child: Row(children: [
-                Text('TRANSACTIONS',
-                    style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.18)),
-                const Spacer(),
-                if (_txLoading)
-                  SizedBox(width: 12, height: 12,
-                      child: CircularProgressIndicator(
-                          color: AppColors.textTertiary, strokeWidth: 1.2)),
-              ]),
+            KoraSection(
+              'Transactions',
+              aside: _txLoading
+                  ? 'loading'
+                  : _txRecords.isEmpty ? null : '${_txRecords.length} total',
             ),
             if (_txLoading && _txRecords.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: CircularProgressIndicator(color: AppColors.accent)),
+                child: Center(
+                    child: CircularProgressIndicator(
+                        color: AppColors.textTertiary, strokeWidth: 1.5)),
               )
             else if (_txError != null)
               _EmptyState(

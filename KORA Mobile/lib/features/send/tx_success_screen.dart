@@ -6,6 +6,7 @@ import 'package:kora/core/models/asset.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
 import 'package:kora/core/widgets/kora_button.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:kora/features/send/fee/models/fee_estimate.dart';
 
@@ -83,11 +84,11 @@ class TxSuccessScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22),
-          child: Column(
+        child: Column(
             children: [
-              const SizedBox(height: 54),
+              Expanded(
+                child: ListView(padding: EdgeInsets.zero, children: [
+              const SizedBox(height: 58),
 
               // The mark arrives on the house curve — no bounce; a wallet's good news should
               // land, not wobble.
@@ -99,57 +100,48 @@ class TxSuccessScreen extends ConsumerWidget {
                   opacity: v.clamp(0.0, 1.0),
                   child: Transform.scale(scale: 0.9 + 0.1 * v, child: child),
                 ),
-                child: Container(
-                  width: 64, height: 64,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.positive, width: 1),
+                child: Center(
+                  child: Container(
+                    width: 64, height: 64,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.positive, width: 1),
+                    ),
+                    child: Icon(Icons.check_rounded,
+                        color: AppColors.positive, size: 30),
                   ),
-                  child: Icon(Icons.check_rounded,
-                      color: AppColors.positive, size: 30),
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
 
-              Text('Sent!',
-                  style: kNum(AppColors.textPrimary, size: 24, weight: FontWeight.w600)),
-              const SizedBox(height: 10),
-              Text('TRANSACTION BROADCAST SUCCESSFULLY',
-                  style: kLabel(AppColors.textTertiary, size: 9.5, tracking: 0.14)),
-
-              const SizedBox(height: 28),
-
-              // ── Details ────────────────────────────────────────────────────
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(border: kHairline()),
-                child: Column(children: [
-                  _SuccessRow('Asset',
-                      '${asset.symbol} · ${asset.name}'),
-                  _SuccessRow('From',
-                      fromShort,
-                      onTap: () => _copy(context, asset.contractAddress, 'From address')),
-                  _SuccessRow('To',
-                      toShort,
-                      onTap: () => _copy(context, toAddress, 'To address')),
-                  _SuccessRow('Amount',
-                      '$amount ${asset.symbol}'),
-                  if (feeText.isNotEmpty)
-                    _SuccessRow('Network Fee', feeText),
-                  _SuccessRow('TX Hash',
-                      txShort,
-                      trailing: Icon(Icons.copy_rounded,
-                          size: 13, color: AppColors.textTertiary),
-                      onTap: () => _copy(context, txHash, 'TX hash'),
-                      last: true),
-                ]),
+              Center(
+                child: Text('Sent!',
+                    style: kNum(AppColors.textPrimary, size: 24, weight: FontWeight.w600)),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Text('TRANSACTION BROADCAST SUCCESSFULLY',
+                    style: kLabel(AppColors.textTertiary, size: 10, tracking: 0.14)),
               ),
 
-              const Spacer(),
+              // ── Summary ────────────────────────────────────────────────────
+              const KoraSection('Summary'),
+              KoraDataRow('Asset', '${asset.symbol} · ${asset.name.toUpperCase()}',
+                  topLine: true),
+              KoraDataRow('From', fromShort,
+                  copyable: true,
+                  onTap: () => _copy(context, asset.contractAddress, 'From address')),
+              KoraDataRow('To', toShort,
+                  copyable: true, onTap: () => _copy(context, toAddress, 'To address')),
+              KoraDataRow('Amount', '$amount ${asset.symbol}'),
+              if (feeText.isNotEmpty) KoraDataRow('Network fee', feeText),
+              KoraDataRow('TX hash', txShort,
+                  copyable: true, onTap: () => _copy(context, txHash, 'TX hash')),
 
-              // ── Explorer link ──────────────────────────────────────────────
-              if (explorerUrl.isNotEmpty)
-                TextButton(
-                  onPressed: () async {
+              if (explorerUrl.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                KoraLink(
+                  'View in explorer ↗',
+                  onTap: () async {
                     final uri = Uri.parse(explorerUrl);
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -157,93 +149,24 @@ class TxSuccessScreen extends ConsumerWidget {
                       _copy(context, explorerUrl, 'Explorer link');
                     }
                   },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('VIEW IN EXPLORER',
-                          style: kLabel(AppColors.textSecondary, size: 9.5, tracking: 0.14)),
-                      const SizedBox(width: 6),
-                      Icon(Icons.open_in_new_rounded,
-                          size: 12, color: AppColors.textSecondary),
-                    ],
-                  ),
                 ),
-
-              const SizedBox(height: 8),
-
-              KoraCta(
-                label: 'Done',
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
+              ],
+              const SizedBox(height: 18),
+                ]),
               ),
 
-              const SizedBox(height: 28),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 32),
+                child: KoraCta(
+                  label: 'Done',
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
             ],
-          ),
         ),
       ),
-    );
-  }
-}
-
-// ─── Row widget ───────────────────────────────────────────────────────────────
-
-class _SuccessRow extends StatelessWidget {
-  const _SuccessRow(
-    this.label,
-    this.value, {
-    this.last   = false,
-    this.trailing,
-    this.onTap,
-  });
-
-  final String  label;
-  final String  value;
-  final bool    last;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final row = Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label.toUpperCase(),
-              style: kMonoText(AppColors.textSecondary, size: 9.5)),
-          const SizedBox(width: 16),
-          Flexible(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Text(value,
-                      textAlign: TextAlign.end,
-                      style: kMonoText(AppColors.textPrimary, size: 11,
-                          weight: FontWeight.w500)),
-                ),
-                if (trailing != null) ...[
-                  const SizedBox(width: 6),
-                  trailing!,
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        onTap != null ? GestureDetector(onTap: onTap, child: row) : row,
-        if (!last)
-          Divider(height: 0, thickness: 1, color: AppColors.border),
-      ],
     );
   }
 }

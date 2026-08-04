@@ -4,6 +4,7 @@ import 'package:kora/core/widgets/input/animated_tap.dart';
 import 'package:kora/core/services/address_book_service.dart';
 import 'package:kora/core/theme/app_theme.dart';
 import 'package:kora/core/theme/kora_design.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 
 // One saved address: name, chain and the address itself, with copy and delete.
 //
@@ -25,57 +26,53 @@ class AddressTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedTap(
+    // The prototype's row: a lettered square, the name with its network as a hairline tag,
+    // the address in mono beneath, and the copy glyph at the edge.
+    return KoraRow(
       onTap: onTap,
-      pressScale: 0.98,
-      pressOpacity: 0.85,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-        decoration: BoxDecoration(border: Border(bottom: kHairlineSide())),
-        child: Row(children: [
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(chainSymbol(entry.blockchain),
-                        style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.08)),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(entry.label,
-                          overflow: TextOverflow.ellipsis,
-                          style: kBody(AppColors.textSecondary, size: 12)),
-                    ),
-                  ]),
-              const SizedBox(height: 5),
-              Text(
-                entry.address.length > 22
-                    ? '${entry.address.substring(0, 10)}…${entry.address.substring(entry.address.length - 8)}'
-                    : entry.address,
-                style: kMonoText(AppColors.textTertiary, size: 9.5),
+      children: [
+        KoraBox(entry.label.isNotEmpty ? entry.label[0] : '?', size: 36),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Flexible(
+                child: Text(entry.label.toUpperCase(),
+                    overflow: TextOverflow.ellipsis,
+                    style: kLabel(AppColors.textPrimary, size: 12.5, tracking: 0.06)),
               ),
+              const SizedBox(width: 7),
+              KoraTag(chainLabel(entry.blockchain)),
             ]),
-          ),
-          AnimatedTap(
-            onTap: onCopy,
-            pressScale: 0.85,
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Icon(Icons.copy_rounded, size: 15, color: AppColors.textTertiary),
+            const SizedBox(height: 4),
+            Text(
+              entry.address.length > 26
+                  ? '${entry.address.substring(0, 12)}…${entry.address.substring(entry.address.length - 8)}'
+                  : entry.address,
+              overflow: TextOverflow.ellipsis,
+              style: kMonoText(AppColors.textSecondary, size: 10),
             ),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        AnimatedTap(
+          onTap: onCopy,
+          pressScale: 0.85,
+          child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: Text('⧉', style: kMonoText(AppColors.textSecondary, size: 13)),
           ),
-          const SizedBox(width: 4),
-          AnimatedTap(
-            onTap: () => _confirmDelete(context),
-            pressScale: 0.85,
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Icon(Icons.delete_outline_rounded,
-                  size: 15, color: AppColors.textTertiary),
-            ),
+        ),
+        AnimatedTap(
+          onTap: () => _confirmDelete(context),
+          pressScale: 0.85,
+          child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: Icon(Icons.delete_outline_rounded,
+                size: 15, color: AppColors.textTertiary),
           ),
-        ]),
-      ),
+        ),
+      ],
     );
   }
 

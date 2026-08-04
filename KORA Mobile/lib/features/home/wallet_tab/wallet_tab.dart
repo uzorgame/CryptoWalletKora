@@ -13,6 +13,7 @@ import 'package:kora/core/services/storage_service.dart';
 import 'package:kora/core/services/balance_service.dart';
 import 'package:kora/core/utils/page_transitions.dart';
 import 'package:kora/core/widgets/input/animated_tap.dart';
+import 'package:kora/core/widgets/kora_rows.dart';
 import 'package:kora/core/state/providers/price_chart_provider.dart';
 import 'package:kora/features/home/wallet_tab/asset_sort.dart';
 import 'package:kora/features/home/widgets/balance_header.dart';
@@ -90,57 +91,52 @@ class _WalletTabState extends ConsumerState<WalletTab> with ThemeAwareMixin {
   }
 
   void _showSortSheet() {
+    // The prototype's k-sortsheet: four words, the chosen one carrying full ink and a
+    // mono tick. No pictograms, no explanatory second line — the words are the choice.
+    const options = <(SortMode, String)>[
+      (SortMode.popularity, 'Popularity'),
+      (SortMode.totalValue, 'Total value'),
+      (SortMode.quantity,   'Quantity'),
+      (SortMode.price,      'Price'),
+    ];
     showModalBottomSheet<SortMode>(
       context: context,
-      backgroundColor: AppColors.card,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero),
-      builder: (sheetCtx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(width: 36, height: 4,
-                decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.zero)),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-              child: Text('Sort assets',
-                  style: kBody(AppColors.textPrimary, size: 16, weight: FontWeight.w600)),
-            ),
-            const SizedBox(height: 8),
-            SortOption(
-              icon: Icons.star_outline_rounded,
-              label: 'By popularity',
-              subtitle: 'BTC first, then ETH, SOL…',
-              selected: _sortMode == SortMode.popularity,
-              onTap: () { Navigator.pop(sheetCtx, SortMode.popularity); },
-            ),
-            SortOption(
-              icon: Icons.account_balance_wallet_outlined,
-              label: 'By portfolio value',
-              subtitle: 'Highest USD value in wallet on top',
-              selected: _sortMode == SortMode.totalValue,
-              onTap: () { Navigator.pop(sheetCtx, SortMode.totalValue); },
-            ),
-            SortOption(
-              icon: Icons.format_list_numbered_rounded,
-              label: 'By quantity',
-              subtitle: 'Most token units on top',
-              selected: _sortMode == SortMode.quantity,
-              onTap: () { Navigator.pop(sheetCtx, SortMode.quantity); },
-            ),
-            SortOption(
-              icon: Icons.trending_up_rounded,
-              label: 'By coin price',
-              subtitle: 'Most expensive coin on top',
-              selected: _sortMode == SortMode.price,
-              onTap: () { Navigator.pop(sheetCtx, SortMode.price); },
-            ),
-            const SizedBox(height: 16),
-          ],
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          border: Border(top: BorderSide(color: AppColors.borderHi, width: 1)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 14),
+              Container(width: 24, height: 2, color: AppColors.textTertiary),
+              const SizedBox(height: 18),
+              Text('SORT ASSETS',
+                  style: kLabel(AppColors.textPrimary, size: 11, tracking: 0.18)),
+              const SizedBox(height: 14),
+              for (final (i, (mode, label)) in options.indexed)
+                KoraRow(
+                  topLine: i == 0,
+                  onTap: () { Navigator.pop(sheetCtx, mode); },
+                  children: [
+                    Text(label.toUpperCase(),
+                        style: kLabel(
+                            _sortMode == mode
+                                ? AppColors.textPrimary
+                                : AppColors.textSecondary,
+                            size: 12.5, tracking: 0.06)),
+                    const Spacer(),
+                    if (_sortMode == mode)
+                      Text('✓', style: kMonoText(AppColors.textPrimary, size: 12)),
+                  ],
+                ),
+              const SizedBox(height: 14),
+            ],
+          ),
         ),
       ),
     ).then((selected) {
