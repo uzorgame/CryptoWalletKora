@@ -8,7 +8,6 @@ KORA Mobile/            Flutter wallet for Android and iOS
   lib/core/widgets/     the parts every screen is built from: rows, fields, buttons, the mark
   lib/core/blockchain/  keys, chains, signing — the part that must never be broken casually
   lib/features/         one folder per screen
-  design/prototype/     the approved prototype this interface was built from
   docs/                 what it is, in English and Ukrainian
 
 KORA PC/
@@ -48,14 +47,12 @@ screens without being changed in the one place that decides it.
 
 ## Running the design prototypes
 
-Each product keeps the prototype its interface was approved from, so a question about
-intended behaviour has an answer that can be opened rather than remembered. The mobile
-prototype shows both phones side by side: the app as it was, and the redesign.
+Each Windows product keeps the prototype its interface was approved from, so a question
+about intended behaviour has an answer that can be opened rather than remembered.
 
 ```bash
 node "KORA PC/MARKET/design/server.mjs"        # localhost:5182
 node "KORA PC/WALLET/design/server.mjs"        # localhost:5183
-node "KORA Mobile/design/prototype/server.mjs" # localhost:5184
 ```
 
 ## Before the first build
